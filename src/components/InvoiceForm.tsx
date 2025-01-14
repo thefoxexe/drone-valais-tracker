@@ -29,7 +29,7 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
     defaultValues: invoice || {
       invoice_number: "",
       client_name: "",
-      amount: "",
+      amount: 0,
     },
   });
 
@@ -114,7 +114,10 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
               id="amount"
               type="number"
               step="0.01"
-              {...register("amount", { required: "Ce champ est requis" })}
+              {...register("amount", { 
+                required: "Ce champ est requis",
+                valueAsNumber: true 
+              })}
             />
             {errors.amount && (
               <p className="text-sm text-red-500">{errors.amount.message}</p>
