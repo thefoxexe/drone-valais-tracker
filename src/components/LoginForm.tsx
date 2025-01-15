@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { Eye, EyeOff } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 export const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -10,22 +12,41 @@ export const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // TODO: Implement Firebase authentication
-      toast({
-        title: "Connexion réussie",
-        description: "Bienvenue sur Drone Valais Production",
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Erreur de connexion",
+          description: error.message === "Invalid login credentials" 
+            ? "Email ou mot de passe incorrect"
+            : error.message,
+        });
+        return;
+      }
+
+      if (data.user) {
+        toast({
+          title: "Connexion réussie",
+          description: "Bienvenue sur Drone Valais Production",
+        });
+        navigate("/");
+      }
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Erreur de connexion",
-        description: "Veuillez vérifier vos identifiants",
+        description: "Une erreur inattendue s'est produite",
       });
     } finally {
       setIsLoading(false);
