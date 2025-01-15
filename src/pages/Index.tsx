@@ -2,7 +2,7 @@ import { Auth } from "@supabase/auth-ui-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Theme } from "@/components/ThemeProvider";
+import { ThemeSupa } from '@supabase/auth-ui-shared'
 
 const Index = () => {
   const navigate = useNavigate();
@@ -35,7 +35,7 @@ const Index = () => {
         <Auth
           supabaseClient={supabase}
           appearance={{
-            theme: 'dark' as Theme,
+            theme: ThemeSupa,
             style: {
               button: {
                 background: 'hsl(var(--primary))',
