@@ -82,11 +82,6 @@ export const LoginForm = () => {
           {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
         </button>
       </div>
-      <div className="flex justify-end">
-        <a href="#" className="text-sm text-white/70 hover:text-white">
-          Mot de passe oublié?
-        </a>
-      </div>
       <Button
         type="submit"
         className="w-full bg-white text-primary hover:bg-white/90"
