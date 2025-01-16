@@ -15,6 +15,7 @@ interface InvoiceFormProps {
     invoice_number: string;
     client_name: string;
     amount: number;
+    invoice_date?: string;
     pdf_path?: string;
   };
 }
@@ -26,10 +27,11 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
   const { toast } = useToast();
 
   const { register, handleSubmit, formState: { errors } } = useForm({
-    defaultValues: invoice || {
-      invoice_number: "",
-      client_name: "",
-      amount: 0,
+    defaultValues: {
+      invoice_number: invoice?.invoice_number || "",
+      client_name: invoice?.client_name || "",
+      amount: invoice?.amount || 0,
+      invoice_date: invoice?.invoice_date ? new Date(invoice.invoice_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     },
   });
 
@@ -121,6 +123,18 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
             />
             {errors.amount && (
               <p className="text-sm text-red-500">{errors.amount.message}</p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="invoice_date">Date de la facture</Label>
+            <Input
+              id="invoice_date"
+              type="date"
+              {...register("invoice_date", { required: "Ce champ est requis" })}
+            />
+            {errors.invoice_date && (
+              <p className="text-sm text-red-500">{errors.invoice_date.message}</p>
             )}
           </div>
 
