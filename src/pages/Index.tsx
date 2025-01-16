@@ -42,7 +42,11 @@ const Index = () => {
     >
       <div className="w-full max-w-md p-8 rounded-xl backdrop-blur-sm bg-background/30 shadow-2xl">
         <div className="text-center mb-8">
-          <img src="/logo.png" alt="Logo" className="h-20 w-auto mx-auto mb-4" />
+          <img 
+            src="/lovable-uploads/e2ad46c3-367b-4223-acfa-1217eaef449a.png" 
+            alt="Logo" 
+            className="h-20 w-auto mx-auto mb-4" 
+          />
           <h1 className="text-3xl font-bold text-white mb-2">Drone Valais Production</h1>
           <p className="text-white/70">Connectez-vous à votre compte</p>
         </div>
@@ -57,9 +61,10 @@ const Index = () => {
                 borderRadius: '0.5rem',
               },
               input: {
-                background: 'transparent',
+                background: 'rgba(255, 255, 255, 0.1)',
                 borderRadius: '0.5rem',
                 border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: 'white',
               },
               anchor: {
                 color: 'white',
@@ -68,10 +73,13 @@ const Index = () => {
                 color: 'white',
               },
             },
+            className: {
+              input: 'text-white placeholder-white/50',
+            },
           }}
           providers={[]}
           view="sign_in"
-          showLinks={true}
+          showLinks={false}
           localization={{
             variables: {
               sign_in: {
@@ -81,16 +89,6 @@ const Index = () => {
                 loading_button_label: 'Connexion en cours...',
                 email_input_placeholder: 'Votre adresse email',
                 password_input_placeholder: 'Votre mot de passe',
-                link_text: "Vous n'avez pas de compte ? Inscrivez-vous",
-              },
-              sign_up: {
-                email_label: 'Adresse email',
-                password_label: 'Mot de passe',
-                button_label: "S'inscrire",
-                loading_button_label: 'Inscription en cours...',
-                email_input_placeholder: 'Votre adresse email',
-                password_input_placeholder: 'Choisissez un mot de passe',
-                link_text: "Vous avez déjà un compte ? Connectez-vous",
               },
             },
           }}
