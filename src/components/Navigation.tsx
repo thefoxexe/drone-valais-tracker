@@ -24,17 +24,18 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="border-b">
+    <nav className="border-b border-white/10 bg-background/80 backdrop-blur-sm">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <img src="/logo.png" alt="Logo" className="h-10 w-auto" />
-          <h1 className="text-2xl font-bold">Drone Valais Production</h1>
+          <h1 className="text-2xl font-bold text-white">Drone Valais Production</h1>
         </div>
         <div className="flex items-center space-x-4">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="text-white hover:text-white/80"
           >
             {theme === "dark" ? (
               <Sun className="h-5 w-5" />
@@ -42,7 +43,7 @@ export const Navigation = () => {
               <Moon className="h-5 w-5" />
             )}
           </Button>
-          <Button onClick={handleLogout} variant="ghost" size="icon">
+          <Button onClick={handleLogout} variant="ghost" size="icon" className="text-white hover:text-white/80">
             <LogOut className="h-5 w-5" />
           </Button>
         </div>

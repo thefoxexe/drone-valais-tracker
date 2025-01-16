@@ -33,8 +33,13 @@ const Index = () => {
   }, [navigate, toast]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat" 
-         style={{ backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&q=80')" }}>
+    <div 
+      className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat relative" 
+      style={{ 
+        backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/lovable-uploads/deccad97-d3eb-4324-b51b-6bde7ebac742.png')",
+        backgroundAttachment: "fixed"
+      }}
+    >
       <div className="w-full max-w-md p-8 rounded-xl backdrop-blur-sm bg-background/30 shadow-2xl">
         <div className="text-center mb-8">
           <img src="/logo.png" alt="Logo" className="h-20 w-auto mx-auto mb-4" />
@@ -55,6 +60,12 @@ const Index = () => {
                 background: 'transparent',
                 borderRadius: '0.5rem',
                 border: '1px solid rgba(255, 255, 255, 0.2)',
+              },
+              anchor: {
+                color: 'white',
+              },
+              label: {
+                color: 'white',
               },
             },
           }}
