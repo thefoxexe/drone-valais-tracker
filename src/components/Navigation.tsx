@@ -11,16 +11,29 @@ export const Navigation = () => {
   const { toast } = useToast();
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Logout error:", error);
+        toast({
+          title: "Erreur",
+          description: "Une erreur est survenue lors de la déconnexion",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Force navigation to login page even if there's an error
+      navigate("/login");
+      
       toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la déconnexion",
-        variant: "destructive",
+        title: "Déconnexion réussie",
+        description: "Vous avez été déconnecté avec succès",
       });
-      return;
+    } catch (error) {
+      console.error("Unexpected error during logout:", error);
+      navigate("/login");
     }
-    navigate("/login");
   };
 
   return (
