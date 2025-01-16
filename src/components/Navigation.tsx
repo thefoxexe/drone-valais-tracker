@@ -4,14 +4,38 @@ import { useTheme } from "@/components/ThemeProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "./ui/use-toast";
+import { useEffect, useState } from "react";
 
 export const Navigation = () => {
   const { setTheme, theme } = useTheme();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleLogout = async () => {
     try {
+      // If there's no session, just redirect to login
+      if (!session) {
+        navigate("/login");
+        return;
+      }
+
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error("Logout error:", error);
@@ -20,16 +44,17 @@ export const Navigation = () => {
           description: "Une erreur est survenue lors de la déconnexion",
           variant: "destructive",
         });
-        return;
       }
       
-      // Force navigation to login page even if there's an error
+      // Always navigate to login page
       navigate("/login");
       
-      toast({
-        title: "Déconnexion réussie",
-        description: "Vous avez été déconnecté avec succès",
-      });
+      if (!error) {
+        toast({
+          title: "Déconnexion réussie",
+          description: "Vous avez été déconnecté avec succès",
+        });
+      }
     } catch (error) {
       console.error("Unexpected error during logout:", error);
       navigate("/login");
