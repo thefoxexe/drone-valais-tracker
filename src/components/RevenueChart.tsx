@@ -9,9 +9,23 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const RevenueChart = () => {
-  const { data: monthlyRevenue } = useQuery({
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        navigate("/login");
+      }
+    });
+  }, [navigate]);
+
+  const { data: monthlyRevenue, isError } = useQuery({
     queryKey: ["monthly-revenue"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -19,7 +33,14 @@ export const RevenueChart = () => {
         .select("amount, invoice_date")
         .order("invoice_date", { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les données du graphique",
+          variant: "destructive",
+        });
+        throw error;
+      }
 
       const monthlyData = data.reduce((acc: any[], invoice) => {
         const date = new Date(invoice.invoice_date);
@@ -40,6 +61,21 @@ export const RevenueChart = () => {
       return monthlyData;
     },
   });
+
+  if (isError) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Évolution du chiffre d'affaires</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-muted-foreground">
+            Une erreur est survenue lors du chargement des données
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
