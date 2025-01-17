@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface InvoiceFormProps {
   onClose: () => void;
@@ -25,6 +26,24 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check authentication status when component mounts
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          variant: "destructive",
+          title: "Session expirée",
+          description: "Veuillez vous reconnecter",
+        });
+        navigate("/login");
+      }
+    };
+    
+    checkAuth();
+  }, [navigate, toast]);
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
@@ -38,11 +57,16 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
-      // Get the current user's ID
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!user) {
-        throw new Error("User not authenticated");
+      if (!session) {
+        toast({
+          variant: "destructive",
+          title: "Session expirée",
+          description: "Veuillez vous reconnecter",
+        });
+        navigate("/login");
+        return;
       }
 
       let pdfPath = invoice?.pdf_path;
@@ -61,13 +85,13 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
       if (invoice?.id) {
         const { error } = await supabase
           .from('invoices')
-          .update({ ...data, pdf_path: pdfPath, user_id: user.id })
+          .update({ ...data, pdf_path: pdfPath, user_id: session.user.id })
           .eq('id', invoice.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('invoices')
-          .insert([{ ...data, pdf_path: pdfPath, user_id: user.id }]);
+          .insert([{ ...data, pdf_path: pdfPath, user_id: session.user.id }]);
         if (error) throw error;
       }
 
