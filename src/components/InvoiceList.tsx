@@ -18,9 +18,11 @@ interface Invoice {
 
 interface InvoiceListProps {
   invoices: Invoice[];
+  onEdit?: (invoice: Invoice) => void;
+  onNew?: () => void;
 }
 
-export const InvoiceList = ({ invoices }: InvoiceListProps) => {
+export const InvoiceList = ({ invoices, onEdit, onNew }: InvoiceListProps) => {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -114,7 +116,7 @@ export const InvoiceList = ({ invoices }: InvoiceListProps) => {
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => setEditingInvoice(invoice)}
+                    onClick={() => onEdit ? onEdit(invoice) : setEditingInvoice(invoice)}
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>

@@ -30,6 +30,7 @@ const Dashboard = () => {
           />
         )}
         <InvoiceList
+          invoices={[]}
           onEdit={(invoice) => {
             setSelectedInvoice(invoice);
             setShowInvoiceForm(true);
