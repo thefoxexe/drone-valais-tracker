@@ -19,6 +19,7 @@ export type Database = {
           invoice_number: string
           pdf_path: string | null
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           amount: number
@@ -29,6 +30,7 @@ export type Database = {
           invoice_number: string
           pdf_path?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           amount?: number
@@ -39,6 +41,7 @@ export type Database = {
           invoice_number?: string
           pdf_path?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }

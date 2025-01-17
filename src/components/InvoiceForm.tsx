@@ -38,6 +38,13 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
+      // Get the current user's ID
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
       let pdfPath = invoice?.pdf_path;
 
       if (selectedFile) {
@@ -54,13 +61,13 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
       if (invoice?.id) {
         const { error } = await supabase
           .from('invoices')
-          .update({ ...data, pdf_path: pdfPath })
+          .update({ ...data, pdf_path: pdfPath, user_id: user.id })
           .eq('id', invoice.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('invoices')
-          .insert([{ ...data, pdf_path: pdfPath }]);
+          .insert([{ ...data, pdf_path: pdfPath, user_id: user.id }]);
         if (error) throw error;
       }
 
