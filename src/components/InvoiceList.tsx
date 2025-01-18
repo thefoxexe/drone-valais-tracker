@@ -6,6 +6,7 @@ import { InvoiceForm } from "./InvoiceForm";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 
 interface Invoice {
   id: string;
@@ -112,7 +113,12 @@ export const InvoiceList = ({ invoices, isQuote }: InvoiceListProps) => {
           </TableHeader>
           <TableBody>
             {invoices.map((invoice) => (
-              <TableRow key={invoice.id}>
+              <TableRow 
+                key={invoice.id}
+                className={cn(
+                  invoice.status === 'rejected' && "line-through opacity-50"
+                )}
+              >
                 <TableCell>{invoice.invoice_number}</TableCell>
                 <TableCell>{invoice.client_name}</TableCell>
                 <TableCell>
@@ -125,7 +131,7 @@ export const InvoiceList = ({ invoices, isQuote }: InvoiceListProps) => {
                   {new Date(invoice.invoice_date).toLocaleDateString('fr-CH')}
                 </TableCell>
                 <TableCell className="text-right space-x-2">
-                  {isQuote && (
+                  {isQuote && invoice.status === 'pending' && (
                     <>
                       <Button
                         variant="outline"

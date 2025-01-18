@@ -58,10 +58,10 @@ const Dashboard = () => {
   });
 
   const invoices = allInvoices?.filter(invoice => invoice.status === 'approved') || [];
-  const quotes = allInvoices?.filter(invoice => invoice.status === 'pending') || [];
+  const quotes = allInvoices?.filter(invoice => invoice.status === 'pending' || invoice.status === 'rejected') || [];
   const totalRevenue = invoices.reduce((sum, invoice) => sum + Number(invoice.amount), 0);
   const totalInvoices = invoices.length;
-  const totalQuotes = quotes.length;
+  const totalQuotes = quotes.filter(quote => quote.status === 'pending').length;
 
   return (
     <div 
