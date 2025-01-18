@@ -18,6 +18,7 @@ interface InvoiceFormProps {
     amount: number;
     invoice_date?: string;
     pdf_path?: string;
+    status?: string;
   };
 }
 
@@ -29,7 +30,6 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check authentication status when component mounts
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -85,20 +85,30 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
       if (invoice?.id) {
         const { error } = await supabase
           .from('invoices')
-          .update({ ...data, pdf_path: pdfPath, user_id: session.user.id })
+          .update({ 
+            ...data, 
+            pdf_path: pdfPath, 
+            user_id: session.user.id,
+            status: invoice.status || 'pending'
+          })
           .eq('id', invoice.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('invoices')
-          .insert([{ ...data, pdf_path: pdfPath, user_id: session.user.id }]);
+          .insert([{ 
+            ...data, 
+            pdf_path: pdfPath, 
+            user_id: session.user.id,
+            status: 'pending'
+          }]);
         if (error) throw error;
       }
 
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       toast({
         title: "Succès",
-        description: invoice ? "Facture mise à jour" : "Facture créée",
+        description: invoice ? "Document mis à jour" : "Devis créé",
       });
       onClose();
     } catch (error: any) {
@@ -115,12 +125,12 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle>{invoice ? "Modifier la facture" : "Nouvelle facture"}</CardTitle>
+        <CardTitle>{invoice ? "Modifier le document" : "Nouveau devis"}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <Label htmlFor="invoice_number">Numéro de facture</Label>
+            <Label htmlFor="invoice_number">Numéro de {invoice?.status === 'approved' ? 'facture' : 'devis'}</Label>
             <Input
               id="invoice_number"
               {...register("invoice_number", { required: "Ce champ est requis" })}
@@ -158,7 +168,7 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
           </div>
 
           <div>
-            <Label htmlFor="invoice_date">Date de la facture</Label>
+            <Label htmlFor="invoice_date">Date</Label>
             <Input
               id="invoice_date"
               type="date"
@@ -170,7 +180,7 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
           </div>
 
           <div>
-            <Label htmlFor="pdf">PDF de la facture</Label>
+            <Label htmlFor="pdf">PDF du {invoice?.status === 'approved' ? 'facture' : 'devis'}</Label>
             <Input
               id="pdf"
               type="file"

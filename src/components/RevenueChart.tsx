@@ -31,6 +31,7 @@ export const RevenueChart = () => {
       const { data, error } = await supabase
         .from("invoices")
         .select("amount, invoice_date")
+        .eq('status', 'approved')
         .order("invoice_date", { ascending: true });
 
       if (error) {

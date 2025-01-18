@@ -1,6 +1,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, Download } from "lucide-react";
+import { Pencil, Trash2, Download, CheckCircle, XCircle } from "lucide-react";
 import { useState } from "react";
 import { InvoiceForm } from "./InvoiceForm";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,13 +14,15 @@ interface Invoice {
   amount: number;
   invoice_date: string;
   pdf_path?: string;
+  status: string;
 }
 
 interface InvoiceListProps {
   invoices: Invoice[];
+  isQuote: boolean;
 }
 
-export const InvoiceList = ({ invoices }: InvoiceListProps) => {
+export const InvoiceList = ({ invoices, isQuote }: InvoiceListProps) => {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -30,7 +32,7 @@ export const InvoiceList = ({ invoices }: InvoiceListProps) => {
     if (error) {
       toast({
         title: "Erreur",
-        description: "Impossible de supprimer la facture",
+        description: "Impossible de supprimer le document",
         variant: "destructive",
       });
       return;
@@ -38,7 +40,28 @@ export const InvoiceList = ({ invoices }: InvoiceListProps) => {
     queryClient.invalidateQueries({ queryKey: ["invoices"] });
     toast({
       title: "Succès",
-      description: "Facture supprimée",
+      description: isQuote ? "Devis supprimé" : "Facture supprimée",
+    });
+  };
+
+  const handleStatusChange = async (id: string, newStatus: 'approved' | 'rejected') => {
+    const { error } = await supabase
+      .from("invoices")
+      .update({ status: newStatus })
+      .eq("id", id);
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: `Impossible de ${newStatus === 'approved' ? 'valider' : 'rejeter'} le devis`,
+        variant: "destructive",
+      });
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ["invoices"] });
+    toast({
+      title: "Succès",
+      description: newStatus === 'approved' ? "Devis transformé en facture" : "Devis rejeté",
     });
   };
 
@@ -53,7 +76,7 @@ export const InvoiceList = ({ invoices }: InvoiceListProps) => {
       const url = URL.createObjectURL(data);
       const a = document.createElement("a");
       a.href = url;
-      a.download = pdfPath.split("/").pop() || "facture.pdf";
+      a.download = pdfPath.split("/").pop() || "document.pdf";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -80,7 +103,7 @@ export const InvoiceList = ({ invoices }: InvoiceListProps) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>N° Facture</TableHead>
+              <TableHead>N° {isQuote ? 'Devis' : 'Facture'}</TableHead>
               <TableHead>Client</TableHead>
               <TableHead>Montant</TableHead>
               <TableHead>Date</TableHead>
@@ -102,6 +125,26 @@ export const InvoiceList = ({ invoices }: InvoiceListProps) => {
                   {new Date(invoice.invoice_date).toLocaleDateString('fr-CH')}
                 </TableCell>
                 <TableCell className="text-right space-x-2">
+                  {isQuote && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleStatusChange(invoice.id, 'approved')}
+                        title="Valider le devis"
+                      >
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleStatusChange(invoice.id, 'rejected')}
+                        title="Rejeter le devis"
+                      >
+                        <XCircle className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </>
+                  )}
                   {invoice.pdf_path && (
                     <Button
                       variant="outline"

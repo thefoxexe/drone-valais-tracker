@@ -12,6 +12,7 @@ import { RevenueChart } from "@/components/RevenueChart";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Dashboard = () => {
   const [showForm, setShowForm] = useState(false);
@@ -35,7 +36,7 @@ const Dashboard = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const { data: invoices, isLoading } = useQuery({
+  const { data: allInvoices, isLoading } = useQuery({
     queryKey: ["invoices"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -56,8 +57,11 @@ const Dashboard = () => {
     },
   });
 
-  const totalRevenue = invoices?.reduce((sum, invoice) => sum + Number(invoice.amount), 0) || 0;
-  const totalInvoices = invoices?.length || 0;
+  const invoices = allInvoices?.filter(invoice => invoice.status === 'approved') || [];
+  const quotes = allInvoices?.filter(invoice => invoice.status === 'pending') || [];
+  const totalRevenue = invoices.reduce((sum, invoice) => sum + Number(invoice.amount), 0);
+  const totalInvoices = invoices.length;
+  const totalQuotes = quotes.length;
 
   return (
     <div 
@@ -118,10 +122,10 @@ const Dashboard = () => {
 
         <div className="mt-8">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-white">Factures</h2>
+            <h2 className="text-2xl font-bold text-white">Gestion des documents</h2>
             <Button onClick={() => setShowForm(true)} className="bg-white text-primary hover:bg-white/90">
               <Plus className="mr-2 h-4 w-4" />
-              Nouvelle Facture
+              Nouveau Devis
             </Button>
           </div>
 
@@ -131,7 +135,18 @@ const Dashboard = () => {
             <p className="text-white">Chargement...</p>
           ) : (
             <div className="bg-background/80 backdrop-blur-sm rounded-lg p-6 border border-white/10">
-              <InvoiceList invoices={invoices || []} />
+              <Tabs defaultValue="quotes" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="quotes">Devis ({totalQuotes})</TabsTrigger>
+                  <TabsTrigger value="invoices">Factures ({totalInvoices})</TabsTrigger>
+                </TabsList>
+                <TabsContent value="quotes">
+                  <InvoiceList invoices={quotes} isQuote={true} />
+                </TabsContent>
+                <TabsContent value="invoices">
+                  <InvoiceList invoices={invoices} isQuote={false} />
+                </TabsContent>
+              </Tabs>
             </div>
           )}
         </div>

@@ -18,6 +18,7 @@ export type Database = {
           invoice_date: string | null
           invoice_number: string
           pdf_path: string | null
+          status: string
           updated_at: string | null
           user_id: string | null
         }
@@ -29,6 +30,7 @@ export type Database = {
           invoice_date?: string | null
           invoice_number: string
           pdf_path?: string | null
+          status?: string
           updated_at?: string | null
           user_id?: string | null
         }
@@ -40,6 +42,7 @@ export type Database = {
           invoice_date?: string | null
           invoice_number?: string
           pdf_path?: string | null
+          status?: string
           updated_at?: string | null
           user_id?: string | null
         }
