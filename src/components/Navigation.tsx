@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, FilePlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "./ui/use-toast";
@@ -9,6 +9,7 @@ export const Navigation = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [session, setSession] = useState(null);
+  const [showInvoiceForm, setShowInvoiceForm] = useState(false);
 
   useEffect(() => {
     // Get initial session
@@ -67,7 +68,20 @@ export const Navigation = () => {
           <h1 className="text-2xl font-bold text-white">Drone Valais Production</h1>
         </div>
         <div className="flex items-center space-x-4">
-          <Button onClick={handleLogout} variant="ghost" size="icon" className="text-white hover:text-white/80">
+          <Button 
+            onClick={() => setShowInvoiceForm(true)} 
+            variant="ghost" 
+            size="icon" 
+            className="text-white hover:text-white/80"
+          >
+            <FilePlus className="h-5 w-5" />
+          </Button>
+          <Button 
+            onClick={handleLogout} 
+            variant="ghost" 
+            size="icon" 
+            className="text-white hover:text-white/80"
+          >
             <LogOut className="h-5 w-5" />
           </Button>
         </div>
