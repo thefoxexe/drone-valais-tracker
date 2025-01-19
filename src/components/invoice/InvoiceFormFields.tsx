@@ -1,5 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { UseFormRegister, FieldErrors } from "react-hook-form";
 
 interface InvoiceFormFieldsProps {
@@ -40,7 +41,27 @@ export const InvoiceFormFields = ({
       </div>
 
       <div>
-        <Label htmlFor="amount">Montant (CHF)</Label>
+        <Label htmlFor="description">Description détaillée</Label>
+        <Textarea
+          id="description"
+          {...register("description")}
+          placeholder="Décrivez les services ou produits..."
+          className="min-h-[100px]"
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="rate_details">Détails du tarif</Label>
+        <Textarea
+          id="rate_details"
+          {...register("rate_details")}
+          placeholder="Ex: Tarif horaire: 100 CHF/h&#10;Durée estimée: 10h&#10;Frais additionnels: 200 CHF"
+          className="min-h-[100px]"
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="amount">Montant total (CHF)</Label>
         <Input
           id="amount"
           type="number"
