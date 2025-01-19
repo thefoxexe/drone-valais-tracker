@@ -16,7 +16,6 @@ interface Invoice {
   invoice_date: string;
   pdf_path?: string;
   status: string;
-  rate_details?: Array<{ description: string; amount: number; }>;
 }
 
 interface InvoiceListProps {
@@ -67,40 +66,26 @@ export const InvoiceList = ({ invoices, isQuote }: InvoiceListProps) => {
     });
   };
 
-  const handleDownloadPDF = async (invoice: Invoice) => {
+  const handleDownload = async (pdfPath: string) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-pdf`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify(invoice),
-      });
+      const { data, error } = await supabase.storage
+        .from("invoices")
+        .download(pdfPath);
 
-      if (!response.ok) {
-        throw new Error('Erreur lors de la génération du PDF');
-      }
+      if (error) throw error;
 
-      // Créer un blob à partir de la réponse
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      
-      // Créer un lien temporaire pour télécharger le fichier
-      const a = document.createElement('a');
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
       a.href = url;
-      a.download = `${invoice.status === 'approved' ? 'facture' : 'devis'}_${invoice.invoice_number}.pdf`;
+      a.download = pdfPath.split("/").pop() || "document.pdf";
       document.body.appendChild(a);
       a.click();
-      
-      // Nettoyer
-      window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     } catch (error: any) {
-      console.error('Erreur lors du téléchargement:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de générer le PDF",
+        description: "Impossible de télécharger le PDF",
         variant: "destructive",
       });
     }
@@ -166,14 +151,15 @@ export const InvoiceList = ({ invoices, isQuote }: InvoiceListProps) => {
                       </Button>
                     </>
                   )}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleDownloadPDF(invoice)}
-                    title="Télécharger le PDF"
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
+                  {invoice.pdf_path && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleDownload(invoice.pdf_path!)}
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="icon"

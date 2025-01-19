@@ -14,12 +14,10 @@ export type Database = {
           amount: number
           client_name: string
           created_at: string | null
-          description: string | null
           id: string
           invoice_date: string | null
           invoice_number: string
           pdf_path: string | null
-          rate_details: Json | null
           status: string
           updated_at: string | null
           user_id: string | null
@@ -28,12 +26,10 @@ export type Database = {
           amount: number
           client_name: string
           created_at?: string | null
-          description?: string | null
           id?: string
           invoice_date?: string | null
           invoice_number: string
           pdf_path?: string | null
-          rate_details?: Json | null
           status?: string
           updated_at?: string | null
           user_id?: string | null
@@ -42,12 +38,10 @@ export type Database = {
           amount?: number
           client_name?: string
           created_at?: string | null
-          description?: string | null
           id?: string
           invoice_date?: string | null
           invoice_number?: string
           pdf_path?: string | null
-          rate_details?: Json | null
           status?: string
           updated_at?: string | null
           user_id?: string | null

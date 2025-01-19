@@ -13,7 +13,6 @@ interface InvoiceFormProps {
     invoice_date?: string;
     pdf_path?: string;
     status?: string;
-    services?: Array<{ description: string; amount: number; }>;
   };
 }
 
@@ -21,10 +20,10 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
   const {
     register,
     handleSubmit,
-    control,
     errors,
     isSubmitting,
     onSubmit,
+    setSelectedFile,
   } = useInvoiceForm({ onClose, invoice });
 
   return (
@@ -36,9 +35,9 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <InvoiceFormFields
             register={register}
-            control={control}
             errors={errors}
             isQuote={!invoice?.status || invoice.status !== 'approved'}
+            onFileChange={setSelectedFile}
           />
           <InvoiceFormActions
             onClose={onClose}

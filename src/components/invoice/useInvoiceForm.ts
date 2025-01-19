@@ -15,22 +15,22 @@ interface UseInvoiceFormProps {
     invoice_date?: string;
     pdf_path?: string;
     status?: string;
-    rate_details?: Array<{ description: string; amount: number; }>;
   };
 }
 
 export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const { register, handleSubmit, control, formState: { errors } } = useForm({
+  const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
       invoice_number: invoice?.invoice_number || "",
       client_name: invoice?.client_name || "",
+      amount: invoice?.amount || 0,
       invoice_date: invoice?.invoice_date ? new Date(invoice.invoice_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      rate_details: invoice?.rate_details || [{ description: "", amount: 0 }]
     },
   });
 
@@ -65,31 +65,39 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
         return;
       }
 
-      // Calculer le montant total avec TVA
-      const subtotal = data.rate_details.reduce((sum: number, service: { amount: number }) => 
-        sum + (service.amount || 0), 0);
-      const total = subtotal * 1.082; // Ajout de la TVA de 8.2%
+      let pdfPath = invoice?.pdf_path;
 
-      const invoiceData = {
-        invoice_number: data.invoice_number,
-        client_name: data.client_name,
-        invoice_date: data.invoice_date,
-        rate_details: data.rate_details,
-        amount: total,
-        user_id: session.user.id,
-        status: invoice?.status || 'pending'
-      };
+      if (selectedFile) {
+        const fileExt = selectedFile.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('invoices')
+          .upload(fileName, selectedFile);
+
+        if (uploadError) throw uploadError;
+        pdfPath = fileName;
+      }
 
       if (invoice?.id) {
         const { error } = await supabase
           .from('invoices')
-          .update(invoiceData)
+          .update({ 
+            ...data, 
+            pdf_path: pdfPath, 
+            user_id: session.user.id,
+            status: invoice.status || 'pending'
+          })
           .eq('id', invoice.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('invoices')
-          .insert([invoiceData]);
+          .insert([{ 
+            ...data, 
+            pdf_path: pdfPath, 
+            user_id: session.user.id,
+            status: 'pending'
+          }]);
         if (error) throw error;
       }
 
@@ -113,9 +121,9 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
   return {
     register,
     handleSubmit,
-    control,
     errors,
     isSubmitting,
     onSubmit,
+    setSelectedFile,
   };
 };
