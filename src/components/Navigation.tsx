@@ -64,23 +64,18 @@ export const Navigation = () => {
 
   return (
     <>
-      <nav className="border-b border-white/10 bg-background/80 backdrop-blur-sm fixed w-full top-0 z-50 animate-fade-in">
+      <nav className="border-b border-white/10 bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4 hover:opacity-80 transition-opacity">
-            <img src="/lovable-uploads/e2ad46c3-367b-4223-acfa-1217eaef449a.png" alt="Logo" className="h-12 w-auto hover:scale-105 transition-transform" />
-            <div className="flex flex-col">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent">
-                Drone Valais Production
-              </h1>
-              <p className="text-sm text-muted-foreground">Gestion des factures</p>
-            </div>
+          <div className="flex items-center space-x-4">
+            <img src="/lovable-uploads/e2ad46c3-367b-4223-acfa-1217eaef449a.png" alt="Logo" className="h-10 w-auto" />
+            <h1 className="text-2xl font-bold text-white">Drone Valais Production</h1>
           </div>
           <div className="flex items-center space-x-4">
             <Button 
               onClick={() => setShowInvoiceForm(true)} 
               variant="ghost" 
               size="icon" 
-              className="text-white hover:text-white/80 hover:scale-105 transition-all duration-200"
+              className="text-white hover:text-white/80"
             >
               <FilePlus className="h-5 w-5" />
             </Button>
@@ -88,7 +83,7 @@ export const Navigation = () => {
               onClick={handleLogout} 
               variant="ghost" 
               size="icon" 
-              className="text-white hover:text-white/80 hover:scale-105 transition-all duration-200"
+              className="text-white hover:text-white/80"
             >
               <LogOut className="h-5 w-5" />
             </Button>
@@ -97,11 +92,9 @@ export const Navigation = () => {
       </nav>
 
       <Sheet open={showInvoiceForm} onOpenChange={setShowInvoiceForm}>
-        <SheetContent className="w-full sm:max-w-xl overflow-y-auto bg-background/95 backdrop-blur-sm border-l border-white/10">
+        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
           <SheetHeader>
-            <SheetTitle className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent">
-              Nouveau devis
-            </SheetTitle>
+            <SheetTitle>Nouveau devis</SheetTitle>
           </SheetHeader>
           <div className="mt-6">
             <InvoiceForm onClose={() => setShowInvoiceForm(false)} />
