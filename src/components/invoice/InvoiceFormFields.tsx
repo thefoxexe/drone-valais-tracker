@@ -37,7 +37,13 @@ export const InvoiceFormFields = ({
     };
   };
 
-  const totals = calculateTotal(fields as ServiceLine[]);
+  // Convert fields to ServiceLine[] type with proper shape
+  const serviceLines: ServiceLine[] = fields.map(field => ({
+    description: (field as any).description || "",
+    amount: (field as any).amount || 0
+  }));
+
+  const totals = calculateTotal(serviceLines);
 
   return (
     <>
