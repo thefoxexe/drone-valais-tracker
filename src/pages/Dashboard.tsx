@@ -13,6 +13,33 @@ import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Json } from "@/integrations/supabase/types";
+
+interface RawInvoice {
+  id: string;
+  invoice_number: string;
+  client_name: string;
+  amount: number;
+  invoice_date: string;
+  pdf_path: string | null;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  status: string;
+  description: string | null;
+  rate_details: Json | null;
+}
+
+interface Invoice {
+  id: string;
+  invoice_number: string;
+  client_name: string;
+  amount: number;
+  invoice_date: string;
+  pdf_path?: string;
+  status: string;
+  rate_details?: Array<{ description: string; amount: number; }>;
+}
 
 const Dashboard = () => {
   const [showForm, setShowForm] = useState(false);
@@ -36,7 +63,7 @@ const Dashboard = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const { data: allInvoices, isLoading } = useQuery({
+  const { data: rawInvoices, isLoading } = useQuery({
     queryKey: ["invoices"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -53,12 +80,27 @@ const Dashboard = () => {
         throw error;
       }
 
-      return data;
+      return data as RawInvoice[];
     },
   });
 
-  const invoices = allInvoices?.filter(invoice => invoice.status === 'approved') || [];
-  const quotes = allInvoices?.filter(invoice => invoice.status === 'pending' || invoice.status === 'rejected') || [];
+  // Transform raw invoices into the expected Invoice type
+  const transformInvoices = (rawInvoices: RawInvoice[]): Invoice[] => {
+    return rawInvoices.map(invoice => ({
+      id: invoice.id,
+      invoice_number: invoice.invoice_number,
+      client_name: invoice.client_name,
+      amount: invoice.amount,
+      invoice_date: invoice.invoice_date,
+      pdf_path: invoice.pdf_path || undefined,
+      status: invoice.status,
+      rate_details: invoice.rate_details as Array<{ description: string; amount: number; }> || undefined
+    }));
+  };
+
+  const allInvoices = rawInvoices ? transformInvoices(rawInvoices) : [];
+  const invoices = allInvoices.filter(invoice => invoice.status === 'approved');
+  const quotes = allInvoices.filter(invoice => invoice.status === 'pending' || invoice.status === 'rejected');
   const totalRevenue = invoices.reduce((sum, invoice) => sum + Number(invoice.amount), 0);
   const totalInvoices = invoices.length;
   const totalQuotes = quotes.filter(quote => quote.status === 'pending').length;
