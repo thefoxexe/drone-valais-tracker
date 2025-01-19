@@ -1,21 +1,44 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { UseFormRegister, FieldErrors } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Plus, Trash2 } from "lucide-react";
+import { UseFormRegister, FieldErrors, useFieldArray, Control } from "react-hook-form";
+
+interface ServiceLine {
+  description: string;
+  amount: number;
+}
 
 interface InvoiceFormFieldsProps {
   register: UseFormRegister<any>;
+  control: Control<any>;
   errors: FieldErrors;
   isQuote: boolean;
-  onFileChange: (file: File | null) => void;
 }
 
 export const InvoiceFormFields = ({ 
   register, 
-  errors, 
+  control,
+  errors,
   isQuote,
-  onFileChange 
 }: InvoiceFormFieldsProps) => {
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "services"
+  });
+
+  const calculateTotal = (services: ServiceLine[]) => {
+    const subtotal = services.reduce((sum, service) => sum + (service.amount || 0), 0);
+    const tva = subtotal * 0.082; // 8.2% TVA
+    return {
+      subtotal: subtotal.toFixed(2),
+      tva: tva.toFixed(2),
+      total: (subtotal + tva).toFixed(2)
+    };
+  };
+
+  const totals = calculateTotal(fields);
+
   return (
     <>
       <div>
@@ -41,39 +64,74 @@ export const InvoiceFormFields = ({
       </div>
 
       <div>
-        <Label htmlFor="description">Description détaillée</Label>
-        <Textarea
-          id="description"
-          {...register("description")}
-          placeholder="Décrivez les services ou produits..."
-          className="min-h-[100px]"
-        />
+        <Label>Services</Label>
+        {fields.map((field, index) => (
+          <div key={field.id} className="flex gap-4 mt-2">
+            <div className="flex-grow">
+              <Input
+                placeholder="Description du service"
+                {...register(`services.${index}.description`, { 
+                  required: "Description requise" 
+                })}
+              />
+              {errors.services?.[index]?.description && (
+                <p className="text-sm text-red-500">
+                  {errors.services[index].description?.message as string}
+                </p>
+              )}
+            </div>
+            <div className="w-32">
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="Montant"
+                {...register(`services.${index}.amount`, { 
+                  required: "Montant requis",
+                  valueAsNumber: true,
+                  min: { value: 0, message: "Le montant doit être positif" }
+                })}
+              />
+              {errors.services?.[index]?.amount && (
+                <p className="text-sm text-red-500">
+                  {errors.services[index].amount?.message as string}
+                </p>
+              )}
+            </div>
+            <Button
+              type="button"
+              variant="destructive"
+              size="icon"
+              onClick={() => remove(index)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="mt-2"
+          onClick={() => append({ description: "", amount: 0 })}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Ajouter un service
+        </Button>
       </div>
 
-      <div>
-        <Label htmlFor="rate_details">Détails du tarif</Label>
-        <Textarea
-          id="rate_details"
-          {...register("rate_details")}
-          placeholder="Ex: Tarif horaire: 100 CHF/h&#10;Durée estimée: 10h&#10;Frais additionnels: 200 CHF"
-          className="min-h-[100px]"
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="amount">Montant total (CHF)</Label>
-        <Input
-          id="amount"
-          type="number"
-          step="0.01"
-          {...register("amount", { 
-            required: "Ce champ est requis",
-            valueAsNumber: true 
-          })}
-        />
-        {errors.amount && (
-          <p className="text-sm text-red-500">{errors.amount.message as string}</p>
-        )}
+      <div className="space-y-2 mt-4">
+        <div className="flex justify-between">
+          <span>Sous-total:</span>
+          <span>CHF {totals.subtotal}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>TVA (8.2%):</span>
+          <span>CHF {totals.tva}</span>
+        </div>
+        <div className="flex justify-between font-bold">
+          <span>Total:</span>
+          <span>CHF {totals.total}</span>
+        </div>
       </div>
 
       <div>
@@ -86,16 +144,6 @@ export const InvoiceFormFields = ({
         {errors.invoice_date && (
           <p className="text-sm text-red-500">{errors.invoice_date.message as string}</p>
         )}
-      </div>
-
-      <div>
-        <Label htmlFor="pdf">PDF du {isQuote ? 'devis' : 'facture'}</Label>
-        <Input
-          id="pdf"
-          type="file"
-          accept=".pdf"
-          onChange={(e) => onFileChange(e.target.files?.[0] || null)}
-        />
       </div>
     </>
   );
