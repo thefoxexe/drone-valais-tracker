@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import { Json } from "@/integrations/supabase/types";
 
 interface Invoice {
   id: string;
@@ -16,6 +17,11 @@ interface Invoice {
   invoice_date: string;
   pdf_path?: string;
   status: string;
+  created_at?: string;
+  updated_at?: string;
+  user_id?: string;
+  description?: string;
+  rate_details?: Json;
 }
 
 interface InvoiceListProps {
