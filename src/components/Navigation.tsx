@@ -6,37 +6,50 @@ import { useToast } from "./ui/use-toast";
 import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { InvoiceForm } from "./InvoiceForm";
+import { Session } from "@supabase/supabase-js";
 
 export const Navigation = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [showInvoiceForm, setShowInvoiceForm] = useState(false);
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    supabase.auth.getSession().then(({ data: { session: currentSession }, error }) => {
+      if (error) {
+        console.error("Error getting session:", error);
+        navigate("/login");
+        return;
+      }
+      if (!currentSession) {
+        navigate("/login");
+        return;
+      }
+      setSession(currentSession);
     });
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+    } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+      if (event === 'TOKEN_REFRESHED') {
+        setSession(currentSession);
+      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+        setSession(null);
+        navigate("/login");
+      } else if (event === 'USER_UPDATED') {
+        setSession(currentSession);
+      }
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   const handleLogout = async () => {
     try {
-      // If there's no session, just redirect to login
-      if (!session) {
-        navigate("/login");
-        return;
-      }
-
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error("Logout error:", error);
@@ -45,22 +58,25 @@ export const Navigation = () => {
           description: "Une erreur est survenue lors de la déconnexion",
           variant: "destructive",
         });
+        return;
       }
       
-      // Always navigate to login page
+      toast({
+        title: "Déconnexion réussie",
+        description: "Vous avez été déconnecté avec succès",
+      });
+      
       navigate("/login");
-      
-      if (!error) {
-        toast({
-          title: "Déconnexion réussie",
-          description: "Vous avez été déconnecté avec succès",
-        });
-      }
     } catch (error) {
       console.error("Unexpected error during logout:", error);
       navigate("/login");
     }
   };
+
+  // If no session, don't render the navigation
+  if (!session) {
+    return null;
+  }
 
   return (
     <>
