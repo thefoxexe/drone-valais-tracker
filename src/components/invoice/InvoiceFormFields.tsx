@@ -24,7 +24,7 @@ export const InvoiceFormFields = ({
 }: InvoiceFormFieldsProps) => {
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "services"
+    name: "rate_details"
   });
 
   const calculateTotal = (services: ServiceLine[]) => {
@@ -37,7 +37,7 @@ export const InvoiceFormFields = ({
     };
   };
 
-  const totals = calculateTotal(fields);
+  const totals = calculateTotal(fields as ServiceLine[]);
 
   return (
     <>
@@ -70,13 +70,13 @@ export const InvoiceFormFields = ({
             <div className="flex-grow">
               <Input
                 placeholder="Description du service"
-                {...register(`services.${index}.description`, { 
+                {...register(`rate_details.${index}.description`, { 
                   required: "Description requise" 
                 })}
               />
-              {errors.services?.[index]?.description && (
+              {errors.rate_details?.[index]?.description && (
                 <p className="text-sm text-red-500">
-                  {errors.services[index].description?.message as string}
+                  {errors.rate_details[index].description?.message as string}
                 </p>
               )}
             </div>
@@ -85,15 +85,15 @@ export const InvoiceFormFields = ({
                 type="number"
                 step="0.01"
                 placeholder="Montant"
-                {...register(`services.${index}.amount`, { 
+                {...register(`rate_details.${index}.amount`, { 
                   required: "Montant requis",
                   valueAsNumber: true,
                   min: { value: 0, message: "Le montant doit être positif" }
                 })}
               />
-              {errors.services?.[index]?.amount && (
+              {errors.rate_details?.[index]?.amount && (
                 <p className="text-sm text-red-500">
-                  {errors.services[index].amount?.message as string}
+                  {errors.rate_details[index].amount?.message as string}
                 </p>
               )}
             </div>

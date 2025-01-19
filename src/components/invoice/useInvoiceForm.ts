@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +15,7 @@ interface UseInvoiceFormProps {
     invoice_date?: string;
     pdf_path?: string;
     status?: string;
-    services?: Array<{ description: string; amount: number; }>;
+    rate_details?: Array<{ description: string; amount: number; }>;
   };
 }
 
@@ -30,7 +30,7 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
       invoice_number: invoice?.invoice_number || "",
       client_name: invoice?.client_name || "",
       invoice_date: invoice?.invoice_date ? new Date(invoice.invoice_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      services: invoice?.services || [{ description: "", amount: 0 }]
+      rate_details: invoice?.rate_details || [{ description: "", amount: 0 }]
     },
   });
 
@@ -66,7 +66,7 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
       }
 
       // Calculer le montant total avec TVA
-      const subtotal = data.services.reduce((sum: number, service: { amount: number }) => 
+      const subtotal = data.rate_details.reduce((sum: number, service: { amount: number }) => 
         sum + (service.amount || 0), 0);
       const total = subtotal * 1.082; // Ajout de la TVA de 8.2%
 
@@ -74,7 +74,7 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
         invoice_number: data.invoice_number,
         client_name: data.client_name,
         invoice_date: data.invoice_date,
-        services: data.services,
+        rate_details: data.rate_details,
         amount: total,
         user_id: session.user.id,
         status: invoice?.status || 'pending'
