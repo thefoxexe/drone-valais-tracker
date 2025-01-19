@@ -35,7 +35,7 @@ export const Navigation = () => {
     } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
       if (event === 'TOKEN_REFRESHED') {
         setSession(currentSession);
-      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+      } else if (event === 'SIGNED_OUT') {
         setSession(null);
         navigate("/login");
       } else if (event === 'USER_UPDATED') {
