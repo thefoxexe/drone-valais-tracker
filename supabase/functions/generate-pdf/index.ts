@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import * as pdf from 'https://deno.land/x/pdfkit@v0.3.0/mod.ts'
+import { PDFDocument, rgb, StandardFonts } from 'https://cdn.skypack.dev/pdf-lib'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,46 +23,61 @@ serve(async (req) => {
     } = data
 
     // Créer un nouveau document PDF
-    const doc = new pdf.default()
-    const chunks: Uint8Array[] = []
-
-    // Événement pour collecter les chunks de données
-    doc.on('data', (chunk: Uint8Array) => chunks.push(chunk))
+    const pdfDoc = await PDFDocument.create()
+    const page = pdfDoc.addPage()
+    const { height, width } = page.getSize()
+    
+    // Charger la police
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+    const fontSize = 12
+    
+    // Fonction helper pour ajouter du texte
+    const addText = (text: string, y: number, size = fontSize) => {
+      page.drawText(text, {
+        x: 50,
+        y: height - y,
+        size: size,
+        font: font,
+        color: rgb(0, 0, 0),
+      })
+    }
 
     // En-tête
-    doc.fontSize(20).text('DEVIS', { align: 'center' })
-    doc.moveDown()
-
+    addText('DEVIS', 50, 20)
+    
     // Informations du devis
-    doc.fontSize(12)
-    doc.text(`Numéro de devis: ${invoice_number}`)
-    doc.text(`Client: ${client_name}`)
-    doc.text(`Date: ${new Date(invoice_date).toLocaleDateString('fr-CH')}`)
-    doc.moveDown()
-
+    addText(`Numéro de devis: ${invoice_number}`, 100)
+    addText(`Client: ${client_name}`, 120)
+    addText(`Date: ${new Date(invoice_date).toLocaleDateString('fr-CH')}`, 140)
+    
     // Description
     if (description) {
-      doc.fontSize(14).text('Description', { underline: true })
-      doc.fontSize(12).text(description)
-      doc.moveDown()
+      addText('Description:', 180, 14)
+      const descriptionLines = description.split('\n')
+      let yPos = 200
+      for (const line of descriptionLines) {
+        addText(line, yPos)
+        yPos += 20
+      }
     }
 
     // Détails du tarif
     if (rate_details) {
-      doc.fontSize(14).text('Détails du tarif', { underline: true })
-      doc.fontSize(12).text(rate_details)
-      doc.moveDown()
+      addText('Détails du tarif:', 300, 14)
+      const rateLines = rate_details.split('\n')
+      let yPos = 320
+      for (const line of rateLines) {
+        addText(line, yPos)
+        yPos += 20
+      }
     }
 
     // Montant total
-    doc.fontSize(14).text('Montant total', { underline: true })
-    doc.fontSize(12).text(`${amount.toLocaleString('fr-CH')} CHF`)
+    addText('Montant total:', 400, 14)
+    addText(`${amount.toLocaleString('fr-CH')} CHF`, 420)
 
-    // Finaliser le document
-    doc.end()
-
-    // Convertir les chunks en un seul Uint8Array
-    const pdfBytes = new Uint8Array(chunks.reduce((acc, chunk) => [...acc, ...chunk], []))
+    // Générer le PDF
+    const pdfBytes = await pdfDoc.save()
 
     return new Response(
       pdfBytes,
@@ -77,6 +91,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
+    console.error('Erreur lors de la génération du PDF:', error)
     return new Response(
       JSON.stringify({ error: 'Erreur lors de la génération du PDF', details: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
