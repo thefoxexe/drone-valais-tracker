@@ -18,8 +18,8 @@ serve(async (req) => {
       client_name,
       amount,
       invoice_date,
-      description,
       rate_details,
+      status,
     } = data
 
     // Créer un nouveau document PDF
@@ -43,39 +43,48 @@ serve(async (req) => {
     }
 
     // En-tête
-    addText('DEVIS', 50, 20)
+    addText(status === 'approved' ? 'FACTURE' : 'DEVIS', 50, 20)
     
-    // Informations du devis
-    addText(`Numéro de devis: ${invoice_number}`, 100)
+    // Informations du document
+    addText(`Numéro: ${invoice_number}`, 100)
     addText(`Client: ${client_name}`, 120)
-    addText(`Date: ${new Date(invoice_date).toISOString().split('T')[0]}`, 140)
+    addText(`Date: ${new Date(invoice_date).toLocaleDateString('fr-CH')}`, 140)
     
-    // Description
-    if (description) {
-      addText('Description:', 180, 14)
-      const descriptionLines = description.split('\n')
+    // Détails des services
+    if (rate_details && rate_details.length > 0) {
+      addText('Services:', 180, 14)
       let yPos = 200
-      for (const line of descriptionLines) {
-        addText(line, yPos)
+      
+      // En-tête du tableau
+      addText('Description', yPos)
+      addText('Montant CHF', yPos, fontSize, width - 150)
+      yPos += 20
+
+      // Liste des services
+      let subtotal = 0
+      for (const service of rate_details) {
+        addText(service.description, yPos)
+        addText(service.amount.toFixed(2), yPos, fontSize, width - 150)
+        subtotal += service.amount
         yPos += 20
       }
-    }
 
-    // Détails du tarif
-    if (rate_details) {
-      addText('Détails du tarif:', 300, 14)
-      const rateLines = rate_details.split('\n')
-      let yPos = 320
-      for (const line of rateLines) {
-        addText(line, yPos)
-        yPos += 20
-      }
-    }
+      // Calculs
+      yPos += 20
+      const tva = subtotal * 0.082
+      const total = subtotal + tva
 
-    // Montant total - Format without using toLocaleString to avoid encoding issues
-    addText('Montant total:', 400, 14)
-    const formattedAmount = `CHF ${Number(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, "'")}`
-    addText(formattedAmount, 420)
+      addText('Sous-total:', yPos)
+      addText(subtotal.toFixed(2), yPos, fontSize, width - 150)
+      yPos += 20
+
+      addText('TVA (8.2%):', yPos)
+      addText(tva.toFixed(2), yPos, fontSize, width - 150)
+      yPos += 20
+
+      addText('Total CHF:', yPos, 14)
+      addText(total.toFixed(2), yPos, 14, width - 150)
+    }
 
     // Générer le PDF
     const pdfBytes = await pdfDoc.save()
@@ -86,7 +95,7 @@ serve(async (req) => {
         headers: { 
           ...corsHeaders,
           'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="devis_${invoice_number}.pdf"`
+          'Content-Disposition': `attachment; filename="${status === 'approved' ? 'facture' : 'devis'}_${invoice_number}.pdf"`
         }
       }
     )
