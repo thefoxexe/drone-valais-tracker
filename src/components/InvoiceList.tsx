@@ -66,23 +66,43 @@ export const InvoiceList = ({ invoices, isQuote }: InvoiceListProps) => {
     });
   };
 
-  const handleDownload = async (pdfPath: string) => {
+  const handleDownload = async (invoice: Invoice) => {
     try {
+      // If PDF doesn't exist, generate it first
+      if (!invoice.pdf_path) {
+        const { data: functionData, error: functionError } = await supabase.functions
+          .invoke('generate-pdf', {
+            body: { invoice_id: invoice.id }
+          });
+
+        if (functionError) {
+          throw new Error('Erreur lors de la génération du PDF');
+        }
+
+        if (!functionData.pdf_path) {
+          throw new Error('Erreur lors de la génération du PDF');
+        }
+
+        invoice.pdf_path = functionData.pdf_path;
+      }
+
+      // Download the PDF
       const { data, error } = await supabase.storage
         .from("invoices")
-        .download(pdfPath);
+        .download(invoice.pdf_path);
 
       if (error) throw error;
 
       const url = URL.createObjectURL(data);
       const a = document.createElement("a");
       a.href = url;
-      a.download = pdfPath.split("/").pop() || "document.pdf";
+      a.download = invoice.pdf_path.split("/").pop() || "document.pdf";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (error: any) {
+      console.error('Erreur lors du téléchargement:', error);
       toast({
         title: "Erreur",
         description: "Impossible de télécharger le PDF",
@@ -151,15 +171,13 @@ export const InvoiceList = ({ invoices, isQuote }: InvoiceListProps) => {
                       </Button>
                     </>
                   )}
-                  {invoice.pdf_path && (
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleDownload(invoice.pdf_path!)}
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  )}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleDownload(invoice)}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
                   <Button
                     variant="outline"
                     size="icon"
