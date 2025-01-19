@@ -48,7 +48,7 @@ serve(async (req) => {
     // Informations du devis
     addText(`Numéro de devis: ${invoice_number}`, 100)
     addText(`Client: ${client_name}`, 120)
-    addText(`Date: ${new Date(invoice_date).toLocaleDateString('fr-CH')}`, 140)
+    addText(`Date: ${new Date(invoice_date).toISOString().split('T')[0]}`, 140)
     
     // Description
     if (description) {
@@ -72,9 +72,10 @@ serve(async (req) => {
       }
     }
 
-    // Montant total
+    // Montant total - Format without using toLocaleString to avoid encoding issues
     addText('Montant total:', 400, 14)
-    addText(`${amount.toLocaleString('fr-CH')} CHF`, 420)
+    const formattedAmount = `CHF ${Number(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, "'")}`
+    addText(formattedAmount, 420)
 
     // Générer le PDF
     const pdfBytes = await pdfDoc.save()
