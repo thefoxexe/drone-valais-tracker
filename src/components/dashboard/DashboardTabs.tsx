@@ -4,7 +4,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InvoiceList } from "@/components/InvoiceList";
 import { ResourceUpload } from "@/components/ResourceUpload";
 import { ResourceList } from "@/components/ResourceList";
-import { Invoice } from "@/integrations/supabase/types";
+import { Database } from "@/integrations/supabase/types";
+
+// Define the Invoice type based on the Supabase database schema
+type Invoice = Database['public']['Tables']['invoices']['Row'];
 
 interface DashboardTabsProps {
   totalQuotes: number;
