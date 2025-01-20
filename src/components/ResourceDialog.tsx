@@ -17,9 +17,9 @@ export const ResourceDialog = ({ open, onOpenChange }: ResourceDialogProps) => {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-xl overflow-y-auto bg-background/95 backdrop-blur-sm">
         <SheetHeader>
-          <SheetTitle>Ressources</SheetTitle>
+          <SheetTitle className="text-white">Drone Valais Drive</SheetTitle>
         </SheetHeader>
         <div className="mt-6 space-y-6">
           <ResourceUpload onUploadComplete={handleUploadComplete} />

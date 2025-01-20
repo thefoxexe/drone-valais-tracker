@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, FilePlus, Files } from "lucide-react";
+import { LogOut, FilePlus, HardDrive } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "./ui/use-toast";
@@ -75,7 +75,7 @@ export const Navigation = () => {
               size="icon" 
               className="text-white hover:text-white/80"
             >
-              <Files className="h-5 w-5" />
+              <HardDrive className="h-5 w-5" />
             </Button>
             <Button 
               onClick={() => setShowInvoiceForm(true)} 

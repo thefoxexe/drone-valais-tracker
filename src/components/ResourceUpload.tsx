@@ -1,18 +1,18 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useDropzone } from "react-dropzone";
 
 export const ResourceUpload = ({ onUploadComplete }: { onUploadComplete: () => void }) => {
-  const [files, setFiles] = useState<FileList | null>(null);
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
-  const handleUpload = async () => {
-    if (!files || files.length === 0) {
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    if (acceptedFiles.length === 0) {
       toast({
         title: "Erreur",
         description: "Veuillez sélectionner au moins un fichier",
@@ -25,8 +25,7 @@ export const ResourceUpload = ({ onUploadComplete }: { onUploadComplete: () => v
       setUploading(true);
       
       // Upload each file
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+      for (const file of acceptedFiles) {
         const fileExt = file.name.split('.').pop();
         const filePath = `${crypto.randomUUID()}.${fileExt}`;
         
@@ -50,11 +49,10 @@ export const ResourceUpload = ({ onUploadComplete }: { onUploadComplete: () => v
 
       toast({
         title: "Succès",
-        description: `${files.length} fichier(s) ont été téléchargés avec succès`,
+        description: `${acceptedFiles.length} fichier(s) ont été téléchargés avec succès`,
       });
       
       onUploadComplete();
-      setFiles(null);
     } catch (error) {
       console.error('Error uploading files:', error);
       toast({
@@ -65,27 +63,48 @@ export const ResourceUpload = ({ onUploadComplete }: { onUploadComplete: () => v
     } finally {
       setUploading(false);
     }
-  };
+  }, [toast, onUploadComplete]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/*': [],
+      'application/pdf': ['.pdf']
+    }
+  });
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="files">Sélectionner des fichiers</Label>
-        <Input
-          id="files"
-          type="file"
-          onChange={(e) => setFiles(e.target.files)}
-          accept="image/*,.pdf"
-          multiple
-        />
+      <div 
+        {...getRootProps()} 
+        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+          isDragActive ? 'border-primary bg-primary/10' : 'border-white/20'
+        }`}
+      >
+        <input {...getInputProps()} />
+        <Upload className="mx-auto h-12 w-12 text-white mb-4" />
+        <div className="text-white">
+          {isDragActive ? (
+            <p>Déposez les fichiers ici ...</p>
+          ) : (
+            <>
+              <p className="text-lg font-medium mb-1">
+                Glissez et déposez vos fichiers ici
+              </p>
+              <p className="text-sm opacity-70">
+                ou cliquez pour sélectionner des fichiers
+              </p>
+            </>
+          )}
+        </div>
       </div>
       <Button 
-        onClick={handleUpload} 
-        disabled={!files || uploading}
+        onClick={() => document.querySelector('input[type="file"]')?.click()} 
+        disabled={uploading}
         className="w-full"
       >
         <Upload className="mr-2 h-4 w-4" />
-        {uploading ? "Téléchargement..." : "Télécharger"}
+        {uploading ? "Téléchargement..." : "Sélectionner des fichiers"}
       </Button>
     </div>
   );
