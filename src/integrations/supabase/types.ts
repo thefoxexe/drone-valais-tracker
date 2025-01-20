@@ -54,6 +54,33 @@ export type Database = {
         }
         Relationships: []
       }
+      resources: {
+        Row: {
+          created_at: string | null
+          file_path: string
+          id: string
+          name: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_path: string
+          id?: string
+          name: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_path?: string
+          id?: string
+          name?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

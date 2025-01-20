@@ -13,6 +13,8 @@ import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ResourceUpload } from "@/components/ResourceUpload";
+import { ResourceList } from "@/components/ResourceList";
 
 const Dashboard = () => {
   const [showForm, setShowForm] = useState(false);
@@ -121,35 +123,39 @@ const Dashboard = () => {
         </div>
 
         <div className="mt-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-white">Gestion des documents</h2>
-            <Button onClick={() => setShowForm(true)} className="bg-white text-primary hover:bg-white/90">
-              <Plus className="mr-2 h-4 w-4" />
-              Nouveau Devis
-            </Button>
-          </div>
-
-          {showForm && <InvoiceForm onClose={() => setShowForm(false)} />}
-          
-          {isLoading ? (
-            <p className="text-white">Chargement...</p>
-          ) : (
-            <div className="bg-background/80 backdrop-blur-sm rounded-lg p-6 border border-white/10">
-              <Tabs defaultValue="quotes" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="quotes">Devis ({totalQuotes})</TabsTrigger>
-                  <TabsTrigger value="invoices">Factures ({totalInvoices})</TabsTrigger>
-                </TabsList>
-                <TabsContent value="quotes">
-                  <InvoiceList invoices={quotes} isQuote={true} />
-                </TabsContent>
-                <TabsContent value="invoices">
-                  <InvoiceList invoices={invoices} isQuote={false} />
-                </TabsContent>
-              </Tabs>
-            </div>
-          )}
+          <Card className="bg-background/80 backdrop-blur-sm border-white/10 p-6">
+            <Tabs defaultValue="quotes" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="quotes">Devis ({totalQuotes})</TabsTrigger>
+                <TabsTrigger value="invoices">Factures ({totalInvoices})</TabsTrigger>
+                <TabsTrigger value="resources">Ressources</TabsTrigger>
+              </TabsList>
+              <TabsContent value="quotes">
+                <div className="flex justify-end mb-4">
+                  <Button onClick={() => setShowForm(true)} className="bg-white text-primary hover:bg-white/90">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Nouveau Devis
+                  </Button>
+                </div>
+                <InvoiceList invoices={quotes} isQuote={true} />
+              </TabsContent>
+              <TabsContent value="invoices">
+                <InvoiceList invoices={invoices} isQuote={false} />
+              </TabsContent>
+              <TabsContent value="resources">
+                <div className="space-y-6">
+                  <ResourceUpload onUploadComplete={() => {
+                    // Refresh resources list
+                    window.location.reload();
+                  }} />
+                  <ResourceList />
+                </div>
+              </TabsContent>
+            </Tabs>
+          </Card>
         </div>
+
+        {showForm && <InvoiceForm onClose={() => setShowForm(false)} />}
       </div>
     </div>
   );
