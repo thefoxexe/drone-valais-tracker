@@ -2,7 +2,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InvoiceList } from "@/components/InvoiceList";
 import { Database } from "@/integrations/supabase/types";
 
-// Define the Invoice type based on the Supabase database schema
 type Invoice = Database['public']['Tables']['invoices']['Row'];
 
 interface DashboardTabsProps {
@@ -12,6 +11,9 @@ interface DashboardTabsProps {
 }
 
 export const DashboardTabs = ({ totalQuotes, totalInvoices, invoices }: DashboardTabsProps) => {
+  const pendingQuotes = invoices.filter(invoice => invoice.status === 'pending');
+  const approvedInvoices = invoices.filter(invoice => invoice.status === 'approved');
+
   return (
     <Tabs defaultValue="quotes" className="space-y-4">
       <TabsList>
@@ -23,10 +25,10 @@ export const DashboardTabs = ({ totalQuotes, totalInvoices, invoices }: Dashboar
         </TabsTrigger>
       </TabsList>
       <TabsContent value="quotes">
-        <InvoiceList invoices={invoices.filter(invoice => invoice.status === 'pending')} />
+        <InvoiceList invoices={pendingQuotes} isQuote={true} />
       </TabsContent>
       <TabsContent value="invoices">
-        <InvoiceList invoices={invoices.filter(invoice => invoice.status === 'paid')} />
+        <InvoiceList invoices={approvedInvoices} isQuote={false} />
       </TabsContent>
     </Tabs>
   );

@@ -54,10 +54,10 @@ const Dashboard = () => {
   });
 
   const invoices = allInvoices?.filter(invoice => invoice.status === 'approved') || [];
-  const quotes = allInvoices?.filter(invoice => invoice.status === 'pending' || invoice.status === 'rejected') || [];
+  const pendingQuotes = allInvoices?.filter(invoice => invoice.status === 'pending') || [];
   const totalRevenue = invoices.reduce((sum, invoice) => sum + Number(invoice.amount), 0);
   const totalInvoices = invoices.length;
-  const totalQuotes = quotes.filter(quote => quote.status === 'pending').length;
+  const totalQuotes = pendingQuotes.length;
 
   return (
     <div 
@@ -85,9 +85,7 @@ const Dashboard = () => {
             <DashboardTabs
               totalQuotes={totalQuotes}
               totalInvoices={totalInvoices}
-              quotes={quotes}
-              invoices={invoices}
-              onNewQuote={() => setShowForm(true)}
+              invoices={allInvoices || []}
             />
           </Card>
         </div>
