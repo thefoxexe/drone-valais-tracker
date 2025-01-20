@@ -7,15 +7,15 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 export const ResourceUpload = ({ onUploadComplete }: { onUploadComplete: () => void }) => {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<FileList | null>(null);
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
   const handleUpload = async () => {
-    if (!file) {
+    if (!files || files.length === 0) {
       toast({
         title: "Erreur",
-        description: "Veuillez sélectionner un fichier",
+        description: "Veuillez sélectionner au moins un fichier",
         variant: "destructive",
       });
       return;
@@ -24,36 +24,39 @@ export const ResourceUpload = ({ onUploadComplete }: { onUploadComplete: () => v
     try {
       setUploading(true);
       
-      // Upload file to storage
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${crypto.randomUUID()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('resources')
-        .upload(filePath, file);
+      // Upload each file
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileExt = file.name.split('.').pop();
+        const filePath = `${crypto.randomUUID()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('resources')
+          .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+        if (uploadError) throw uploadError;
 
-      // Save metadata to database
-      const { error: dbError } = await supabase
-        .from('resources')
-        .insert({
-          name: file.name,
-          file_path: filePath,
-          type: file.type,
-        });
+        // Save metadata to database
+        const { error: dbError } = await supabase
+          .from('resources')
+          .insert({
+            name: file.name,
+            file_path: filePath,
+            type: file.type,
+          });
 
-      if (dbError) throw dbError;
+        if (dbError) throw dbError;
+      }
 
       toast({
         title: "Succès",
-        description: "Le fichier a été téléchargé avec succès",
+        description: `${files.length} fichier(s) ont été téléchargés avec succès`,
       });
       
       onUploadComplete();
-      setFile(null);
+      setFiles(null);
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.error('Error uploading files:', error);
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors du téléchargement",
@@ -67,17 +70,18 @@ export const ResourceUpload = ({ onUploadComplete }: { onUploadComplete: () => v
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="file">Sélectionner un fichier</Label>
+        <Label htmlFor="files">Sélectionner des fichiers</Label>
         <Input
-          id="file"
+          id="files"
           type="file"
-          onChange={(e) => setFile(e.target.files?.[0] || null)}
+          onChange={(e) => setFiles(e.target.files)}
           accept="image/*,.pdf"
+          multiple
         />
       </div>
       <Button 
         onClick={handleUpload} 
-        disabled={!file || uploading}
+        disabled={!files || uploading}
         className="w-full"
       >
         <Upload className="mr-2 h-4 w-4" />

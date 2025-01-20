@@ -1,25 +1,25 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, FilePlus } from "lucide-react";
+import { LogOut, FilePlus, Files } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "./ui/use-toast";
 import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { InvoiceForm } from "./InvoiceForm";
+import { ResourceDialog } from "./ResourceDialog";
 
 export const Navigation = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [session, setSession] = useState(null);
   const [showInvoiceForm, setShowInvoiceForm] = useState(false);
+  const [showResourceDialog, setShowResourceDialog] = useState(false);
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -31,7 +31,6 @@ export const Navigation = () => {
 
   const handleLogout = async () => {
     try {
-      // If there's no session, just redirect to login
       if (!session) {
         navigate("/login");
         return;
@@ -47,7 +46,6 @@ export const Navigation = () => {
         });
       }
       
-      // Always navigate to login page
       navigate("/login");
       
       if (!error) {
@@ -71,6 +69,14 @@ export const Navigation = () => {
             <h1 className="text-2xl font-bold text-white">Drone Valais Production</h1>
           </div>
           <div className="flex items-center space-x-4">
+            <Button 
+              onClick={() => setShowResourceDialog(true)} 
+              variant="ghost" 
+              size="icon" 
+              className="text-white hover:text-white/80"
+            >
+              <Files className="h-5 w-5" />
+            </Button>
             <Button 
               onClick={() => setShowInvoiceForm(true)} 
               variant="ghost" 
@@ -101,6 +107,11 @@ export const Navigation = () => {
           </div>
         </SheetContent>
       </Sheet>
+
+      <ResourceDialog 
+        open={showResourceDialog} 
+        onOpenChange={setShowResourceDialog} 
+      />
     </>
   );
 };
