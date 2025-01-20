@@ -1,14 +1,16 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
+type Theme = "dark";
+
 type ThemeProviderProps = {
   children: React.ReactNode;
-  defaultTheme?: "dark";
+  defaultTheme?: Theme;
   storageKey?: string;
 };
 
 type ThemeProviderState = {
-  theme: "dark";
-  setTheme: (theme: "dark") => void;
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
 };
 
 const initialState: ThemeProviderState = {
@@ -20,24 +22,26 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
   children,
+  defaultTheme = "dark",
   storageKey = "vite-ui-theme",
-  ...props
 }: ThemeProviderProps) {
-  const [theme] = useState<"dark">("dark");
+  const [theme, setTheme] = useState<Theme>(defaultTheme);
 
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove("light");
     root.classList.add("dark");
-  }, []);
+  }, [theme]);
 
   const value = {
     theme,
-    setTheme: () => {}, // No-op since we only support dark theme
+    setTheme: (theme: Theme) => {
+      setTheme(theme);
+    },
   };
 
   return (
-    <ThemeProviderContext.Provider {...props} value={value}>
+    <ThemeProviderContext.Provider value={value}>
       {children}
     </ThemeProviderContext.Provider>
   );
