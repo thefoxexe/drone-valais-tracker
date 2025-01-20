@@ -128,10 +128,8 @@ export const ResourceList = () => {
                 <div className="relative aspect-video mb-4">
                   <img
                     src={`${
-                      supabase.storage
-                        .from("resources")
-                        .getPublicUrl(resource.file_path).data.publicUrl
-                    }`}
+                      import.meta.env.VITE_SUPABASE_URL
+                    }/storage/v1/object/public/resources/${resource.file_path}`}
                     alt={resource.name}
                     className="object-cover w-full h-full rounded-md"
                   />
