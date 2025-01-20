@@ -1,7 +1,5 @@
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Upload } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -99,7 +97,10 @@ export const ResourceUpload = ({ onUploadComplete }: { onUploadComplete: () => v
         </div>
       </div>
       <Button 
-        onClick={() => document.querySelector('input[type="file"]')?.click()} 
+        onClick={() => {
+          const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+          if (fileInput) fileInput.click();
+        }} 
         disabled={uploading}
         className="w-full"
       >
