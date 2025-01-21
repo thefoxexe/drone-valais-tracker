@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, Mail } from "lucide-react";
+import { Upload } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useDropzone } from "react-dropzone";
@@ -75,31 +75,6 @@ export const ResourceUpload = ({ onUploadComplete }: { onUploadComplete: () => v
     }
   }, [toast, onUploadComplete]);
 
-  const handleGenerateEmail = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-email', {
-        body: { prompt: "Générer un email sympathique et professionnel" }
-      });
-
-      if (error) throw error;
-
-      if (data?.email) {
-        toast({
-          title: "Email généré",
-          description: "L'email a été généré avec succès. Vous pouvez le copier depuis la console.",
-        });
-        console.log("Email généré:", data.email);
-      }
-    } catch (error) {
-      console.error('Error generating email:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de générer l'email",
-        variant: "destructive",
-      });
-    }
-  };
-
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
@@ -143,26 +118,17 @@ export const ResourceUpload = ({ onUploadComplete }: { onUploadComplete: () => v
           )}
         </div>
       </div>
-      <div className="flex gap-2">
-        <Button 
-          onClick={() => {
-            const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-            if (fileInput) fileInput.click();
-          }} 
-          disabled={uploading}
-          className="flex-1"
-        >
-          <Upload className="mr-2 h-4 w-4" />
-          {uploading ? "Téléchargement..." : "Sélectionner des fichiers"}
-        </Button>
-        <Button
-          onClick={handleGenerateEmail}
-          variant="outline"
-          className="flex-none"
-        >
-          <Mail className="h-4 w-4" />
-        </Button>
-      </div>
+      <Button 
+        onClick={() => {
+          const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+          if (fileInput) fileInput.click();
+        }} 
+        disabled={uploading}
+        className="w-full"
+      >
+        <Upload className="mr-2 h-4 w-4" />
+        {uploading ? "Téléchargement..." : "Sélectionner des fichiers"}
+      </Button>
     </div>
   );
 };

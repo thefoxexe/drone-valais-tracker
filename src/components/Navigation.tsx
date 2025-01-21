@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, FilePlus, HardDrive } from "lucide-react";
+import { LogOut, FilePlus, HardDrive, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "./ui/use-toast";
@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { InvoiceForm } from "./InvoiceForm";
 import { ResourceDialog } from "./ResourceDialog";
+import { EmailDialog } from "./EmailDialog";
 
 export const Navigation = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ export const Navigation = () => {
   const [session, setSession] = useState(null);
   const [showInvoiceForm, setShowInvoiceForm] = useState(false);
   const [showResourceDialog, setShowResourceDialog] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -70,6 +72,14 @@ export const Navigation = () => {
           </div>
           <div className="flex items-center space-x-4">
             <Button 
+              onClick={() => setShowEmailDialog(true)} 
+              variant="ghost" 
+              size="icon" 
+              className="text-white hover:text-white/80"
+            >
+              <Mail className="h-5 w-5" />
+            </Button>
+            <Button 
               onClick={() => setShowResourceDialog(true)} 
               variant="ghost" 
               size="icon" 
@@ -111,6 +121,11 @@ export const Navigation = () => {
       <ResourceDialog 
         open={showResourceDialog} 
         onOpenChange={setShowResourceDialog} 
+      />
+
+      <EmailDialog
+        open={showEmailDialog}
+        onOpenChange={setShowEmailDialog}
       />
     </>
   );
