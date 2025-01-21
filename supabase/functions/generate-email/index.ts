@@ -6,6 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -13,42 +15,65 @@ serve(async (req) => {
 
   try {
     const { prompt } = await req.json();
+    let attempts = 0;
+    const maxAttempts = 3;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'Tu es un assistant qui génère des emails professionnels et sympathiques en français.'
+    while (attempts < maxAttempts) {
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+            'Content-Type': 'application/json',
           },
-          {
-            role: 'user',
-            content: prompt || "Générer un email sympathique et professionnel pour un client"
-          }
-        ],
-        temperature: 0.7,
-      }),
-    });
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            messages: [
+              {
+                role: 'system',
+                content: 'Tu es un assistant qui génère des emails professionnels et sympathiques en français.'
+              },
+              {
+                role: 'user',
+                content: prompt || "Générer un email sympathique et professionnel pour un client"
+              }
+            ],
+            temperature: 0.7,
+          }),
+        });
 
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('OpenAI API error:', errorData);
+          
+          if (response.status === 429) {
+            attempts++;
+            if (attempts < maxAttempts) {
+              await delay(2000 * attempts); // Exponential backoff
+              continue;
+            }
+          }
+          
+          throw new Error(`OpenAI API error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const generatedEmail = data.choices[0].message.content;
+
+        return new Response(
+          JSON.stringify({ email: generatedEmail }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      } catch (error) {
+        if (attempts === maxAttempts - 1) throw error;
+        attempts++;
+        await delay(2000 * attempts);
+      }
     }
 
-    const data = await response.json();
-    const generatedEmail = data.choices[0].message.content;
-
-    return new Response(
-      JSON.stringify({ email: generatedEmail }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
+    throw new Error('Max retry attempts reached');
   } catch (error) {
     console.error('Error:', error);
     return new Response(
