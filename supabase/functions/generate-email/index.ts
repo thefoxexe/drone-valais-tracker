@@ -27,7 +27,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4o',
+            model: 'gpt-4',
             messages: [
               {
                 role: 'system',
@@ -54,7 +54,7 @@ serve(async (req) => {
             }
           }
           
-          throw new Error(`OpenAI API error: ${response.statusText}`);
+          throw new Error(`OpenAI API error: ${errorData.error?.message || response.statusText}`);
         }
 
         const data = await response.json();
@@ -67,6 +67,7 @@ serve(async (req) => {
           }
         );
       } catch (error) {
+        console.error('Attempt error:', error);
         if (attempts === maxAttempts - 1) throw error;
         attempts++;
         await delay(2000 * attempts);
