@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export const EmailDialog = ({
   open,
@@ -19,6 +20,7 @@ export const EmailDialog = ({
 }) => {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
+  const [generatedEmail, setGeneratedEmail] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleGenerateEmail = async () => {
@@ -31,11 +33,11 @@ export const EmailDialog = ({
       if (error) throw error;
 
       if (data?.email) {
+        setGeneratedEmail(data.email);
         toast({
           title: "Email généré",
-          description: "L'email a été généré avec succès. Vous pouvez le copier depuis la console.",
+          description: "L'email a été généré avec succès",
         });
-        console.log("Email généré:", data.email);
       }
     } catch (error) {
       console.error('Error generating email:', error);
@@ -51,11 +53,11 @@ export const EmailDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Générer un email</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-4 py-4 flex-grow">
           <Textarea
             placeholder="Entrez votre requête pour la génération d'email..."
             value={prompt}
@@ -65,6 +67,11 @@ export const EmailDialog = ({
           <Button onClick={handleGenerateEmail} disabled={loading}>
             {loading ? "Génération en cours..." : "Générer l'email"}
           </Button>
+          {generatedEmail && (
+            <ScrollArea className="h-[300px] w-full rounded-md border p-4">
+              <div className="whitespace-pre-wrap">{generatedEmail}</div>
+            </ScrollArea>
+          )}
         </div>
       </DialogContent>
     </Dialog>
