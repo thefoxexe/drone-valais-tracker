@@ -77,25 +77,19 @@ export const ResourceUpload = ({ onUploadComplete }: { onUploadComplete: () => v
 
   const handleGenerateEmail = async () => {
     try {
-      const response = await fetch('/api/generate-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: "Générer un email sympathique et professionnel",
-        }),
+      const { data, error } = await supabase.functions.invoke('generate-email', {
+        body: { prompt: "Générer un email sympathique et professionnel" }
       });
 
-      if (!response.ok) throw new Error('Failed to generate email');
+      if (error) throw error;
 
-      const data = await response.json();
-      
-      toast({
-        title: "Email généré",
-        description: "L'email a été généré avec succès",
-      });
-      
+      if (data?.email) {
+        toast({
+          title: "Email généré",
+          description: "L'email a été généré avec succès. Vous pouvez le copier depuis la console.",
+        });
+        console.log("Email généré:", data.email);
+      }
     } catch (error) {
       console.error('Error generating email:', error);
       toast({

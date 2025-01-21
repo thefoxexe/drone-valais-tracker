@@ -29,24 +29,34 @@ serve(async (req) => {
           },
           {
             role: 'user',
-            content: prompt
+            content: prompt || "Générer un email sympathique et professionnel pour un client"
           }
         ],
         temperature: 0.7,
       }),
     });
 
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.statusText}`);
+    }
+
     const data = await response.json();
     const generatedEmail = data.choices[0].message.content;
 
-    return new Response(JSON.stringify({ email: generatedEmail }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ email: generatedEmail }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
   } catch (error) {
     console.error('Error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
   }
 });
