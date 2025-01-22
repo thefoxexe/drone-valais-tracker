@@ -35,20 +35,58 @@ export const InvoiceList = ({ invoices, isQuote }: InvoiceListProps) => {
   const { toast } = useToast();
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabase.from("invoices").delete().eq("id", id);
-    if (error) {
+    try {
+      // D'abord, on vérifie s'il y a un projet associé
+      const { data: projects } = await supabase
+        .from("projects")
+        .select("id")
+        .eq("invoice_id", id);
+
+      // Si oui, on le supprime d'abord
+      if (projects && projects.length > 0) {
+        const { error: projectError } = await supabase
+          .from("projects")
+          .delete()
+          .eq("invoice_id", id);
+
+        if (projectError) {
+          toast({
+            title: "Erreur",
+            description: "Impossible de supprimer le projet associé",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
+      // Ensuite, on peut supprimer la facture
+      const { error } = await supabase
+        .from("invoices")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        toast({
+          title: "Erreur",
+          description: "Impossible de supprimer le document",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      toast({
+        title: "Succès",
+        description: isQuote ? "Devis supprimé" : "Facture supprimée",
+      });
+    } catch (error) {
+      console.error("Erreur lors de la suppression:", error);
       toast({
         title: "Erreur",
-        description: "Impossible de supprimer le document",
+        description: "Une erreur est survenue lors de la suppression",
         variant: "destructive",
       });
-      return;
     }
-    queryClient.invalidateQueries({ queryKey: ["invoices"] });
-    toast({
-      title: "Succès",
-      description: isQuote ? "Devis supprimé" : "Facture supprimée",
-    });
   };
 
   const handleStatusChange = async (id: string, newStatus: 'approved' | 'rejected') => {
