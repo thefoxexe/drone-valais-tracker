@@ -67,10 +67,20 @@ export const Navigation = () => {
       <nav className="border-b border-white/10 bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <img src="/lovable-uploads/e2ad46c3-367b-4223-acfa-1217eaef449a.png" alt="Logo" className="h-10 w-auto" />
-            <h1 className="text-2xl font-bold text-white">Drone Valais Production</h1>
+            <Link to="/" className="flex items-center space-x-4 hover:opacity-80 transition-opacity">
+              <img src="/lovable-uploads/e2ad46c3-367b-4223-acfa-1217eaef449a.png" alt="Logo" className="h-10 w-auto" />
+              <h1 className="text-2xl font-bold text-white">Drone Valais Production</h1>
+            </Link>
           </div>
           <div className="flex items-center space-x-4">
+            <Link to="/">
+              <Button 
+                variant="ghost" 
+                className="text-white hover:text-white/80"
+              >
+                Dashboard
+              </Button>
+            </Link>
             <Link to="/projects">
               <Button 
                 variant="ghost" 
