@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, FilePlus, HardDrive, Mail } from "lucide-react";
+import { LogOut, FilePlus, HardDrive, Mail, FolderOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "./ui/use-toast";
 import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -71,6 +71,15 @@ export const Navigation = () => {
             <h1 className="text-2xl font-bold text-white">Drone Valais Production</h1>
           </div>
           <div className="flex items-center space-x-4">
+            <Link to="/projects">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-white hover:text-white/80"
+              >
+                <FolderOpen className="h-5 w-5" />
+              </Button>
+            </Link>
             <Button 
               onClick={() => setShowEmailDialog(true)} 
               variant="ghost" 

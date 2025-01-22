@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      default_project_tasks: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          order_index: number
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          order_index: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          order_index?: number
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           amount: number
@@ -53,6 +74,85 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      project_tasks: {
+        Row: {
+          completed: boolean | null
+          created_at: string | null
+          description: string
+          id: string
+          order_index: number
+          project_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string | null
+          description: string
+          id?: string
+          order_index: number
+          project_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          order_index?: number
+          project_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          created_at: string | null
+          id: string
+          invoice_id: string
+          name: string
+          status: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          invoice_id: string
+          name: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          invoice_id?: string
+          name?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: true
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       resources: {
         Row: {
