@@ -1,48 +1,56 @@
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const useInvoiceOperations = (isQuote: boolean) => {
-  const queryClient = useQueryClient();
+  const [editingInvoice, setEditingInvoice] = useState(null);
   const { toast } = useToast();
-  const [editingInvoice, setEditingInvoice] = useState<any>(null);
+  const queryClient = useQueryClient();
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (invoiceId: string) => {
     try {
+      // First, get the project associated with this invoice
       const { data: projects } = await supabase
         .from("projects")
         .select("id")
-        .eq("invoice_id", id);
+        .eq("invoice_id", invoiceId);
 
       if (projects && projects.length > 0) {
+        const projectId = projects[0].id;
+
+        // Delete all tasks associated with the project
+        const { error: tasksError } = await supabase
+          .from("project_tasks")
+          .delete()
+          .eq("project_id", projectId);
+
+        if (tasksError) {
+          console.error("Error deleting tasks:", tasksError);
+          throw tasksError;
+        }
+
+        // Delete the project
         const { error: projectError } = await supabase
           .from("projects")
           .delete()
-          .eq("invoice_id", id);
+          .eq("id", projectId);
 
         if (projectError) {
-          toast({
-            title: "Erreur",
-            description: "Impossible de supprimer le projet associé",
-            variant: "destructive",
-          });
-          return;
+          console.error("Error deleting project:", projectError);
+          throw projectError;
         }
       }
 
-      const { error } = await supabase
+      // Finally delete the invoice
+      const { error: invoiceError } = await supabase
         .from("invoices")
         .delete()
-        .eq("id", id);
+        .eq("id", invoiceId);
 
-      if (error) {
-        toast({
-          title: "Erreur",
-          description: "Impossible de supprimer le document",
-          variant: "destructive",
-        });
-        return;
+      if (invoiceError) {
+        console.error("Error deleting invoice:", invoiceError);
+        throw invoiceError;
       }
 
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
@@ -51,77 +59,61 @@ export const useInvoiceOperations = (isQuote: boolean) => {
         description: isQuote ? "Devis supprimé" : "Facture supprimée",
       });
     } catch (error) {
-      console.error("Erreur lors de la suppression:", error);
+      console.error("Delete operation failed:", error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de la suppression",
+        description: isQuote 
+          ? "Impossible de supprimer le devis" 
+          : "Impossible de supprimer la facture",
         variant: "destructive",
       });
     }
   };
 
-  const handleStatusChange = async (id: string, newStatus: 'approved' | 'rejected') => {
+  const handleStatusChange = async (invoiceId: string, newStatus: string) => {
     const { error } = await supabase
       .from("invoices")
       .update({ status: newStatus })
-      .eq("id", id);
+      .eq("id", invoiceId);
 
     if (error) {
       toast({
         title: "Erreur",
-        description: `Impossible de ${newStatus === 'approved' ? 'valider' : 'rejeter'} le devis`,
+        description: "Impossible de mettre à jour le statut",
         variant: "destructive",
       });
       return;
     }
+
     queryClient.invalidateQueries({ queryKey: ["invoices"] });
     toast({
       title: "Succès",
-      description: newStatus === 'approved' ? "Devis transformé en facture" : "Devis rejeté",
+      description: "Statut mis à jour",
     });
   };
 
-  const handleDownload = async (invoice: any) => {
-    try {
-      if (!invoice.pdf_path) {
-        const { data: functionData, error: functionError } = await supabase.functions
-          .invoke('generate-pdf', {
-            body: { invoice_id: invoice.id }
-          });
+  const handleDownload = async (pdfPath: string) => {
+    const { data, error } = await supabase.storage
+      .from("PDF")
+      .download(pdfPath);
 
-        if (functionError) {
-          throw new Error('Erreur lors de la génération du PDF');
-        }
-
-        if (!functionData.pdf_path) {
-          throw new Error('Erreur lors de la génération du PDF');
-        }
-
-        invoice.pdf_path = functionData.pdf_path;
-      }
-
-      const { data, error } = await supabase.storage
-        .from("invoices")
-        .download(invoice.pdf_path);
-
-      if (error) throw error;
-
-      const url = URL.createObjectURL(data);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = invoice.pdf_path.split("/").pop() || "document.pdf";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (error: any) {
-      console.error('Erreur lors du téléchargement:', error);
+    if (error) {
       toast({
         title: "Erreur",
-        description: "Impossible de télécharger le PDF",
+        description: "Impossible de télécharger le fichier",
         variant: "destructive",
       });
+      return;
     }
+
+    const url = window.URL.createObjectURL(data);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = pdfPath.split("/").pop() || "document.pdf";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   };
 
   return {
