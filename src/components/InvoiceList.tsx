@@ -32,6 +32,12 @@ export const InvoiceList = ({ invoices, isQuote }: InvoiceListProps) => {
     handleDownload,
   } = useInvoiceOperations(isQuote);
 
+  const handleInvoiceDownload = (invoice: Invoice) => {
+    if (invoice.pdf_path) {
+      handleDownload(invoice.pdf_path);
+    }
+  };
+
   return (
     <>
       {editingInvoice && (
@@ -46,7 +52,7 @@ export const InvoiceList = ({ invoices, isQuote }: InvoiceListProps) => {
         isQuote={isQuote}
         onEdit={setEditingInvoice}
         onDelete={handleDelete}
-        onDownload={handleDownload}
+        onDownload={handleInvoiceDownload}
         onStatusChange={handleStatusChange}
       />
     </>
