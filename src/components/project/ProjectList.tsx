@@ -32,25 +32,42 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
   const archivedProjects = projects.filter(p => p.archived);
 
   const handleDelete = async (projectId: string) => {
-    const { error } = await supabase
-      .from("projects")
-      .delete()
-      .eq("id", projectId);
+    try {
+      // First, delete all tasks associated with the project
+      const { error: tasksError } = await supabase
+        .from("project_tasks")
+        .delete()
+        .eq("project_id", projectId);
 
-    if (error) {
+      if (tasksError) {
+        console.error("Error deleting tasks:", tasksError);
+        throw tasksError;
+      }
+
+      // Then delete the project
+      const { error: projectError } = await supabase
+        .from("projects")
+        .delete()
+        .eq("id", projectId);
+
+      if (projectError) {
+        console.error("Error deleting project:", projectError);
+        throw projectError;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      toast({
+        title: "Succès",
+        description: "Projet supprimé",
+      });
+    } catch (error) {
+      console.error("Delete operation failed:", error);
       toast({
         title: "Erreur",
         description: "Impossible de supprimer le projet",
         variant: "destructive",
       });
-      return;
     }
-
-    queryClient.invalidateQueries({ queryKey: ["projects"] });
-    toast({
-      title: "Succès",
-      description: "Projet supprimé",
-    });
   };
 
   const handleArchive = async (projectId: string, archived: boolean) => {
