@@ -80,16 +80,15 @@ const Index = () => {
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* YouTube Background */}
-      <div className="absolute inset-0 w-full h-full pointer-events-none">
-        <div 
-          id="youtube-background"
-          className="absolute inset-0 w-[100vw] h-[100vh] scale-150"
-          style={{ 
-            pointerEvents: 'none',
-          }}
-        />
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-black/60 z-10" />
+      <div className="absolute inset-0 w-full h-full">
+        <div className="relative w-full h-full">
+          <div 
+            id="youtube-background"
+            className="absolute top-1/2 left-1/2 w-[150%] h-[150%] -translate-x-1/2 -translate-y-1/2"
+          />
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-black/60 z-10" />
+        </div>
       </div>
 
       {/* Content */}
