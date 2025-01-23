@@ -24,39 +24,41 @@ export const Navigation = () => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (!session) {
+        navigate("/login");
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const handleLogout = async () => {
     try {
-      if (!session) {
-        navigate("/login");
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error("Erreur de déconnexion:", error);
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Une erreur est survenue lors de la déconnexion",
+        });
         return;
       }
 
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error("Logout error:", error);
-        toast({
-          title: "Erreur",
-          description: "Une erreur est survenue lors de la déconnexion",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Déconnexion réussie",
+        description: "Vous avez été déconnecté avec succès",
+      });
       
       navigate("/login");
-      
-      if (!error) {
-        toast({
-          title: "Déconnexion réussie",
-          description: "Vous avez été déconnecté avec succès",
-        });
-      }
     } catch (error) {
-      console.error("Unexpected error during logout:", error);
-      navigate("/login");
+      console.error("Erreur inattendue lors de la déconnexion:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur inattendue s'est produite",
+      });
     }
   };
 
