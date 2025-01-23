@@ -18,7 +18,6 @@ const Index = () => {
   const playerRef = useRef<any>(null);
 
   useEffect(() => {
-    // Load YouTube IFrame API
     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     const firstScriptTag = document.getElementsByTagName('script')[0];
@@ -37,12 +36,21 @@ const Index = () => {
           rel: 0,
           showinfo: 0,
           mute: 1,
+          start: 47, // Start at 47 seconds
+          end: 193, // End at 3:13 (193 seconds)
           playlist: 'U5gptyRV8IU', // needed for looping
         },
         events: {
           onReady: (event: any) => {
             event.target.playVideo();
           },
+          onStateChange: (event: any) => {
+            // When the video ends (at 3:13), restart from 0:47
+            if (event.data === window.YT.PlayerState.ENDED) {
+              event.target.seekTo(47);
+              event.target.playVideo();
+            }
+          }
         }
       });
     };
