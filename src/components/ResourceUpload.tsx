@@ -4,10 +4,13 @@ import { Upload } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useDropzone } from "react-dropzone";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export const ResourceUpload = ({ onUploadComplete }: { onUploadComplete: () => void }) => {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
+  const [category, setCategory] = useState("general");
   const { toast } = useToast();
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -51,6 +54,7 @@ export const ResourceUpload = ({ onUploadComplete }: { onUploadComplete: () => v
             name: file.name,
             file_path: filePath,
             type: file.type,
+            category: category,
           });
 
         if (dbError) throw dbError;
@@ -73,7 +77,7 @@ export const ResourceUpload = ({ onUploadComplete }: { onUploadComplete: () => v
     } finally {
       setUploading(false);
     }
-  }, [toast, onUploadComplete]);
+  }, [toast, onUploadComplete, category]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -83,8 +87,31 @@ export const ResourceUpload = ({ onUploadComplete }: { onUploadComplete: () => v
     }
   });
 
+  const categories = {
+    templates: "Modèles",
+    logos: "Logos",
+    sources: "Fichiers source",
+    general: "Général"
+  };
+
   return (
     <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="category">Catégorie</Label>
+        <Select value={category} onValueChange={setCategory}>
+          <SelectTrigger id="category">
+            <SelectValue placeholder="Sélectionnez une catégorie" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(categories).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div 
         {...getRootProps()} 
         className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
