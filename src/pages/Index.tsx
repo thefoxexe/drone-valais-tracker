@@ -1,13 +1,58 @@
 import { Auth } from "@supabase/auth-ui-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { useToast } from "@/components/ui/use-toast";
 
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
+
 const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const playerRef = useRef<any>(null);
+
+  useEffect(() => {
+    // Load YouTube IFrame API
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+
+    window.onYouTubeIframeAPIReady = () => {
+      playerRef.current = new window.YT.Player('youtube-background', {
+        videoId: 'U5gptyRV8IU',
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          disablekb: 1,
+          loop: 1,
+          modestbranding: 1,
+          playsinline: 1,
+          rel: 0,
+          showinfo: 0,
+          mute: 1,
+          playlist: 'U5gptyRV8IU', // needed for looping
+        },
+        events: {
+          onReady: (event: any) => {
+            event.target.playVideo();
+          },
+        }
+      });
+    };
+
+    return () => {
+      if (playerRef.current) {
+        playerRef.current.destroy();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -33,14 +78,22 @@ const Index = () => {
   }, [navigate, toast]);
 
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat relative" 
-      style={{ 
-        backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/lovable-uploads/deccad97-d3eb-4324-b51b-6bde7ebac742.png')",
-        backgroundAttachment: "fixed"
-      }}
-    >
-      <div className="w-full max-w-md p-8 rounded-xl backdrop-blur-sm bg-background/30 shadow-2xl">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* YouTube Background */}
+      <div className="absolute inset-0 w-full h-full pointer-events-none">
+        <div 
+          id="youtube-background"
+          className="absolute inset-0 w-[100vw] h-[100vh] scale-150"
+          style={{ 
+            pointerEvents: 'none',
+          }}
+        />
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black/60 z-10" />
+      </div>
+
+      {/* Content */}
+      <div className="w-full max-w-md p-8 rounded-xl backdrop-blur-sm bg-background/30 shadow-2xl z-20">
         <div className="text-center mb-8">
           <img 
             src="/lovable-uploads/e2ad46c3-367b-4223-acfa-1217eaef449a.png" 
