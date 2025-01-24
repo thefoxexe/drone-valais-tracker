@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { useToast } from "@/components/ui/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 declare global {
   interface Window {
@@ -16,6 +17,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const playerRef = useRef<any>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const tag = document.createElement('script');
@@ -36,7 +38,7 @@ const Index = () => {
           rel: 0,
           showinfo: 0,
           mute: 1,
-          start: 47, // Start at 47 seconds
+          start: 52, // Start at 52 seconds
           end: 193, // End at 3:13 (193 seconds)
           playlist: 'U5gptyRV8IU', // needed for looping
         },
@@ -45,9 +47,8 @@ const Index = () => {
             event.target.playVideo();
           },
           onStateChange: (event: any) => {
-            // When the video ends (at 3:13), restart from 0:47
             if (event.data === window.YT.PlayerState.ENDED) {
-              event.target.seekTo(47);
+              event.target.seekTo(52);
               event.target.playVideo();
             }
           }
@@ -92,7 +93,9 @@ const Index = () => {
         <div className="relative w-full h-full">
           <div 
             id="youtube-background"
-            className="absolute top-1/2 left-1/2 w-[150%] h-[150%] -translate-x-1/2 -translate-y-1/2"
+            className={`absolute top-1/2 left-1/2 ${
+              isMobile ? 'w-[250%] h-[250%]' : 'w-[150%] h-[150%]'
+            } -translate-x-1/2 -translate-y-1/2`}
           />
           {/* Overlay */}
           <div className="absolute inset-0 bg-black/60 z-10" />
