@@ -94,7 +94,7 @@ const Index = () => {
           <div 
             id="youtube-background"
             className={`absolute top-1/2 left-1/2 ${
-              isMobile ? 'w-[250%] h-[250%]' : 'w-[150%] h-[150%]'
+              isMobile ? 'w-[400%] h-[400%]' : 'w-[150%] h-[150%]'
             } -translate-x-1/2 -translate-y-1/2`}
           />
           {/* Overlay */}
