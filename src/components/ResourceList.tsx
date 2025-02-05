@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Trash2, FileText, Image as ImageIcon } from "lucide-react";
+import { Trash2, FileText, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -47,6 +47,44 @@ export const ResourceList = () => {
       toast({
         title: "Erreur",
         description: "Impossible de supprimer le fichier",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDownload = async (filePath: string, fileName: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from("resources")
+        .download(filePath);
+
+      if (error) throw error;
+
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(data);
+      
+      // Create a temporary link element
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName; // Set the file name
+      document.body.appendChild(link);
+      
+      // Trigger the download
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Succès",
+        description: "Téléchargement démarré",
+      });
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de télécharger le fichier",
         variant: "destructive",
       });
     }
@@ -107,7 +145,7 @@ export const ResourceList = () => {
             day: "numeric",
           })}
         </p>
-        <div className="mt-2">
+        <div className="mt-2 flex space-x-2">
           <Button
             variant="ghost"
             size="sm"
@@ -115,6 +153,14 @@ export const ResourceList = () => {
             onClick={() => handleDelete(resource.id, resource.file_path)}
           >
             <Trash2 className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-white/70 hover:text-white"
+            onClick={() => handleDownload(resource.file_path, resource.name)}
+          >
+            <Download className="w-4 h-4" />
           </Button>
         </div>
       </div>

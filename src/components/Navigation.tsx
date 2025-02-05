@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, FilePlus, HardDrive, Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "./ui/use-toast";
@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { InvoiceForm } from "./InvoiceForm";
 import { ResourceDialog } from "./ResourceDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { NavLinks } from "./navigation/NavLinks";
 
 export const Navigation = () => {
   const navigate = useNavigate();
@@ -65,51 +66,6 @@ export const Navigation = () => {
     }
   };
 
-  const NavLinks = () => (
-    <>
-      <Link to="/">
-        <Button 
-          variant="ghost" 
-          className="text-white hover:text-white/80"
-        >
-          Dashboard
-        </Button>
-      </Link>
-      <Link to="/projects">
-        <Button 
-          variant="ghost" 
-          className="text-white hover:text-white/80"
-        >
-          Projets
-        </Button>
-      </Link>
-      <Button 
-        onClick={() => setShowResourceDialog(true)} 
-        variant="ghost" 
-        size="icon" 
-        className="text-white hover:text-white/80"
-      >
-        <HardDrive className="h-5 w-5" />
-      </Button>
-      <Button 
-        onClick={() => setShowInvoiceForm(true)} 
-        variant="ghost" 
-        size="icon" 
-        className="text-white hover:text-white/80"
-      >
-        <FilePlus className="h-5 w-5" />
-      </Button>
-      <Button 
-        onClick={handleLogout} 
-        variant="ghost" 
-        size="icon" 
-        className="text-white hover:text-white/80"
-      >
-        <LogOut className="h-5 w-5" />
-      </Button>
-    </>
-  );
-
   return (
     <>
       <nav className="border-b border-white/10 bg-background/80 backdrop-blur-sm">
@@ -132,13 +88,27 @@ export const Navigation = () => {
               </SheetTrigger>
               <SheetContent side="right" className="w-[80%] bg-background p-0">
                 <div className="flex flex-col space-y-4 p-4">
-                  <NavLinks />
+                  <NavLinks 
+                    onResourceClick={() => {
+                      setShowResourceDialog(true);
+                      setMobileMenuOpen(false);
+                    }}
+                    onInvoiceClick={() => {
+                      setShowInvoiceForm(true);
+                      setMobileMenuOpen(false);
+                    }}
+                    onLogout={handleLogout}
+                  />
                 </div>
               </SheetContent>
             </Sheet>
           ) : (
             <div className="flex items-center space-x-4">
-              <NavLinks />
+              <NavLinks 
+                onResourceClick={() => setShowResourceDialog(true)}
+                onInvoiceClick={() => setShowInvoiceForm(true)}
+                onLogout={handleLogout}
+              />
             </div>
           )}
         </div>
