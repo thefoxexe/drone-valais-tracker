@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, FilePlus, HardDrive, FolderOpen } from "lucide-react";
+import { LogOut, FilePlus, HardDrive, Menu, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "./ui/use-toast";
 import { useEffect, useState } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { InvoiceForm } from "./InvoiceForm";
 import { ResourceDialog } from "./ResourceDialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Navigation = () => {
   const navigate = useNavigate();
@@ -14,6 +15,8 @@ export const Navigation = () => {
   const [session, setSession] = useState(null);
   const [showInvoiceForm, setShowInvoiceForm] = useState(false);
   const [showResourceDialog, setShowResourceDialog] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -62,6 +65,51 @@ export const Navigation = () => {
     }
   };
 
+  const NavLinks = () => (
+    <>
+      <Link to="/">
+        <Button 
+          variant="ghost" 
+          className="text-white hover:text-white/80"
+        >
+          Dashboard
+        </Button>
+      </Link>
+      <Link to="/projects">
+        <Button 
+          variant="ghost" 
+          className="text-white hover:text-white/80"
+        >
+          Projets
+        </Button>
+      </Link>
+      <Button 
+        onClick={() => setShowResourceDialog(true)} 
+        variant="ghost" 
+        size="icon" 
+        className="text-white hover:text-white/80"
+      >
+        <HardDrive className="h-5 w-5" />
+      </Button>
+      <Button 
+        onClick={() => setShowInvoiceForm(true)} 
+        variant="ghost" 
+        size="icon" 
+        className="text-white hover:text-white/80"
+      >
+        <FilePlus className="h-5 w-5" />
+      </Button>
+      <Button 
+        onClick={handleLogout} 
+        variant="ghost" 
+        size="icon" 
+        className="text-white hover:text-white/80"
+      >
+        <LogOut className="h-5 w-5" />
+      </Button>
+    </>
+  );
+
   return (
     <>
       <nav className="border-b border-white/10 bg-background/80 backdrop-blur-sm">
@@ -69,51 +117,30 @@ export const Navigation = () => {
           <div className="flex items-center space-x-4">
             <Link to="/" className="flex items-center space-x-4 hover:opacity-80 transition-opacity">
               <img src="/lovable-uploads/e2ad46c3-367b-4223-acfa-1217eaef449a.png" alt="Logo" className="h-10 w-auto" />
-              <h1 className="text-2xl font-bold text-white">Drone Valais Production</h1>
+              {!isMobile && (
+                <h1 className="text-2xl font-bold text-white">Drone Valais Production</h1>
+              )}
             </Link>
           </div>
-          <div className="flex items-center space-x-4">
-            <Link to="/">
-              <Button 
-                variant="ghost" 
-                className="text-white hover:text-white/80"
-              >
-                Dashboard
-              </Button>
-            </Link>
-            <Link to="/projects">
-              <Button 
-                variant="ghost" 
-                className="text-white hover:text-white/80"
-              >
-                Projets
-              </Button>
-            </Link>
-            <Button 
-              onClick={() => setShowResourceDialog(true)} 
-              variant="ghost" 
-              size="icon" 
-              className="text-white hover:text-white/80"
-            >
-              <HardDrive className="h-5 w-5" />
-            </Button>
-            <Button 
-              onClick={() => setShowInvoiceForm(true)} 
-              variant="ghost" 
-              size="icon" 
-              className="text-white hover:text-white/80"
-            >
-              <FilePlus className="h-5 w-5" />
-            </Button>
-            <Button 
-              onClick={handleLogout} 
-              variant="ghost" 
-              size="icon" 
-              className="text-white hover:text-white/80"
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </div>
+          
+          {isMobile ? (
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-white">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[80%] bg-background p-0">
+                <div className="flex flex-col space-y-4 p-4">
+                  <NavLinks />
+                </div>
+              </SheetContent>
+            </Sheet>
+          ) : (
+            <div className="flex items-center space-x-4">
+              <NavLinks />
+            </div>
+          )}
         </div>
       </nav>
 
