@@ -13,7 +13,7 @@ export const NavLinks = ({ onResourceClick, onInvoiceClick, onLogout }: NavLinks
     <Link to="/">
       <Button 
         variant="ghost" 
-        className="text-white hover:text-white/80"
+        className="text-white hover:text-white/80 w-full justify-start"
       >
         Dashboard
       </Button>
@@ -21,7 +21,7 @@ export const NavLinks = ({ onResourceClick, onInvoiceClick, onLogout }: NavLinks
     <Link to="/projects">
       <Button 
         variant="ghost" 
-        className="text-white hover:text-white/80"
+        className="text-white hover:text-white/80 w-full justify-start"
       >
         Projets
       </Button>
@@ -29,26 +29,26 @@ export const NavLinks = ({ onResourceClick, onInvoiceClick, onLogout }: NavLinks
     <Button 
       onClick={onResourceClick} 
       variant="ghost" 
-      size="icon" 
-      className="text-white hover:text-white/80"
+      className="text-white hover:text-white/80 w-full justify-start"
     >
-      <HardDrive className="h-5 w-5" />
+      <HardDrive className="h-5 w-5 mr-2" />
+      Drive
     </Button>
     <Button 
       onClick={onInvoiceClick} 
       variant="ghost" 
-      size="icon" 
-      className="text-white hover:text-white/80"
+      className="text-white hover:text-white/80 w-full justify-start"
     >
-      <FilePlus className="h-5 w-5" />
+      <FilePlus className="h-5 w-5 mr-2" />
+      Nouveau devis
     </Button>
     <Button 
       onClick={onLogout} 
       variant="ghost" 
-      size="icon" 
-      className="text-white hover:text-white/80"
+      className="text-white hover:text-white/80 w-full justify-start"
     >
-      <LogOut className="h-5 w-5" />
+      <LogOut className="h-5 w-5 mr-2" />
+      Déconnexion
     </Button>
   </>
 );
