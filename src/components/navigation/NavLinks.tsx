@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, FilePlus, HardDrive } from "lucide-react";
+import { LogOut, FilePlus, HardDrive, LayoutDashboard, Briefcase } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface NavLinksProps {
@@ -15,6 +15,7 @@ export const NavLinks = ({ onResourceClick, onInvoiceClick, onLogout }: NavLinks
         variant="ghost" 
         className="text-white hover:text-white/80 w-full justify-start"
       >
+        <LayoutDashboard className="h-5 w-5 mr-2" />
         Dashboard
       </Button>
     </Link>
@@ -23,6 +24,7 @@ export const NavLinks = ({ onResourceClick, onInvoiceClick, onLogout }: NavLinks
         variant="ghost" 
         className="text-white hover:text-white/80 w-full justify-start"
       >
+        <Briefcase className="h-5 w-5 mr-2" />
         Projets
       </Button>
     </Link>
