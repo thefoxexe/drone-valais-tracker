@@ -22,9 +22,10 @@ Deno.serve(async (req) => {
 
     console.log('Starting YouTube stats fetch...')
     console.log('Channel ID:', CHANNEL_ID)
-    console.log('API Key exists:', !!YOUTUBE_API_KEY)
+    console.log('API Key length:', YOUTUBE_API_KEY.length)
 
     const url = `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${CHANNEL_ID}&key=${YOUTUBE_API_KEY}`
+    console.log('Making request to YouTube API...')
     
     // Fetch with error handling
     let response
@@ -45,17 +46,24 @@ Deno.serve(async (req) => {
     // Parse response
     let data
     try {
-      data = await response.json()
-      console.log('YouTube API response:', JSON.stringify(data, null, 2))
+      const text = await response.text()
+      console.log('Raw response:', text)
+      data = JSON.parse(text)
+      console.log('Parsed response:', JSON.stringify(data, null, 2))
     } catch (parseError) {
       console.error('JSON parse error:', parseError)
       throw new Error('Failed to parse YouTube API response')
     }
 
     // Validate response data
-    if (!data.items) {
+    if (!data || typeof data !== 'object') {
+      console.error('Invalid response format:', data)
+      throw new Error('Invalid response format from YouTube API')
+    }
+
+    if (!Array.isArray(data.items)) {
       console.error('No items array in response:', data)
-      throw new Error('Invalid YouTube API response format')
+      throw new Error('Invalid YouTube API response format: missing items array')
     }
 
     if (data.items.length === 0) {
@@ -68,6 +76,8 @@ Deno.serve(async (req) => {
       console.error('No statistics in response:', data.items[0])
       throw new Error('No statistics available for channel')
     }
+
+    console.log('Successfully retrieved channel statistics:', stats)
 
     return new Response(
       JSON.stringify({
