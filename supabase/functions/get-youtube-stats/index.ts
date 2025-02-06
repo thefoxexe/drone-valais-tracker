@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const CHANNEL_ID = 'UCZxLFyTXDT-cmzZvXrjzYBg' // @DroneValais channel ID
+const CHANNEL_ID = 'UCgc5uNXZgX2zB6PiH_4Y1Eg' // @DroneValais channel ID
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
