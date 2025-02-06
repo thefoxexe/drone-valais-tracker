@@ -15,18 +15,25 @@ Deno.serve(async (req) => {
   try {
     const YOUTUBE_API_KEY = Deno.env.get('YOUTUBE_API_KEY')
     if (!YOUTUBE_API_KEY) {
+      console.error('Missing YouTube API key')
       throw new Error('Missing YouTube API key')
     }
 
-    const response = await fetch(
-      `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${CHANNEL_ID}&key=${YOUTUBE_API_KEY}`
-    )
+    console.log('Fetching YouTube stats for channel:', CHANNEL_ID)
+    console.log('API Key exists:', !!YOUTUBE_API_KEY)
 
+    const url = `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${CHANNEL_ID}&key=${YOUTUBE_API_KEY}`
+    console.log('Request URL:', url)
+
+    const response = await fetch(url)
     const data = await response.json()
-    console.log('YouTube API response:', data)
+    
+    console.log('YouTube API response status:', response.status)
+    console.log('YouTube API response:', JSON.stringify(data, null, 2))
 
     if (!data.items || data.items.length === 0) {
-      throw new Error('No channel data found')
+      console.error('No items found in response:', data)
+      throw new Error(data.error?.message || 'No channel data found')
     }
 
     const stats = data.items[0].statistics
@@ -41,9 +48,12 @@ Deno.serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Error fetching YouTube stats:', error)
+    console.error('Error in get-youtube-stats:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.stack
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
