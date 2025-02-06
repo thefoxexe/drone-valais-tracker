@@ -16,18 +16,18 @@ export const DashboardTabs = ({ totalQuotes, totalInvoices, invoices }: Dashboar
 
   return (
     <Tabs defaultValue="quotes" className="space-y-4">
-      <TabsList>
-        <TabsTrigger value="quotes">
+      <TabsList className="w-full">
+        <TabsTrigger value="quotes" className="flex-1 text-sm">
           Devis ({totalQuotes})
         </TabsTrigger>
-        <TabsTrigger value="invoices">
+        <TabsTrigger value="invoices" className="flex-1 text-sm">
           Factures ({totalInvoices})
         </TabsTrigger>
       </TabsList>
-      <TabsContent value="quotes">
+      <TabsContent value="quotes" className="space-y-2">
         <InvoiceList invoices={pendingQuotes} isQuote={true} />
       </TabsContent>
-      <TabsContent value="invoices">
+      <TabsContent value="invoices" className="space-y-2">
         <InvoiceList invoices={approvedInvoices} isQuote={false} />
       </TabsContent>
     </Tabs>

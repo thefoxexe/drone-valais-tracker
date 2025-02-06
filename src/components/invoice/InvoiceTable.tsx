@@ -1,6 +1,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { InvoiceActions } from "./InvoiceActions";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Invoice {
   id: string;
@@ -29,16 +30,18 @@ export const InvoiceTable = ({
   onDownload,
   onStatusChange,
 }: InvoiceTableProps) => {
+  const isMobile = useIsMobile();
+
   return (
     <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>N° {isQuote ? 'Devis' : 'Facture'}</TableHead>
-            <TableHead>Client</TableHead>
-            <TableHead>Montant</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead className="text-xs md:text-sm">N° {isQuote ? 'Devis' : 'Facture'}</TableHead>
+            <TableHead className="text-xs md:text-sm">Client</TableHead>
+            {!isMobile && <TableHead className="text-xs md:text-sm">Montant</TableHead>}
+            {!isMobile && <TableHead className="text-xs md:text-sm">Date</TableHead>}
+            <TableHead className="text-right text-xs md:text-sm">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -46,20 +49,25 @@ export const InvoiceTable = ({
             <TableRow 
               key={invoice.id}
               className={cn(
+                "text-xs md:text-sm",
                 invoice.status === 'rejected' && "line-through opacity-50"
               )}
             >
-              <TableCell>{invoice.invoice_number}</TableCell>
+              <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
               <TableCell>{invoice.client_name}</TableCell>
-              <TableCell>
-                {Number(invoice.amount).toLocaleString('fr-CH', {
-                  style: 'currency',
-                  currency: 'CHF'
-                })}
-              </TableCell>
-              <TableCell>
-                {new Date(invoice.invoice_date).toLocaleDateString('fr-CH')}
-              </TableCell>
+              {!isMobile && (
+                <TableCell>
+                  {Number(invoice.amount).toLocaleString('fr-CH', {
+                    style: 'currency',
+                    currency: 'CHF'
+                  })}
+                </TableCell>
+              )}
+              {!isMobile && (
+                <TableCell>
+                  {new Date(invoice.invoice_date).toLocaleDateString('fr-CH')}
+                </TableCell>
+              )}
               <TableCell className="text-right">
                 <InvoiceActions
                   invoice={invoice}

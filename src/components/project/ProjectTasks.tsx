@@ -46,7 +46,7 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2 md:space-y-4">
       {project.project_tasks
         .sort((a, b) => a.order_index - b.order_index)
         .map((task) => (
@@ -60,7 +60,7 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
             />
             <label
               htmlFor={task.id}
-              className={`text-sm ${
+              className={`text-xs md:text-sm ${
                 task.completed ? "line-through text-muted-foreground" : ""
               }`}
             >
