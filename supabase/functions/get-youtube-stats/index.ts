@@ -5,7 +5,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const CHANNEL_ID = 'UCgc5uNXZgX2zB6PiH_4Y1Eg' // @DroneValais channel ID
+// @DroneValais channel ID
+const CHANNEL_ID = 'UCgc5uNXZgX2zB6PiH_4Y1Eg'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -19,24 +20,55 @@ Deno.serve(async (req) => {
       throw new Error('Missing YouTube API key')
     }
 
-    console.log('Fetching YouTube stats for channel:', CHANNEL_ID)
+    console.log('Starting YouTube stats fetch...')
+    console.log('Channel ID:', CHANNEL_ID)
     console.log('API Key exists:', !!YOUTUBE_API_KEY)
 
     const url = `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${CHANNEL_ID}&key=${YOUTUBE_API_KEY}`
-    console.log('Request URL:', url)
-
-    const response = await fetch(url)
-    const data = await response.json()
     
-    console.log('YouTube API response status:', response.status)
-    console.log('YouTube API response:', JSON.stringify(data, null, 2))
+    // Fetch with error handling
+    let response
+    try {
+      response = await fetch(url)
+      console.log('Response status:', response.status)
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('YouTube API error response:', errorText)
+        throw new Error(`YouTube API returned ${response.status}: ${errorText}`)
+      }
+    } catch (fetchError) {
+      console.error('Fetch error:', fetchError)
+      throw new Error(`Failed to fetch from YouTube API: ${fetchError.message}`)
+    }
 
-    if (!data.items || data.items.length === 0) {
-      console.error('No items found in response:', data)
-      throw new Error(data.error?.message || 'No channel data found')
+    // Parse response
+    let data
+    try {
+      data = await response.json()
+      console.log('YouTube API response:', JSON.stringify(data, null, 2))
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError)
+      throw new Error('Failed to parse YouTube API response')
+    }
+
+    // Validate response data
+    if (!data.items) {
+      console.error('No items array in response:', data)
+      throw new Error('Invalid YouTube API response format')
+    }
+
+    if (data.items.length === 0) {
+      console.error('Empty items array:', data)
+      throw new Error('Channel not found')
     }
 
     const stats = data.items[0].statistics
+    if (!stats) {
+      console.error('No statistics in response:', data.items[0])
+      throw new Error('No statistics available for channel')
+    }
+
     return new Response(
       JSON.stringify({
         viewCount: stats.viewCount,
@@ -52,7 +84,8 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        details: error.stack
+        details: error.stack,
+        timestamp: new Date().toISOString()
       }),
       {
         status: 500,
