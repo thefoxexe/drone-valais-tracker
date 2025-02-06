@@ -23,9 +23,18 @@ Deno.serve(async (req) => {
     console.log('Starting YouTube stats fetch...')
     console.log('Channel ID:', CHANNEL_ID)
     console.log('API Key length:', YOUTUBE_API_KEY.length)
-
-    const url = `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${CHANNEL_ID}&key=${YOUTUBE_API_KEY}`
+    
+    // Construct the URL with proper encoding
+    const baseUrl = 'https://www.googleapis.com/youtube/v3/channels'
+    const params = new URLSearchParams({
+      part: 'statistics',
+      id: CHANNEL_ID,
+      key: YOUTUBE_API_KEY
+    })
+    const url = `${baseUrl}?${params.toString()}`
+    
     console.log('Making request to YouTube API...')
+    console.log('Request URL (without key):', url.replace(YOUTUBE_API_KEY, '[REDACTED]'))
     
     // Fetch with error handling
     let response
@@ -55,7 +64,13 @@ Deno.serve(async (req) => {
       throw new Error('Failed to parse YouTube API response')
     }
 
-    // Validate response data
+    // Check for API error response
+    if (data.error) {
+      console.error('YouTube API returned an error:', data.error)
+      throw new Error(`YouTube API error: ${data.error.message || JSON.stringify(data.error)}`)
+    }
+
+    // Validate response data structure
     if (!data || typeof data !== 'object') {
       console.error('Invalid response format:', data)
       throw new Error('Invalid response format from YouTube API')
