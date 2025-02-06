@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Footer } from "@/components/Footer";
 
 declare global {
   interface Window {
@@ -87,7 +88,7 @@ const Index = () => {
   }, [navigate, toast]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
       {/* YouTube Background */}
       <div className="absolute inset-0 w-full h-full">
         <div className="relative w-full h-full">
@@ -156,6 +157,11 @@ const Index = () => {
             },
           }}
         />
+      </div>
+
+      {/* Footer */}
+      <div className="relative z-20 w-full mt-auto">
+        <Footer />
       </div>
     </div>
   );
