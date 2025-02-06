@@ -11,7 +11,7 @@ interface DashboardStatsProps {
 
 export const DashboardStats = ({ totalRevenue, totalInvoices, currentTime }: DashboardStatsProps) => {
   return (
-    <div className="grid grid-cols-3 gap-2 md:gap-8">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-8">
       <Card className="bg-background/80 backdrop-blur-sm border-white/10">
         <CardHeader className="p-2 md:p-6">
           <CardTitle className="text-sm md:text-2xl text-white">Chiffre d'affaires total</CardTitle>
@@ -35,7 +35,7 @@ export const DashboardStats = ({ totalRevenue, totalInvoices, currentTime }: Das
         </CardContent>
       </Card>
 
-      <Card className="bg-background/80 backdrop-blur-sm border-white/10">
+      <Card className="hidden md:block bg-background/80 backdrop-blur-sm border-white/10">
         <CardHeader className="p-2 md:p-6">
           <div className="flex items-center space-x-1 md:space-x-2">
             <Clock className="h-4 w-4 md:h-6 md:w-6 text-white" />
