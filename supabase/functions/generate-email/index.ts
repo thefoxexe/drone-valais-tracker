@@ -12,29 +12,16 @@ serve(async (req) => {
   }
 
   try {
-    const { receivedEmail, intention } = await req.json();
+    const { receivedEmail, keyPoints, signature } = await req.json();
 
-    let systemPrompt = "Tu es un assistant professionnel qui aide à rédiger des réponses d'emails en français. ";
-    
-    switch (intention) {
-      case "accept":
-        systemPrompt += "Tu dois rédiger une réponse positive et professionnelle pour accepter la proposition.";
-        break;
-      case "decline":
-        systemPrompt += "Tu dois rédiger un refus poli et professionnel tout en maintenant de bonnes relations.";
-        break;
-      case "more_info":
-        systemPrompt += "Tu dois demander plus d'informations de manière professionnelle et précise.";
-        break;
-      case "negotiate":
-        systemPrompt += "Tu dois négocier les conditions de manière professionnelle et constructive.";
-        break;
-      case "follow_up":
-        systemPrompt += "Tu dois faire un suivi professionnel et courtois.";
-        break;
-      default:
-        systemPrompt += "Tu dois rédiger une réponse professionnelle et appropriée.";
-    }
+    const systemPrompt = `Tu es un assistant professionnel qui aide à rédiger des réponses d'emails en français. 
+    Utilise les points clés fournis pour générer une réponse professionnelle et courtoise.
+    La réponse doit être claire, concise et bien structurée.
+    Termine toujours l'email avec la signature fournie au format suivant:
+
+    [Nom]
+    [Entreprise]
+    [Site web]`;
 
     const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
       method: 'POST',
@@ -51,7 +38,7 @@ serve(async (req) => {
           },
           {
             role: 'user',
-            content: `Voici l'email reçu:\n\n${receivedEmail}\n\nGénère une réponse professionnelle en français.`
+            content: `Email reçu:\n\n${receivedEmail}\n\nPoints clés pour la réponse:\n${keyPoints}\n\nGénère une réponse professionnelle en français et termine avec cette signature:\n\n${signature.name}\n${signature.company}\n${signature.website}`
           }
         ],
         temperature: 0.7,
