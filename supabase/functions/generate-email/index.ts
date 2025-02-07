@@ -36,14 +36,14 @@ serve(async (req) => {
         systemPrompt += "Tu dois rédiger une réponse professionnelle et appropriée.";
     }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${Deno.env.get('MISTRAL_API_KEY')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'mistral-tiny',
         messages: [
           {
             role: 'system',
@@ -60,8 +60,8 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${errorData.error?.message || response.statusText}`);
+      console.error('Mistral API error:', errorData);
+      throw new Error(`Mistral API error: ${errorData.error?.message || response.statusText}`);
     }
 
     const data = await response.json();
