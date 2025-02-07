@@ -5,7 +5,9 @@ export const useIsMobile = () => {
 
   useEffect(() => {
     const checkMobile = () => {
+      // 1. Vérification via User Agent
       const userAgent = navigator.userAgent.toLowerCase();
+      const vendor = navigator.vendor.toLowerCase();
       const mobileKeywords = [
         'mobile',
         'android',
@@ -13,23 +15,49 @@ export const useIsMobile = () => {
         'ipad',
         'ipod',
         'blackberry',
-        'windows phone'
+        'windows phone',
+        'webos',
+        'opera mini',
+        'iemobile',
+        'silk'
       ];
-      
-      const isMobileDevice = mobileKeywords.some(keyword => userAgent.includes(keyword)) || 
-                           window.innerWidth <= 768;
-      
+
+      // 2. Vérification via la largeur d'écran
+      const isMobileWidth = window.innerWidth <= 768;
+
+      // 3. Vérification via matchMedia pour la préférence tactile
+      const hasTouchScreen = (
+        ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 0) ||
+        ('msMaxTouchPoints' in navigator && (navigator as any).msMaxTouchPoints > 0) ||
+        (window.matchMedia && window.matchMedia('(pointer:coarse)').matches)
+      );
+
+      // 4. Vérification via platform
+      const platform = navigator.platform.toLowerCase();
+      const mobileDevicePlatforms = ['android', 'iphone', 'ipad', 'ipod'];
+
+      const isMobileDevice = 
+        mobileKeywords.some(keyword => userAgent.includes(keyword)) ||
+        mobileKeywords.some(keyword => vendor.includes(keyword)) ||
+        mobileDevicePlatforms.some(p => platform.includes(p)) ||
+        isMobileWidth ||
+        hasTouchScreen;
+
       setIsMobile(isMobileDevice);
     };
 
-    // Check initially
+    // Vérification initiale
     checkMobile();
 
-    // Add event listener for resize
+    // Ajout des event listeners
     window.addEventListener('resize', checkMobile);
+    window.addEventListener('orientationchange', checkMobile);
 
-    // Cleanup
-    return () => window.removeEventListener('resize', checkMobile);
+    // Nettoyage
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('orientationchange', checkMobile);
+    };
   }, []);
 
   return isMobile;
