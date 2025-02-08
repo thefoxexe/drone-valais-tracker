@@ -7,16 +7,31 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const getFullName = (email: string): string => {
+  switch (email) {
+    case "bastienryser20004@gmail.com":
+      return "Bastien Ryser";
+    case "noah.carron06@gmail.com":
+      return "Noah Carron";
+    case "monnetpierre78@gmail.com":
+      return "Pierre Monnet";
+    default:
+      return "Unknown User";
+  }
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { receivedEmail, intention } = await req.json();
+    const { receivedEmail, intention, userEmail } = await req.json();
+    const fullName = getFullName(userEmail);
 
     const systemPrompt = "Tu es un assistant professionnel qui aide à rédiger des réponses d'emails en français. " +
-      "Tu dois rédiger une réponse professionnelle qui correspond exactement aux instructions données tout en maintenant un ton courtois et professionnel.";
+      "Tu dois rédiger une réponse professionnelle qui correspond exactement aux instructions données tout en maintenant un ton courtois et professionnel. " +
+      "À la fin de l'email, ajoute toujours une signature avec le nom fourni, suivi de 'Drone Valais Production' et 'www.dronevalais-production.ch' sur des lignes séparées.";
 
     const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
       method: 'POST',
@@ -33,7 +48,7 @@ serve(async (req) => {
           },
           {
             role: 'user',
-            content: `Voici l'email reçu:\n\n${receivedEmail}\n\nInstructions pour la réponse:\n${intention}\n\nGénère une réponse professionnelle en français qui suit exactement ces instructions.`
+            content: `Voici l'email reçu:\n\n${receivedEmail}\n\nInstructions pour la réponse:\n${intention}\n\nUtilise cette signature:\n${fullName}\nDrone Valais Production\nwww.dronevalais-production.ch`
           }
         ],
         temperature: 0.7,

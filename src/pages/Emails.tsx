@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,13 +12,24 @@ const Emails = () => {
   const [intention, setIntention] = useState("");
   const [generatedResponse, setGeneratedResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const { toast } = useToast();
 
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setUserEmail(user.email);
+      }
+    };
+    getUser();
+  }, []);
+
   const handleGenerateResponse = async () => {
-    if (!receivedEmail || !intention) {
+    if (!receivedEmail || !intention || !userEmail) {
       toast({
         title: "Erreur",
-        description: "Veuillez remplir tous les champs",
+        description: "Veuillez remplir tous les champs et vous assurer d'être connecté",
         variant: "destructive",
       });
       return;
@@ -30,6 +41,7 @@ const Emails = () => {
         body: {
           receivedEmail,
           intention,
+          userEmail,
         },
       });
 
