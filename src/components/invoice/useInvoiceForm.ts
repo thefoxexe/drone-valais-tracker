@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
@@ -101,7 +102,10 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
         if (error) throw error;
       }
 
+      // Invalider les deux requêtes pour forcer leur mise à jour
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["monthly-revenue"] });
+      
       toast({
         title: "Succès",
         description: invoice ? "Document mis à jour" : "Devis créé",
