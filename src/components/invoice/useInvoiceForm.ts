@@ -102,9 +102,10 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
         if (error) throw error;
       }
 
-      // Invalider les deux requêtes pour forcer leur mise à jour
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      queryClient.invalidateQueries({ queryKey: ["monthly-revenue"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["invoices"] }),
+        queryClient.invalidateQueries({ queryKey: ["monthly-revenue"] })
+      ]);
       
       toast({
         title: "Succès",
