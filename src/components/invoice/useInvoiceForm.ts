@@ -86,7 +86,8 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
             ...data, 
             pdf_path: pdfPath, 
             user_id: session.user.id,
-            status: invoice.status || 'pending'
+            status: invoice.status || 'pending',
+            invoice_date: data.invoice_date,
           })
           .eq('id', invoice.id);
         if (error) throw error;
@@ -97,7 +98,8 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
             ...data, 
             pdf_path: pdfPath, 
             user_id: session.user.id,
-            status: 'pending'
+            status: 'pending',
+            invoice_date: data.invoice_date,
           }]);
         if (error) throw error;
       }
