@@ -1,15 +1,9 @@
+
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -88,23 +82,14 @@ const Emails = () => {
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                Intention de la Réponse
+                Instructions pour la réponse
               </label>
-              <Select
+              <Textarea
+                placeholder="Décrivez comment vous souhaitez répondre (ex: refuser poliment car le prix est trop élevé, demander plus de détails sur les délais...)"
                 value={intention}
-                onValueChange={setIntention}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionnez l'intention" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="accept">Accepter la proposition</SelectItem>
-                  <SelectItem value="decline">Refuser poliment</SelectItem>
-                  <SelectItem value="more_info">Demander plus d'informations</SelectItem>
-                  <SelectItem value="negotiate">Négocier les conditions</SelectItem>
-                  <SelectItem value="follow_up">Faire un suivi</SelectItem>
-                </SelectContent>
-              </Select>
+                onChange={(e) => setIntention(e.target.value)}
+                className="min-h-[100px]"
+              />
             </div>
 
             <Button 

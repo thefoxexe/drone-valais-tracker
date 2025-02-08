@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
@@ -14,27 +15,8 @@ serve(async (req) => {
   try {
     const { receivedEmail, intention } = await req.json();
 
-    let systemPrompt = "Tu es un assistant professionnel qui aide à rédiger des réponses d'emails en français. ";
-    
-    switch (intention) {
-      case "accept":
-        systemPrompt += "Tu dois rédiger une réponse positive et professionnelle pour accepter la proposition.";
-        break;
-      case "decline":
-        systemPrompt += "Tu dois rédiger un refus poli et professionnel tout en maintenant de bonnes relations.";
-        break;
-      case "more_info":
-        systemPrompt += "Tu dois demander plus d'informations de manière professionnelle et précise.";
-        break;
-      case "negotiate":
-        systemPrompt += "Tu dois négocier les conditions de manière professionnelle et constructive.";
-        break;
-      case "follow_up":
-        systemPrompt += "Tu dois faire un suivi professionnel et courtois.";
-        break;
-      default:
-        systemPrompt += "Tu dois rédiger une réponse professionnelle et appropriée.";
-    }
+    const systemPrompt = "Tu es un assistant professionnel qui aide à rédiger des réponses d'emails en français. " +
+      "Tu dois rédiger une réponse professionnelle qui correspond exactement aux instructions données tout en maintenant un ton courtois et professionnel.";
 
     const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
       method: 'POST',
@@ -51,7 +33,7 @@ serve(async (req) => {
           },
           {
             role: 'user',
-            content: `Voici l'email reçu:\n\n${receivedEmail}\n\nGénère une réponse professionnelle en français.`
+            content: `Voici l'email reçu:\n\n${receivedEmail}\n\nInstructions pour la réponse:\n${intention}\n\nGénère une réponse professionnelle en français qui suit exactement ces instructions.`
           }
         ],
         temperature: 0.7,
