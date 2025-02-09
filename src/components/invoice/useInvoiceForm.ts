@@ -79,31 +79,45 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
         pdfPath = fileName;
       }
 
+      // Format the date to YYYY-MM-DD
+      const formattedDate = new Date(data.invoice_date).toISOString().split('T')[0];
+
       if (invoice?.id) {
         const { error } = await supabase
           .from('invoices')
           .update({ 
-            ...data, 
-            pdf_path: pdfPath, 
+            invoice_number: data.invoice_number,
+            client_name: data.client_name,
+            amount: data.amount,
+            pdf_path: pdfPath,
             user_id: session.user.id,
             status: invoice.status || 'pending',
-            invoice_date: data.invoice_date,
+            invoice_date: formattedDate,
           })
           .eq('id', invoice.id);
-        if (error) throw error;
+        if (error) {
+          console.error("Update error:", error);
+          throw error;
+        }
       } else {
         const { error } = await supabase
           .from('invoices')
           .insert([{ 
-            ...data, 
-            pdf_path: pdfPath, 
+            invoice_number: data.invoice_number,
+            client_name: data.client_name,
+            amount: data.amount,
+            pdf_path: pdfPath,
             user_id: session.user.id,
             status: 'pending',
-            invoice_date: data.invoice_date,
+            invoice_date: formattedDate,
           }]);
-        if (error) throw error;
+        if (error) {
+          console.error("Insert error:", error);
+          throw error;
+        }
       }
 
+      // Invalidate both queries to force a refresh
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["invoices"] }),
         queryClient.invalidateQueries({ queryKey: ["monthly-revenue"] })
@@ -115,6 +129,7 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
       });
       onClose();
     } catch (error: any) {
+      console.error("Form submission error:", error);
       toast({
         title: "Erreur",
         description: error.message,
