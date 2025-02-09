@@ -62,6 +62,54 @@ export const VideoForm = ({ onClose }: { onClose: () => void }) => {
 
       if (uploadError) throw uploadError;
 
+      // Generate bio and hashtags with Perplexity
+      const generateContent = async () => {
+        const response = await fetch('https://api.perplexity.ai/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'llama-3.1-sonar-small-128k-online',
+            messages: [
+              {
+                role: 'system',
+                content: 'Generate a bio and hashtags for a video based on its description and target audience.'
+              },
+              {
+                role: 'user',
+                content: `Generate a bio (max 150 characters) and 5 hashtags for a ${values.platform} video.
+                Title: ${values.title}
+                Description: ${values.description}
+                Keywords: ${values.keywords}
+                Target Audience: ${values.targetAudience}
+                Style: ${values.style}`
+              }
+            ],
+            max_tokens: 150,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to generate content');
+        }
+
+        const data = await response.json();
+        const content = data.choices[0].message.content;
+        
+        // Parse the response to separate bio and hashtags
+        const [bio, hashtagsText] = content.split('\nHashtags:');
+        const hashtags = hashtagsText
+          ?.split(' ')
+          .filter((tag: string) => tag.startsWith('#'))
+          .map((tag: string) => tag.substring(1)) || [];
+
+        return { bio, hashtags };
+      };
+
+      const { bio, hashtags } = await generateContent();
+
       // Save metadata to database
       const { error: dbError } = await supabase.from("video_content").insert({
         title: values.title || null,
@@ -71,6 +119,8 @@ export const VideoForm = ({ onClose }: { onClose: () => void }) => {
         style: values.style,
         platform: values.platform,
         video_path: filePath,
+        generated_bio: bio,
+        generated_hashtags: hashtags,
       });
 
       if (dbError) throw dbError;

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "./ui/use-toast";
@@ -14,6 +15,7 @@ export const Navigation = () => {
   const [session, setSession] = useState(null);
   const [showInvoiceForm, setShowInvoiceForm] = useState(false);
   const [showResourceDialog, setShowResourceDialog] = useState(false);
+  const [showVideoForm, setShowVideoForm] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
 
@@ -76,6 +78,7 @@ export const Navigation = () => {
               setMobileMenuOpen={setMobileMenuOpen}
               onResourceClick={() => setShowResourceDialog(true)}
               onInvoiceClick={() => setShowInvoiceForm(true)}
+              onVideoClick={() => setShowVideoForm(true)}
               onLogout={handleLogout}
             />
           ) : (
@@ -83,6 +86,7 @@ export const Navigation = () => {
               <NavLinks 
                 onResourceClick={() => setShowResourceDialog(true)}
                 onInvoiceClick={() => setShowInvoiceForm(true)}
+                onVideoClick={() => setShowVideoForm(true)}
                 onLogout={handleLogout}
               />
             </div>
@@ -95,6 +99,8 @@ export const Navigation = () => {
         setShowInvoiceForm={setShowInvoiceForm}
         showResourceDialog={showResourceDialog}
         setShowResourceDialog={setShowResourceDialog}
+        showVideoForm={showVideoForm}
+        setShowVideoForm={setShowVideoForm}
       />
     </>
   );
