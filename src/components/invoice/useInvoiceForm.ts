@@ -26,7 +26,7 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, formState: { errors }, setValue } = useForm({
     defaultValues: {
       invoice_number: invoice?.invoice_number || "",
       client_name: invoice?.client_name || "",
@@ -51,7 +51,18 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
     checkAuth();
   }, [navigate, toast]);
 
+  // Effect to update form when invoice changes
+  useEffect(() => {
+    if (invoice) {
+      setValue('invoice_number', invoice.invoice_number);
+      setValue('client_name', invoice.client_name);
+      setValue('amount', invoice.amount);
+      setValue('invoice_date', invoice.invoice_date ? new Date(invoice.invoice_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+    }
+  }, [invoice, setValue]);
+
   const onSubmit = async (data: any) => {
+    console.log("Submitting form with data:", data);
     setIsSubmitting(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -81,8 +92,10 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
 
       // Format the date to YYYY-MM-DD
       const formattedDate = new Date(data.invoice_date).toISOString().split('T')[0];
+      console.log("Formatted date:", formattedDate);
 
       if (invoice?.id) {
+        console.log("Updating invoice with ID:", invoice.id);
         const { error } = await supabase
           .from('invoices')
           .update({ 
@@ -95,11 +108,13 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
             invoice_date: formattedDate,
           })
           .eq('id', invoice.id);
+
         if (error) {
           console.error("Update error:", error);
           throw error;
         }
       } else {
+        console.log("Creating new invoice");
         const { error } = await supabase
           .from('invoices')
           .insert([{ 
@@ -111,17 +126,17 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
             status: 'pending',
             invoice_date: formattedDate,
           }]);
+
         if (error) {
           console.error("Insert error:", error);
           throw error;
         }
       }
 
-      // Invalidate both queries to force a refresh
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["invoices"] }),
-        queryClient.invalidateQueries({ queryKey: ["monthly-revenue"] })
-      ]);
+      // Force refresh both queries
+      console.log("Invalidating queries...");
+      await queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      await queryClient.invalidateQueries({ queryKey: ["monthly-revenue"] });
       
       toast({
         title: "Succès",
