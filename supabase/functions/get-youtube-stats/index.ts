@@ -42,15 +42,15 @@ serve(async (req) => {
     console.log('Fetching channel stats:', url.replace(apiKey, 'REDACTED'))
 
     const response = await fetch(url)
-    const data = await response.json()
-    console.log('API Response:', JSON.stringify(data, null, 2))
+    let channelData = await response.json()
+    console.log('API Response:', JSON.stringify(channelData, null, 2))
 
     if (!response.ok) {
-      console.error('API error:', data)
+      console.error('API error:', channelData)
       return new Response(
         JSON.stringify({
           error: 'API Error',
-          details: data.error?.message || 'Unknown error',
+          details: channelData.error?.message || 'Unknown error',
           timestamp: new Date().toISOString(),
         }),
         {
@@ -60,8 +60,9 @@ serve(async (req) => {
       )
     }
 
-    if (!data.items || data.items.length === 0) {
-      // Si on ne trouve pas avec le username, essayons avec une recherche
+    // Si on ne trouve pas avec le username, essayons avec une recherche
+    if (!channelData.items || channelData.items.length === 0) {
+      console.log('No channel found with username, trying search...')
       const searchChannelParams = new URLSearchParams({
         part: 'id',
         q: 'Drone Valais',
@@ -100,12 +101,14 @@ serve(async (req) => {
       })
 
       const statsUrl = `https://www.googleapis.com/youtube/v3/channels?${statsParams.toString()}`
-      const statsResponse = await fetch(statsUrl)
-      const statsData = await statsResponse.json()
-      console.log('Stats Response:', JSON.stringify(statsData, null, 2))
+      console.log('Fetching stats for found channel:', statsUrl.replace(apiKey, 'REDACTED'))
 
-      if (!statsResponse.ok || !statsData.items || statsData.items.length === 0) {
-        console.error('Stats fetch failed:', statsData)
+      const statsResponse = await fetch(statsUrl)
+      channelData = await statsResponse.json()
+      console.log('Stats Response:', JSON.stringify(channelData, null, 2))
+
+      if (!statsResponse.ok || !channelData.items || channelData.items.length === 0) {
+        console.error('Stats fetch failed:', channelData)
         return new Response(
           JSON.stringify({
             error: 'Statistics not found',
@@ -118,11 +121,9 @@ serve(async (req) => {
           }
         )
       }
-
-      data = statsData
     }
 
-    const channelStats = data.items[0].statistics
+    const channelStats = channelData.items[0].statistics
     console.log('Returning channel stats:', channelStats)
 
     return new Response(
