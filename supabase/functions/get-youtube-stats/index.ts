@@ -31,37 +31,98 @@ serve(async (req) => {
       )
     }
 
-    // Utilisons directement l'ID de la chaîne pour éviter les problèmes avec le handle
-    const channelId = 'UCbewPcoO8m_vBF0UtZHiMIQ' // ID de la chaîne Drone Valais
-    const statsParams = new URLSearchParams({
-      part: 'statistics',
-      id: channelId,
+    // On utilise le handle de la chaîne YouTube
+    const searchParams = new URLSearchParams({
+      part: 'id,statistics',
+      forUsername: 'dronevalais',
       key: apiKey,
     })
 
-    const statsUrl = `https://www.googleapis.com/youtube/v3/channels?${statsParams.toString()}`
-    console.log('Fetching channel stats:', statsUrl.replace(apiKey, 'REDACTED'))
+    const url = `https://www.googleapis.com/youtube/v3/channels?${searchParams.toString()}`
+    console.log('Fetching channel stats:', url.replace(apiKey, 'REDACTED'))
 
-    const statsResponse = await fetch(statsUrl)
-    const statsData = await statsResponse.json()
-    console.log('Channel stats response:', JSON.stringify(statsData, null, 2))
+    const response = await fetch(url)
+    const data = await response.json()
+    console.log('API Response:', JSON.stringify(data, null, 2))
 
-    if (!statsResponse.ok || !statsData.items || statsData.items.length === 0) {
-      console.error('Failed to get channel stats:', statsData)
+    if (!response.ok) {
+      console.error('API error:', data)
       return new Response(
         JSON.stringify({
-          error: 'Statistics not found',
-          details: 'Could not fetch channel statistics',
+          error: 'API Error',
+          details: data.error?.message || 'Unknown error',
           timestamp: new Date().toISOString(),
         }),
         {
-          status: 500,
+          status: response.status,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       )
     }
 
-    const channelStats = statsData.items[0].statistics
+    if (!data.items || data.items.length === 0) {
+      // Si on ne trouve pas avec le username, essayons avec une recherche
+      const searchChannelParams = new URLSearchParams({
+        part: 'id',
+        q: 'Drone Valais',
+        type: 'channel',
+        key: apiKey,
+      })
+
+      const searchUrl = `https://www.googleapis.com/youtube/v3/search?${searchChannelParams.toString()}`
+      console.log('Searching for channel:', searchUrl.replace(apiKey, 'REDACTED'))
+
+      const searchResponse = await fetch(searchUrl)
+      const searchData = await searchResponse.json()
+      console.log('Search Response:', JSON.stringify(searchData, null, 2))
+
+      if (!searchResponse.ok || !searchData.items || searchData.items.length === 0) {
+        console.error('Search failed:', searchData)
+        return new Response(
+          JSON.stringify({
+            error: 'Channel not found',
+            details: 'Could not find the channel',
+            timestamp: new Date().toISOString(),
+          }),
+          {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        )
+      }
+
+      // Utilisons l'ID trouvé pour obtenir les statistiques
+      const channelId = searchData.items[0].id.channelId
+      const statsParams = new URLSearchParams({
+        part: 'statistics',
+        id: channelId,
+        key: apiKey,
+      })
+
+      const statsUrl = `https://www.googleapis.com/youtube/v3/channels?${statsParams.toString()}`
+      const statsResponse = await fetch(statsUrl)
+      const statsData = await statsResponse.json()
+      console.log('Stats Response:', JSON.stringify(statsData, null, 2))
+
+      if (!statsResponse.ok || !statsData.items || statsData.items.length === 0) {
+        console.error('Stats fetch failed:', statsData)
+        return new Response(
+          JSON.stringify({
+            error: 'Statistics not found',
+            details: 'Could not fetch channel statistics',
+            timestamp: new Date().toISOString(),
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        )
+      }
+
+      data = statsData
+    }
+
+    const channelStats = data.items[0].statistics
     console.log('Returning channel stats:', channelStats)
 
     return new Response(
