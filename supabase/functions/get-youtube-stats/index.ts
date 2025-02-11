@@ -6,8 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const CHANNEL_ID = '@dronevalais' // Utilisons le handle de la chaîne directement
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -33,39 +31,8 @@ serve(async (req) => {
       )
     }
 
-    // D'abord, récupérons l'ID de la chaîne à partir du handle
-    const handleParams = new URLSearchParams({
-      part: 'id',
-      forHandle: CHANNEL_ID,
-      key: apiKey,
-    })
-
-    const handleUrl = `https://www.googleapis.com/youtube/v3/channels?${handleParams.toString()}`
-    console.log('Fetching channel ID from handle:', handleUrl.replace(apiKey, 'REDACTED'))
-
-    const handleResponse = await fetch(handleUrl)
-    const handleData = await handleResponse.json()
-    console.log('Handle lookup response:', JSON.stringify(handleData, null, 2))
-
-    if (!handleResponse.ok || !handleData.items || handleData.items.length === 0) {
-      console.error('Failed to get channel ID from handle:', handleData)
-      return new Response(
-        JSON.stringify({
-          error: 'Channel not found',
-          details: 'Could not find channel ID from handle',
-          timestamp: new Date().toISOString(),
-        }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      )
-    }
-
-    const channelId = handleData.items[0].id
-    console.log('Found channel ID:', channelId)
-
-    // Maintenant récupérons les statistiques avec l'ID de la chaîne
+    // Utilisons directement l'ID de la chaîne pour éviter les problèmes avec le handle
+    const channelId = 'UCbewPcoO8m_vBF0UtZHiMIQ' // ID de la chaîne Drone Valais
     const statsParams = new URLSearchParams({
       part: 'statistics',
       id: channelId,
