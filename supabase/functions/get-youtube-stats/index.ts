@@ -1,3 +1,4 @@
+
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
 const corsHeaders = {
@@ -5,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const CHANNEL_ID = 'UCU5gptyRV8IU'; // Your channel ID
+const CHANNEL_ID = 'UCU5gptyRV8IU2hkD0JzHkgw' // ID de la chaîne Drone Valais
 
 serve(async (req) => {
   // Handle CORS preflight requests
