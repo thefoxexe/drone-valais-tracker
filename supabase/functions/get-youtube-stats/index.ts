@@ -33,7 +33,7 @@ serve(async (req) => {
 
     // On utilise le handle de la chaîne YouTube
     const searchParams = new URLSearchParams({
-      part: 'id,statistics',
+      part: 'id,statistics,contentDetails',
       forUsername: 'dronevalais',
       key: apiKey,
     })
@@ -95,7 +95,7 @@ serve(async (req) => {
       // Utilisons l'ID trouvé pour obtenir les statistiques
       const channelId = searchData.items[0].id.channelId
       const statsParams = new URLSearchParams({
-        part: 'statistics',
+        part: 'statistics,contentDetails',
         id: channelId,
         key: apiKey,
       })
