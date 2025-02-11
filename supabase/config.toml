@@ -1,3 +1,4 @@
+
 project_id = "seearalooznyeqkbtgwv"
 
 [api]
@@ -18,4 +19,8 @@ verify_jwt = false
 
 [[functions]]
 [functions.generate-email]
+verify_jwt = false
+
+[[functions]]
+[functions.get-youtube-stats]
 verify_jwt = false
