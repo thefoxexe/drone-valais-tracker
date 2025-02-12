@@ -157,7 +157,7 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+                    <PopoverContent className="w-auto p-0 bg-[#1A1F2C] border-gray-600" align="start">
                       <Calendar
                         mode="single"
                         selected={field.value}
@@ -166,6 +166,7 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
                           date < new Date()
                         }
                         initialFocus
+                        className="text-white"
                       />
                     </PopoverContent>
                   </Popover>
@@ -198,7 +199,7 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+                    <PopoverContent className="w-auto p-0 bg-[#1A1F2C] border-gray-600" align="start">
                       <Calendar
                         mode="single"
                         selected={field.value}
@@ -207,6 +208,7 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
                           date < form.getValues("startDate")
                         }
                         initialFocus
+                        className="text-white"
                       />
                     </PopoverContent>
                   </Popover>
