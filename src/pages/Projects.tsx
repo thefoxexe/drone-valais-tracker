@@ -18,6 +18,7 @@ const Projects = () => {
           name,
           status,
           archived,
+          invoice_id,
           project_tasks (
             id,
             description,
@@ -49,6 +50,7 @@ const Projects = () => {
           name,
           status,
           archived,
+          invoice_id,
           project_tasks (
             id,
             description,
