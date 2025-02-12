@@ -107,9 +107,9 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
           Réserver
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-[#1A1F2C]">
         <DialogHeader>
-          <DialogTitle>Réserver {equipmentName}</DialogTitle>
+          <DialogTitle className="text-white">Réserver {equipmentName}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -118,17 +118,17 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
               name="userName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Votre nom</FormLabel>
+                  <FormLabel className="text-white">Votre nom</FormLabel>
                   <select
                     {...field}
-                    className="w-full px-3 py-2 border rounded-md"
+                    className="w-full px-3 py-2 rounded-md bg-[#221F26] text-white border-gray-600"
                   >
-                    <option value="">Sélectionnez votre nom</option>
-                    <option value="Bastien Ryser">Bastien Ryser</option>
-                    <option value="Noah Carron">Noah Carron</option>
-                    <option value="Pierre Monnet">Pierre Monnet</option>
+                    <option value="" className="bg-[#221F26]">Sélectionnez votre nom</option>
+                    <option value="Bastien Ryser" className="bg-[#221F26]">Bastien Ryser</option>
+                    <option value="Noah Carron" className="bg-[#221F26]">Noah Carron</option>
+                    <option value="Pierre Monnet" className="bg-[#221F26]">Pierre Monnet</option>
                   </select>
-                  <FormMessage />
+                  <FormMessage className="text-red-400" />
                 </FormItem>
               )}
             />
@@ -137,14 +137,14 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
               name="startDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Date de début</FormLabel>
+                  <FormLabel className="text-white">Date de début</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
                           variant="outline"
                           className={cn(
-                            "w-full pl-3 text-left font-normal",
+                            "w-full pl-3 text-left font-normal bg-[#221F26] text-white border-gray-600",
                             !field.value && "text-muted-foreground"
                           )}
                         >
@@ -169,7 +169,7 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
                       />
                     </PopoverContent>
                   </Popover>
-                  <FormMessage />
+                  <FormMessage className="text-red-400" />
                 </FormItem>
               )}
             />
@@ -178,14 +178,14 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
               name="endDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Date de fin</FormLabel>
+                  <FormLabel className="text-white">Date de fin</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
                           variant="outline"
                           className={cn(
-                            "w-full pl-3 text-left font-normal",
+                            "w-full pl-3 text-left font-normal bg-[#221F26] text-white border-gray-600",
                             !field.value && "text-muted-foreground"
                           )}
                         >
@@ -210,11 +210,11 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
                       />
                     </PopoverContent>
                   </Popover>
-                  <FormMessage />
+                  <FormMessage className="text-red-400" />
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isPending}>
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={isPending}>
               {isPending ? "Réservation en cours..." : "Réserver"}
             </Button>
           </form>
