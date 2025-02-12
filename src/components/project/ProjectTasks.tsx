@@ -39,6 +39,35 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
         throw taskError;
       }
 
+      // Vérifier si toutes les tâches sont complétées après cette mise à jour
+      const updatedTasks = [...project.project_tasks];
+      const taskIndex = updatedTasks.findIndex(t => t.id === taskId);
+      if (taskIndex !== -1) {
+        updatedTasks[taskIndex].completed = completed;
+      }
+
+      const allTasksCompleted = updatedTasks.every(task => task.completed);
+      
+      // Si toutes les tâches sont complétées, archiver automatiquement le projet
+      if (allTasksCompleted) {
+        console.log("Toutes les tâches sont complétées, archivage automatique du projet:", project.id);
+        
+        const { error: archiveError } = await supabase
+          .from("projects")
+          .update({ archived: true })
+          .eq("id", project.id);
+
+        if (archiveError) {
+          console.error("Erreur lors de l'archivage automatique:", archiveError);
+          throw archiveError;
+        }
+
+        toast({
+          title: "Projet archivé",
+          description: "Toutes les tâches sont terminées, le projet a été archivé",
+        });
+      }
+
       // Rafraîchir les deux listes pour s'assurer que l'état est à jour
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["projects", "active"] }),
