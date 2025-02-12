@@ -30,30 +30,6 @@ export type Database = {
         }
         Relationships: []
       }
-      instagram_stats_history: {
-        Row: {
-          date: string
-          followers_count: number
-          following_count: number
-          id: string
-          media_count: number
-        }
-        Insert: {
-          date?: string
-          followers_count?: number
-          following_count?: number
-          id?: string
-          media_count?: number
-        }
-        Update: {
-          date?: string
-          followers_count?: number
-          following_count?: number
-          id?: string
-          media_count?: number
-        }
-        Relationships: []
-      }
       invoices: {
         Row: {
           amount: number
@@ -208,81 +184,6 @@ export type Database = {
           name?: string
           type?: string
           user_id?: string | null
-        }
-        Relationships: []
-      }
-      video_content: {
-        Row: {
-          created_at: string
-          description: string | null
-          generated_bio: string | null
-          generated_hashtags: string[] | null
-          id: string
-          keywords: string[] | null
-          platform: string | null
-          style: string | null
-          target_audience: string | null
-          title: string | null
-          user_id: string | null
-          video_path: string | null
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          generated_bio?: string | null
-          generated_hashtags?: string[] | null
-          id?: string
-          keywords?: string[] | null
-          platform?: string | null
-          style?: string | null
-          target_audience?: string | null
-          title?: string | null
-          user_id?: string | null
-          video_path?: string | null
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          generated_bio?: string | null
-          generated_hashtags?: string[] | null
-          id?: string
-          keywords?: string[] | null
-          platform?: string | null
-          style?: string | null
-          target_audience?: string | null
-          title?: string | null
-          user_id?: string | null
-          video_path?: string | null
-        }
-        Relationships: []
-      }
-      youtube_stats_history: {
-        Row: {
-          created_at: string | null
-          date: string
-          id: string
-          subscriber_count: number
-          video_count: number
-          view_count: number
-          watch_time_hours: number | null
-        }
-        Insert: {
-          created_at?: string | null
-          date?: string
-          id?: string
-          subscriber_count: number
-          video_count: number
-          view_count: number
-          watch_time_hours?: number | null
-        }
-        Update: {
-          created_at?: string | null
-          date?: string
-          id?: string
-          subscriber_count?: number
-          video_count?: number
-          view_count?: number
-          watch_time_hours?: number | null
         }
         Relationships: []
       }
