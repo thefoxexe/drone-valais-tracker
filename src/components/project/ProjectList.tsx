@@ -71,9 +71,13 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
     try {
       console.log("Attempting to archive project:", projectId);
       
+      // Mettre à jour à la fois le statut et le flag archived
       const { error: projectError } = await supabase
         .from("projects")
-        .update({ archived: true })
+        .update({ 
+          archived: true,
+          status: 'archived'
+        })
         .eq("id", projectId);
 
       if (projectError) {
@@ -81,8 +85,8 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
         throw projectError;
       }
 
-      await queryClient.invalidateQueries({ queryKey: ["projects", "active"] });
-      await queryClient.invalidateQueries({ queryKey: ["projects", "archived"] });
+      // Force le rafraîchissement des deux listes
+      await queryClient.invalidateQueries({ queryKey: ["projects"] });
       
       toast({
         title: "Succès",

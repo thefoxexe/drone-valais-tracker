@@ -26,6 +26,7 @@ const Projects = () => {
           )
         `)
         .eq('archived', false)
+        .eq('status', 'in_progress')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -57,6 +58,7 @@ const Projects = () => {
           )
         `)
         .eq('archived', true)
+        .eq('status', 'archived')
         .order('created_at', { ascending: false });
 
       if (error) {
