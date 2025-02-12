@@ -73,6 +73,7 @@ export const EquipmentCalendar = () => {
             selected={date}
             onSelect={setDate}
             className="rounded-md"
+            locale={fr}
           />
         </div>
         <div className="space-y-4">
@@ -91,7 +92,7 @@ export const EquipmentCalendar = () => {
                   <CardContent className="py-2">
                     <div className="grid gap-1">
                       <div className="text-sm">
-                        Réservé par <Badge variant="secondary">{booking.user_name || "Inconnu"}</Badge>
+                        Réservé par <Badge variant="secondary">{booking.user_name}</Badge>
                       </div>
                       <div className="text-sm text-muted-foreground">
                         Du {format(new Date(booking.start_date), "d MMMM", { locale: fr })} au{" "}
