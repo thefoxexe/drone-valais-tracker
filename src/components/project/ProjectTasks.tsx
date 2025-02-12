@@ -18,6 +18,7 @@ interface Project {
   name: string;
   status: string;
   archived: boolean;
+  archived_at: string | null;
   invoice_id: string;
 }
 
@@ -89,6 +90,7 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
             .from("projects")
             .update({ 
               archived: true,
+              archived_at: new Date().toISOString(),
               name: checkProject.name,
               status: checkProject.status,
               user_id: checkProject.user_id,

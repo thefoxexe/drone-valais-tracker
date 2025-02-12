@@ -18,6 +18,7 @@ const Projects = () => {
           name,
           status,
           archived,
+          archived_at,
           invoice_id,
           project_tasks (
             id,
@@ -50,6 +51,7 @@ const Projects = () => {
           name,
           status,
           archived,
+          archived_at,
           invoice_id,
           project_tasks (
             id,
@@ -59,7 +61,7 @@ const Projects = () => {
           )
         `)
         .eq('archived', true)
-        .order('created_at', { ascending: false });
+        .order('archived_at', { ascending: false });
 
       if (error) {
         console.error("Erreur lors de la récupération des projets archivés:", error);
