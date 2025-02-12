@@ -13,10 +13,14 @@ type Booking = {
   start_date: string;
   end_date: string;
   user_name: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  equipment_id: string;
   equipment: {
     name: string;
-    type: string;
-    status: string;
+    type: "drone" | "camera" | "stabilizer" | "other";
+    status: "available" | "maintenance" | "out_of_order";
   };
 };
 
@@ -35,10 +39,10 @@ export const EquipmentCalendar = () => {
             type,
             status
           )
-        `);
+        `) as { data: Booking[] | null; error: any };
 
       if (error) throw error;
-      return data as Booking[];
+      return data || [];
     },
   });
 
@@ -87,7 +91,7 @@ export const EquipmentCalendar = () => {
                   <CardContent className="py-2">
                     <div className="grid gap-1">
                       <div className="text-sm">
-                        Réservé par <Badge variant="secondary">{booking.user_name}</Badge>
+                        Réservé par <Badge variant="secondary">{booking.user_name || "Inconnu"}</Badge>
                       </div>
                       <div className="text-sm text-muted-foreground">
                         Du {format(new Date(booking.start_date), "d MMMM", { locale: fr })} au{" "}
