@@ -162,7 +162,7 @@ serve(async (req) => {
     const channelStats = channelData.items[0].statistics
     const currentDate = new Date().toISOString().split('T')[0]
 
-    // Save stats to the database
+    // Save today's stats to the database
     const { error: insertError } = await supabaseClient
       .from('youtube_stats_history')
       .upsert({
@@ -177,15 +177,59 @@ serve(async (req) => {
       console.error('Error saving stats to database:', insertError)
     }
 
-    // Fetch historical data (last 30 days)
-    const { data: historyData, error: historyError } = await supabaseClient
+    // Calculate date range for the last 12 months
+    const today = new Date()
+    const twelveMonthsAgo = new Date(today)
+    twelveMonthsAgo.setMonth(today.getMonth() - 11) // -11 to include current month
+    twelveMonthsAgo.setDate(1) // Start from the 1st of the month
+    const startDate = twelveMonthsAgo.toISOString().split('T')[0]
+
+    // Fetch and aggregate monthly data
+    const { data: monthlyData, error: historyError } = await supabaseClient
       .from('youtube_stats_history')
       .select('*')
+      .gte('date', startDate)
       .order('date', { ascending: true })
-      .limit(30)
 
     if (historyError) {
       console.error('Error fetching history:', historyError)
+    }
+
+    // Aggregate data by month
+    const monthlyAggregated = monthlyData?.reduce((acc: Record<string, any>[], entry) => {
+      const date = new Date(entry.date)
+      const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+      
+      const existingMonth = acc.find(m => m.month === monthYear)
+      if (existingMonth) {
+        // Keep the latest view count for the month
+        if (new Date(entry.date) > new Date(existingMonth.originalDate)) {
+          existingMonth.view_count = entry.view_count
+          existingMonth.originalDate = entry.date
+        }
+      } else {
+        acc.push({
+          month: monthYear,
+          view_count: entry.view_count,
+          originalDate: entry.date
+        })
+      }
+      return acc
+    }, []) || []
+
+    // Fill in missing months with null values
+    const allMonths = []
+    const currentMonth = new Date(twelveMonthsAgo)
+    while (currentMonth <= today) {
+      const monthStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}`
+      const existingData = monthlyAggregated.find(m => m.month === monthStr)
+      
+      allMonths.push({
+        month: monthStr,
+        view_count: existingData?.view_count || null
+      })
+      
+      currentMonth.setMonth(currentMonth.getMonth() + 1)
     }
 
     return new Response(
@@ -197,7 +241,7 @@ serve(async (req) => {
           watchTimeHours: Math.round(totalWatchTimeHours),
           timestamp: new Date().toISOString()
         },
-        history: historyData || []
+        history: allMonths
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

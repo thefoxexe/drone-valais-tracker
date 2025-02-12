@@ -163,32 +163,43 @@ export const YoutubeStats = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={history}>
                   <XAxis
-                    dataKey="date"
+                    dataKey="month"
                     stroke="#888888"
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(value) => new Date(value).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                    tickFormatter={(value) => {
+                      const [year, month] = value.split('-')
+                      return new Date(parseInt(year), parseInt(month) - 1)
+                        .toLocaleDateString('fr-FR', { month: 'short' })
+                    }}
                   />
                   <YAxis
                     stroke="#888888"
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(value) => `${value.toLocaleString('fr-FR')}`}
+                    tickFormatter={(value) => `${(value / 1000).toLocaleString('fr-FR')}k`}
                   />
                   <Tooltip
                     content={({ active, payload, label }) => {
                       if (active && payload && payload.length) {
+                        const views = payload[0].value
+                        const [year, month] = label.split('-')
+                        const date = new Date(parseInt(year), parseInt(month) - 1)
+                        
                         return (
                           <div className="rounded-lg border bg-background p-2 shadow-sm">
                             <div className="grid grid-cols-2 gap-2">
                               <div className="flex flex-col">
                                 <span className="text-[0.70rem] uppercase text-muted-foreground">
-                                  Date
+                                  Mois
                                 </span>
                                 <span className="font-bold">
-                                  {new Date(label).toLocaleDateString('fr-FR')}
+                                  {date.toLocaleDateString('fr-FR', { 
+                                    month: 'long',
+                                    year: 'numeric'
+                                  })}
                                 </span>
                               </div>
                               <div className="flex flex-col">
@@ -196,7 +207,7 @@ export const YoutubeStats = () => {
                                   Vues
                                 </span>
                                 <span className="font-bold">
-                                  {payload[0].value.toLocaleString('fr-FR')}
+                                  {views?.toLocaleString('fr-FR') || 'N/A'}
                                 </span>
                               </div>
                             </div>
