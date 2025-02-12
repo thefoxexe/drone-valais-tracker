@@ -5,6 +5,7 @@ import { YoutubeHeader } from "@/components/navigation/YoutubeHeader";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { YoutubeStats } from "@/components/stats/YoutubeStats";
+import { InstagramStats } from "@/components/stats/InstagramStats";
 
 const Stats = () => {
   const navigate = useNavigate();
@@ -34,14 +35,13 @@ const Stats = () => {
         <div className="space-y-8">
           <YoutubeStats />
           
-          <Card className="bg-background/80 backdrop-blur-sm border-white/10">
-            <div className="p-6">
-              <h3 className="text-xl font-semibold mb-4">Instagram</h3>
-              <p className="text-muted-foreground">
-                L'intégration Instagram sera disponible prochainement...
-              </p>
-            </div>
-          </Card>
+          <div className="mt-16">
+            <Card className="bg-background/80 backdrop-blur-sm border-white/10">
+              <div className="p-6 space-y-8">
+                <InstagramStats />
+              </div>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

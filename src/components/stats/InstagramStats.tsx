@@ -1,32 +1,32 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Play, Video } from "lucide-react";
+import { Users, Camera, Play } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-interface YoutubeStatsData {
-  channelName: string;
-  channelDescription: string;
-  channelThumbnail: string;
-  subscriberCount: string;
-  viewCount: string;
-  videoCount: string;
+interface InstagramStatsData {
+  username: string;
+  biography: string;
+  profilePicture: string;
+  followersCount: number;
+  followingCount: number;
+  mediaCount: number;
   historicalData: Array<{
     date: string;
-    subscriber_count: number;
-    view_count: number;
-    video_count: number;
+    followers_count: number;
+    media_count: number;
   }>;
   timestamp: string;
 }
 
-export const YoutubeStats = () => {
-  const { data: stats, isLoading, error } = useQuery<YoutubeStatsData>({
-    queryKey: ["youtube-stats"],
+export const InstagramStats = () => {
+  const { data: stats, isLoading, error } = useQuery<InstagramStatsData>({
+    queryKey: ["instagram-stats"],
     queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke('get-youtube-stats');
+      const { data, error } = await supabase.functions.invoke('get-instagram-stats');
       if (error) throw error;
-      console.log("YouTube API Response:", data);
+      console.log("Instagram API Response:", data);
       return data;
     },
     refetchInterval: 1000 * 60 * 5,
@@ -43,38 +43,34 @@ export const YoutubeStats = () => {
   if (error) {
     return (
       <div className="text-red-500 p-4 rounded-lg bg-red-500/10">
-        Erreur lors du chargement des statistiques
+        Erreur lors du chargement des statistiques Instagram
       </div>
     );
   }
 
   return (
     <div className="space-y-8">
-      {/* En-tête de la chaîne */}
+      {/* En-tête du profil */}
       <div className="-mt-[100px] relative z-10">
         <div className="flex items-start space-x-6">
           <img 
-            src={stats?.channelThumbnail} 
-            alt={stats?.channelName} 
+            src={stats?.profilePicture} 
+            alt={stats?.username} 
             className="w-32 h-32 rounded-full border-4 border-background shadow-xl"
           />
           <div className="pt-16">
-            <h1 className="text-4xl font-bold mb-2">{stats?.channelName}</h1>
+            <h1 className="text-4xl font-bold mb-2">{stats?.username}</h1>
             <div className="flex items-center space-x-4 text-muted-foreground">
               <span className="font-medium">
-                {stats?.subscriberCount ? 
-                  `${parseInt(stats.subscriberCount).toLocaleString('fr-FR')} abonnés` : 
-                  '0 abonné'}
+                {stats?.followersCount?.toLocaleString('fr-FR') || '0'} abonnés
               </span>
               <span>•</span>
               <span>
-                {stats?.videoCount ? 
-                  `${parseInt(stats.videoCount).toLocaleString('fr-FR')} vidéos` : 
-                  '0 vidéo'}
+                {stats?.mediaCount?.toLocaleString('fr-FR') || '0'} publications
               </span>
             </div>
             <p className="mt-4 text-muted-foreground line-clamp-2 max-w-2xl">
-              {stats?.channelDescription}
+              {stats?.biography}
             </p>
           </div>
         </div>
@@ -86,14 +82,12 @@ export const YoutubeStats = () => {
           <CardContent className="p-6">
             <div className="flex items-center space-x-4">
               <div className="p-3 bg-primary/10 rounded-full">
-                <Play className="h-6 w-6 text-primary" />
+                <Camera className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Vues totales</p>
+                <p className="text-sm text-muted-foreground">Publications totales</p>
                 <p className="text-2xl font-bold">
-                  {stats?.viewCount ? 
-                    parseInt(stats.viewCount).toLocaleString('fr-FR') : 
-                    '0'}
+                  {stats?.mediaCount?.toLocaleString('fr-FR') || '0'}
                 </p>
               </div>
             </div>
@@ -123,7 +117,7 @@ export const YoutubeStats = () => {
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stats?.historicalData || []}>
                 <defs>
-                  <linearGradient id="statsGradient" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="instagramStatsGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
                     <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.05} />
                   </linearGradient>
@@ -174,10 +168,10 @@ export const YoutubeStats = () => {
                 />
                 <Area
                   type="monotone"
-                  dataKey="subscriber_count"
+                  dataKey="followers_count"
                   stroke="hsl(var(--primary))"
                   strokeWidth={2}
-                  fill="url(#statsGradient)"
+                  fill="url(#instagramStatsGradient)"
                 />
               </AreaChart>
             </ResponsiveContainer>
