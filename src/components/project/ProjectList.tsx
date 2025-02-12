@@ -7,7 +7,7 @@ import { Archive, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface Project {
   id: string;
@@ -35,8 +35,19 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
   const activeProjects = projects?.filter(p => !p.archived) || [];
   const archivedProjects = projects?.filter(p => p.archived) || [];
 
-  console.log("Active projects:", activeProjects);
-  console.log("Archived projects:", archivedProjects);
+  // Check for projects that should be archived automatically
+  useEffect(() => {
+    const checkAndArchiveProjects = async () => {
+      for (const project of activeProjects) {
+        const allTasksCompleted = project.project_tasks.every(task => task.completed);
+        if (allTasksCompleted && !project.archived) {
+          await handleArchive(project.id, true);
+        }
+      }
+    };
+
+    checkAndArchiveProjects();
+  }, [activeProjects]);
 
   const handleDelete = async (projectId: string) => {
     try {
@@ -112,8 +123,6 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
   };
 
   const ProjectCard = ({ project }: { project: Project }) => {
-    const allTasksCompleted = project.project_tasks.every(task => task.completed);
-
     return (
       <Card key={project.id}>
         <CardHeader>
@@ -123,16 +132,6 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
           <ProjectTasks project={project} />
         </CardContent>
         <CardFooter className="flex justify-end space-x-2">
-          {allTasksCompleted && !project.archived && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleArchive(project.id, true)}
-            >
-              <Archive className="h-4 w-4 mr-2" />
-              Archiver
-            </Button>
-          )}
           {project.archived && (
             <Button
               variant="outline"
