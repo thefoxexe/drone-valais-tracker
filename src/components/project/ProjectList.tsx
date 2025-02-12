@@ -7,6 +7,7 @@ import { Archive, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 interface Project {
   id: string;
@@ -28,9 +29,14 @@ interface ProjectListProps {
 export const ProjectList = ({ projects }: ProjectListProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [currentTab, setCurrentTab] = useState<string>("active");
 
-  const activeProjects = projects.filter(p => !p.archived);
-  const archivedProjects = projects.filter(p => p.archived);
+  // Filtrage des projets
+  const activeProjects = projects?.filter(p => !p.archived) || [];
+  const archivedProjects = projects?.filter(p => p.archived) || [];
+
+  console.log("Active projects:", activeProjects);
+  console.log("Archived projects:", archivedProjects);
 
   const handleDelete = async (projectId: string) => {
     try {
@@ -73,14 +79,23 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
 
   const handleArchive = async (projectId: string, archived: boolean) => {
     try {
-      const { error } = await supabase
+      console.log("Archiving project:", projectId, "archived:", archived);
+      
+      const { data, error } = await supabase
         .from('projects')
         .update({ archived })
-        .eq('id', projectId);
+        .eq('id', projectId)
+        .select();
 
       if (error) throw error;
 
+      console.log("Update response:", data);
+
+      // Force refresh the data
       await queryClient.invalidateQueries({ queryKey: ["projects"] });
+      
+      // Switch to the appropriate tab after archiving/unarchiving
+      setCurrentTab(archived ? "archived" : "active");
       
       toast({
         title: "Succès",
@@ -142,20 +157,26 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
   };
 
   return (
-    <Tabs defaultValue="active" className="w-full">
+    <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
       <TabsList>
-        <TabsTrigger value="active">Projets actifs</TabsTrigger>
-        <TabsTrigger value="archived">Archives</TabsTrigger>
+        <TabsTrigger value="active">Projets actifs ({activeProjects.length})</TabsTrigger>
+        <TabsTrigger value="archived">Archives ({archivedProjects.length})</TabsTrigger>
       </TabsList>
       <TabsContent value="active" className="space-y-6">
         {activeProjects.map((project) => (
           <ProjectCard key={project.id} project={project} />
         ))}
+        {activeProjects.length === 0 && (
+          <p className="text-center text-muted-foreground">Aucun projet actif</p>
+        )}
       </TabsContent>
       <TabsContent value="archived" className="space-y-6">
         {archivedProjects.map((project) => (
           <ProjectCard key={project.id} project={project} />
         ))}
+        {archivedProjects.length === 0 && (
+          <p className="text-center text-muted-foreground">Aucun projet archivé</p>
+        )}
       </TabsContent>
     </Tabs>
   );
