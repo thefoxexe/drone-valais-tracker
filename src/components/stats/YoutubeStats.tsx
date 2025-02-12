@@ -59,15 +59,6 @@ export const YoutubeStats = () => {
   return (
     <Card className="bg-background/80 backdrop-blur-sm border-white/10">
       <CardContent className="p-6">
-        {/* Logo YouTube */}
-        <div className="flex justify-center mb-6">
-          <img 
-            src="/lovable-uploads/c0f3ece0-5c62-447f-a9f4-de35b1231e72.png"
-            alt="YouTube Logo"
-            className="h-12 w-auto opacity-80"
-          />
-        </div>
-
         {/* En-tête avec photo et info de la chaîne */}
         <div className="flex items-center space-x-6 mb-10 bg-card/30 p-6 rounded-xl backdrop-blur-md">
           <img 
@@ -76,7 +67,14 @@ export const YoutubeStats = () => {
             className="w-24 h-24 rounded-full border-4 border-primary/20 shadow-xl"
           />
           <div className="flex-1">
-            <h2 className="text-3xl font-bold mb-2">{stats?.channelName}</h2>
+            <div className="flex items-center gap-4">
+              <h2 className="text-3xl font-bold mb-2">{stats?.channelName}</h2>
+              <img 
+                src="/lovable-uploads/c0f3ece0-5c62-447f-a9f4-de35b1231e72.png"
+                alt="YouTube Logo"
+                className="h-6 w-auto"
+              />
+            </div>
             <p className="text-muted-foreground line-clamp-2">{stats?.channelDescription}</p>
           </div>
         </div>
