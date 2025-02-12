@@ -5,8 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Clock } from "lucide-react";
 
 type Booking = {
   id: string;
@@ -52,7 +53,6 @@ export const EquipmentCalendar = () => {
     const endDate = new Date(booking.end_date);
     const selectedDate = new Date(date);
     
-    // Réinitialiser les heures pour comparer uniquement les dates
     selectedDate.setHours(0, 0, 0, 0);
     startDate.setHours(0, 0, 0, 0);
     endDate.setHours(0, 0, 0, 0);
@@ -61,55 +61,84 @@ export const EquipmentCalendar = () => {
   });
 
   if (isLoading) {
-    return <div>Chargement du calendrier...</div>;
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center">
+            Chargement du calendrier...
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-lg border p-4">
+    <div className="grid gap-6 md:grid-cols-2">
+      <Card className="md:sticky md:top-4 h-fit">
+        <CardHeader>
+          <CardTitle>Calendrier des réservations</CardTitle>
+          <CardDescription>
+            Sélectionnez une date pour voir les réservations
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
           <Calendar
             mode="single"
             selected={date}
             onSelect={setDate}
-            className="rounded-md"
+            className="rounded-md border"
             locale={fr}
           />
-        </div>
-        <div className="space-y-4">
-          <h3 className="font-medium">
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>
             Réservations du {date && format(date, "d MMMM yyyy", { locale: fr })}
-          </h3>
-          {bookingsForSelectedDate?.length ? (
-            <div className="space-y-3">
-              {bookingsForSelectedDate.map((booking) => (
-                <Card key={booking.id}>
-                  <CardHeader className="py-3">
-                    <CardTitle className="text-sm font-medium">
-                      {booking.equipment.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="py-2">
-                    <div className="grid gap-1">
-                      <div className="text-sm">
-                        Réservé par <Badge variant="secondary">{booking.user_name}</Badge>
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        Du {format(new Date(booking.start_date), "d MMMM", { locale: fr })} au{" "}
-                        {format(new Date(booking.end_date), "d MMMM", { locale: fr })}
-                      </div>
+          </CardTitle>
+          <CardDescription>
+            {bookingsForSelectedDate?.length
+              ? `${bookingsForSelectedDate.length} réservation${
+                  bookingsForSelectedDate.length > 1 ? "s" : ""
+                }`
+              : "Aucune réservation"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {bookingsForSelectedDate?.map((booking) => (
+              <Card key={booking.id} className="overflow-hidden">
+                <CardHeader className="bg-muted/50 py-3">
+                  <CardTitle className="text-base font-medium">
+                    {booking.equipment.name}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <div className="grid gap-2">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{booking.user_name}</Badge>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-sm text-muted-foreground">
-              Aucune réservation pour cette date
-            </div>
-          )}
-        </div>
-      </div>
+                    <div className="flex items-center text-sm text-muted-foreground gap-2">
+                      <Clock className="h-4 w-4" />
+                      <span>
+                        {format(new Date(booking.start_date), "HH:mm")} -{" "}
+                        {format(new Date(booking.end_date), "HH:mm")}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {!bookingsForSelectedDate?.length && (
+              <div className="flex flex-col items-center justify-center text-center p-8 text-muted-foreground">
+                <p>Aucune réservation pour cette date</p>
+                <p className="text-sm">Sélectionnez une autre date ou ajoutez une nouvelle réservation</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

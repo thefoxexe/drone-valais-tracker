@@ -1,5 +1,5 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
@@ -12,6 +12,20 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { EquipmentForm } from "./EquipmentForm";
 import { EquipmentBookingForm } from "./EquipmentBookingForm";
+import { Button } from "@/components/ui/button";
+import { Pencil, Trash2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type Equipment = {
   id: string;
@@ -21,6 +35,9 @@ type Equipment = {
 };
 
 export const EquipmentList = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   const { data: equipment, isLoading } = useQuery({
     queryKey: ["equipment"],
     queryFn: async () => {
@@ -31,6 +48,28 @@ export const EquipmentList = () => {
 
       if (error) throw error;
       return data as Equipment[];
+    },
+  });
+
+  const { mutate: deleteEquipment } = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("equipment").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["equipment"] });
+      toast({
+        title: "Matériel supprimé",
+        description: "Le matériel a été supprimé avec succès",
+      });
+    },
+    onError: (error) => {
+      console.error("Erreur lors de la suppression du matériel:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la suppression du matériel",
+      });
     },
   });
 
@@ -98,12 +137,39 @@ export const EquipmentList = () => {
                 </Badge>
               </TableCell>
               <TableCell>
-                {item.status === "available" && (
-                  <EquipmentBookingForm 
-                    equipmentId={item.id} 
-                    equipmentName={item.name}
-                  />
-                )}
+                <div className="flex items-center gap-2">
+                  {item.status === "available" && (
+                    <EquipmentBookingForm 
+                      equipmentId={item.id} 
+                      equipmentName={item.name}
+                    />
+                  )}
+                  <EquipmentForm equipment={item} />
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive/90">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Supprimer le matériel</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Êtes-vous sûr de vouloir supprimer {item.name} ? Cette action est irréversible.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => deleteEquipment(item.id)}
+                          className="bg-destructive hover:bg-destructive/90"
+                        >
+                          Supprimer
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </TableCell>
             </TableRow>
           ))}

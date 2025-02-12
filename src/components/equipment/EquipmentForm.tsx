@@ -26,10 +26,11 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Plus } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 
 const equipmentSchema = z.object({
   name: z.string().min(1, "Le nom est requis"),
@@ -39,23 +40,36 @@ const equipmentSchema = z.object({
 
 type EquipmentFormValues = z.infer<typeof equipmentSchema>;
 
-export const EquipmentForm = () => {
+type Equipment = {
+  id: string;
+  name: string;
+  type: "drone" | "camera" | "stabilizer" | "other";
+  status: "available" | "maintenance" | "out_of_order";
+};
+
+interface EquipmentFormProps {
+  equipment?: Equipment;
+}
+
+export const EquipmentForm = ({ equipment }: EquipmentFormProps) => {
+  const [open, setOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const form = useForm<EquipmentFormValues>({
     resolver: zodResolver(equipmentSchema),
     defaultValues: {
-      name: "",
-      type: "drone",
-      status: "available",
+      name: equipment?.name || "",
+      type: equipment?.type || "drone",
+      status: equipment?.status || "available",
     },
   });
 
-  const { mutate: createEquipment, isPending } = useMutation({
+  const { mutate: upsertEquipment, isPending } = useMutation({
     mutationFn: async (values: EquipmentFormValues) => {
       const { data, error } = await supabase
         .from("equipment")
-        .insert({
+        .upsert({
+          id: equipment?.id,
           name: values.name,
           type: values.type,
           status: values.status,
@@ -69,36 +83,47 @@ export const EquipmentForm = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
       toast({
-        title: "Matériel ajouté",
-        description: "Le matériel a été ajouté avec succès",
+        title: equipment ? "Matériel modifié" : "Matériel ajouté",
+        description: equipment 
+          ? "Le matériel a été modifié avec succès" 
+          : "Le matériel a été ajouté avec succès",
       });
       form.reset();
+      setOpen(false);
     },
     onError: (error) => {
-      console.error("Erreur lors de l'ajout du matériel:", error);
+      console.error("Erreur lors de l'opération sur le matériel:", error);
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Une erreur est survenue lors de l'ajout du matériel",
+        description: "Une erreur est survenue lors de l'opération sur le matériel",
       });
     },
   });
 
   const onSubmit = (values: EquipmentFormValues) => {
-    createEquipment(values);
+    upsertEquipment(values);
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Ajouter du matériel
-        </Button>
+        {equipment ? (
+          <Button variant="ghost" size="icon">
+            <Pencil className="h-4 w-4" />
+          </Button>
+        ) : (
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Ajouter du matériel
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Ajouter du matériel</DialogTitle>
+          <DialogTitle>
+            {equipment ? "Modifier le matériel" : "Ajouter du matériel"}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -161,7 +186,10 @@ export const EquipmentForm = () => {
               )}
             />
             <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? "Ajout en cours..." : "Ajouter"}
+              {isPending 
+                ? (equipment ? "Modification en cours..." : "Ajout en cours...") 
+                : (equipment ? "Modifier" : "Ajouter")
+              }
             </Button>
           </form>
         </Form>
