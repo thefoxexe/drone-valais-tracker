@@ -204,12 +204,24 @@ serve(async (req) => {
 
     if (historyError) {
       console.error('Error fetching history:', historyError)
+      throw historyError
+    }
+
+    if (!monthlyData || monthlyData.length === 0) {
+      console.log('No historical data found, using current stats')
+      monthlyData = [{
+        date: currentDate,
+        subscriber_count: parseInt(channelStats.subscriberCount),
+        view_count: parseInt(channelStats.viewCount),
+        video_count: parseInt(channelStats.videoCount),
+        watch_time_hours: Math.round(totalWatchTimeHours)
+      }]
     }
 
     console.log('Retrieved history data:', monthlyData)
 
     // Aggregate data by month
-    const monthlyAggregated = monthlyData?.reduce((acc: Record<string, any>[], entry) => {
+    const monthlyAggregated = monthlyData.reduce((acc: Record<string, any>[], entry) => {
       const date = new Date(entry.date)
       const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
       
@@ -228,7 +240,7 @@ serve(async (req) => {
         })
       }
       return acc
-    }, []) || []
+    }, [])
 
     console.log('Monthly aggregated data:', monthlyAggregated)
 
@@ -242,9 +254,19 @@ serve(async (req) => {
       
       console.log('Processing month:', monthStr, 'Found data:', existingData)
       
+      // Si pas de données pour ce mois, utiliser les données du mois précédent
+      let viewCount = existingData?.view_count
+      if (!viewCount && allMonths.length > 0) {
+        viewCount = allMonths[allMonths.length - 1].view_count
+      }
+      // Si toujours pas de données (premier mois), utiliser les stats actuelles
+      if (!viewCount) {
+        viewCount = parseInt(channelStats.viewCount)
+      }
+      
       allMonths.push({
         month: monthStr,
-        view_count: existingData?.view_count || 0 // Utiliser 0 au lieu de null
+        view_count: viewCount
       })
       
       currentMonth.setMonth(currentMonth.getMonth() + 1)
