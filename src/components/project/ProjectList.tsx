@@ -83,6 +83,11 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
 
       if (error) throw error;
 
+      // Basculer immédiatement vers l'onglet archives après l'archivage
+      if (archived) {
+        setCurrentTab("archived");
+      }
+
       // Force refresh the data
       await queryClient.invalidateQueries({ queryKey: ["projects"] });
       
@@ -110,7 +115,16 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
           <ProjectTasks project={project} />
         </CardContent>
         <CardFooter className="flex justify-end space-x-2">
-          {project.archived && (
+          {!project.archived ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleArchive(project.id, true)}
+            >
+              <Archive className="h-4 w-4 mr-2" />
+              Archiver
+            </Button>
+          ) : (
             <Button
               variant="outline"
               size="sm"
