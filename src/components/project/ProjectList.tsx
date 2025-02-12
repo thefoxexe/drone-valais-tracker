@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { ProjectTasks } from "./ProjectTasks";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Archive, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -21,9 +21,10 @@ interface Project {
 
 interface ProjectListProps {
   projects: Project[];
+  showArchiveButton: boolean;
 }
 
-export const ProjectList = ({ projects }: ProjectListProps) => {
+export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -66,7 +67,37 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
     }
   };
 
+  const handleArchive = async (projectId: string) => {
+    try {
+      const { error: projectError } = await supabase
+        .from("projects")
+        .update({ archived: true })
+        .eq("id", projectId);
+
+      if (projectError) {
+        console.error("Error archiving project:", projectError);
+        throw projectError;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      toast({
+        title: "Succès",
+        description: "Projet archivé",
+      });
+    } catch (error) {
+      console.error("Archive operation failed:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'archiver le projet",
+        variant: "destructive",
+      });
+    }
+  };
+
   const ProjectCard = ({ project }: { project: Project }) => {
+    const allTasksCompleted = project.project_tasks.length > 0 && 
+      project.project_tasks.every(task => task.completed);
+
     return (
       <Card key={project.id}>
         <CardHeader>
@@ -76,6 +107,16 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
           <ProjectTasks project={project} />
         </CardContent>
         <CardFooter className="flex justify-end space-x-2">
+          {showArchiveButton && allTasksCompleted && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => handleArchive(project.id)}
+            >
+              <Archive className="h-4 w-4 mr-2" />
+              Archiver
+            </Button>
+          )}
           <Button
             variant="destructive"
             size="sm"
