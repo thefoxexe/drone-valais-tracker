@@ -47,15 +47,24 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
       }
 
       const allTasksCompleted = updatedTasks.every(task => task.completed);
+      console.log("État des tâches après mise à jour:", {
+        taskId,
+        completed,
+        allTasksCompleted,
+        tasks: updatedTasks.map(t => ({ id: t.id, completed: t.completed }))
+      });
       
       // Si toutes les tâches sont complétées, archiver automatiquement le projet
       if (allTasksCompleted) {
-        console.log("Toutes les tâches sont complétées, archivage automatique du projet:", project.id);
+        console.log("Tentative d'archivage du projet:", project.id);
         
-        const { error: archiveError } = await supabase
+        const { data: updateResult, error: archiveError } = await supabase
           .from("projects")
           .update({ archived: true })
-          .eq("id", project.id);
+          .eq("id", project.id)
+          .select();
+
+        console.log("Résultat de l'archivage:", { updateResult, archiveError });
 
         if (archiveError) {
           console.error("Erreur lors de l'archivage automatique:", archiveError);
@@ -63,6 +72,7 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
         }
 
         // Rafraîchir immédiatement les données
+        console.log("Rafraîchissement des données après archivage");
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ["projects", "active"] }),
           queryClient.invalidateQueries({ queryKey: ["projects", "archived"] })
@@ -74,6 +84,7 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
         });
       } else {
         // Rafraîchir uniquement les projets actifs si pas d'archivage
+        console.log("Rafraîchissement des projets actifs uniquement");
         await queryClient.invalidateQueries({ queryKey: ["projects", "active"] });
         
         toast({
