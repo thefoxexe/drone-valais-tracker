@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { EquipmentForm } from "./EquipmentForm";
 
 type Equipment = {
   id: string;
@@ -76,10 +76,7 @@ export const EquipmentList = () => {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Ajouter du matériel
-        </Button>
+        <EquipmentForm />
       </div>
       <Table>
         <TableHeader>
