@@ -68,7 +68,7 @@ export const YoutubeStats = () => {
             className="w-24 h-24 rounded-full border-4 border-primary/20 shadow-xl"
           />
           <div className="flex-1">
-            <h2 className="text-3xl font-bold mb-2">Chaîne YouTube : {stats?.channelName}</h2>
+            <h2 className="text-3xl font-bold mb-2">{stats?.channelName}</h2>
             <p className="text-muted-foreground line-clamp-2">{stats?.channelDescription}</p>
           </div>
         </div>
@@ -76,57 +76,69 @@ export const YoutubeStats = () => {
         {/* Statistiques principales */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <div className="bg-card/30 backdrop-blur-md rounded-xl p-6 border border-white/5 hover:border-primary/20 transition-all duration-300">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Users className="h-6 w-6 text-primary" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-primary/10 rounded-lg">
+                  <Users className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold">
+                    {stats?.subscriberCount ? 
+                      parseInt(stats.subscriberCount).toLocaleString('fr-FR') : 
+                      '0'}
+                  </p>
+                  <p className="text-sm font-medium text-muted-foreground">Abonnés</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Abonnés YouTube</p>
-                <p className="text-3xl font-bold">
-                  {stats?.subscriberCount ? 
-                    parseInt(stats.subscriberCount).toLocaleString('fr-FR') : 
-                    '0'}
-                </p>
-              </div>
+              <span className="text-xs text-muted-foreground bg-primary/5 px-2 py-1 rounded-full">YouTube</span>
             </div>
           </div>
 
           <div className="bg-card/30 backdrop-blur-md rounded-xl p-6 border border-white/5 hover:border-primary/20 transition-all duration-300">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Play className="h-6 w-6 text-primary" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-primary/10 rounded-lg">
+                  <Play className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold">
+                    {stats?.viewCount ? 
+                      parseInt(stats.viewCount).toLocaleString('fr-FR') : 
+                      '0'}
+                  </p>
+                  <p className="text-sm font-medium text-muted-foreground">Vues totales</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Vues totales YouTube</p>
-                <p className="text-3xl font-bold">
-                  {stats?.viewCount ? 
-                    parseInt(stats.viewCount).toLocaleString('fr-FR') : 
-                    '0'}
-                </p>
-              </div>
+              <span className="text-xs text-muted-foreground bg-primary/5 px-2 py-1 rounded-full">YouTube</span>
             </div>
           </div>
 
           <div className="bg-card/30 backdrop-blur-md rounded-xl p-6 border border-white/5 hover:border-primary/20 transition-all duration-300">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Video className="h-6 w-6 text-primary" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-primary/10 rounded-lg">
+                  <Video className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold">
+                    {stats?.videoCount ? 
+                      parseInt(stats.videoCount).toLocaleString('fr-FR') : 
+                      '0'}
+                  </p>
+                  <p className="text-sm font-medium text-muted-foreground">Vidéos publiées</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Vidéos YouTube publiées</p>
-                <p className="text-3xl font-bold">
-                  {stats?.videoCount ? 
-                    parseInt(stats.videoCount).toLocaleString('fr-FR') : 
-                    '0'}
-                </p>
-              </div>
+              <span className="text-xs text-muted-foreground bg-primary/5 px-2 py-1 rounded-full">YouTube</span>
             </div>
           </div>
         </div>
 
         {/* Graphique d'évolution */}
         <div className="bg-card/30 backdrop-blur-md rounded-xl p-6 border border-white/5">
-          <h3 className="text-xl font-semibold mb-6">Évolution des abonnés YouTube</h3>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-semibold">Évolution des abonnés</h3>
+            <span className="text-xs text-muted-foreground bg-primary/5 px-2 py-1 rounded-full">YouTube</span>
+          </div>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stats?.historicalData || []}>
@@ -167,7 +179,7 @@ export const YoutubeStats = () => {
                             </div>
                             <div className="flex flex-col">
                               <span className="text-[0.70rem] uppercase text-muted-foreground">
-                                Abonnés YouTube
+                                Abonnés
                               </span>
                               <span className="font-bold text-primary">
                                 {payload[0].value.toLocaleString('fr-FR')}
@@ -193,7 +205,7 @@ export const YoutubeStats = () => {
         </div>
 
         <div className="mt-6 text-sm text-muted-foreground text-right">
-          Dernière mise à jour des statistiques YouTube : {stats?.timestamp ? 
+          Dernière mise à jour : {stats?.timestamp ? 
             new Date(stats.timestamp).toLocaleString('fr-FR') : 
             'Inconnue'}
         </div>
