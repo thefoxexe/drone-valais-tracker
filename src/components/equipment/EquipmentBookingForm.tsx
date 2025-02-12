@@ -22,23 +22,27 @@ import { useToast } from "@/components/ui/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar } from "@/components/ui/calendar";
-import { addHours, format } from "date-fns";
+import { addDays, addMonths, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 
+const durations = [
+  { label: "1 jour", value: 1 },
+  { label: "2 jours", value: 2 },
+  { label: "7 jours", value: 7 },
+  { label: "1 mois", value: 30 },
+] as const;
+
 const bookingSchema = z.object({
   startDate: z.date({
     required_error: "Veuillez sélectionner une date de début",
   }),
-  endDate: z.date({
-    required_error: "Veuillez sélectionner une date de fin",
+  duration: z.number({
+    required_error: "Veuillez sélectionner une durée",
   }),
   userName: z.string().min(1, "Veuillez sélectionner votre nom"),
-}).refine(data => data.endDate > data.startDate, {
-  message: "La date de fin doit être après la date de début",
-  path: ["endDate"],
 });
 
 type BookingFormValues = z.infer<typeof bookingSchema>;
@@ -56,19 +60,23 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
     resolver: zodResolver(bookingSchema),
     defaultValues: {
       startDate: new Date(),
-      endDate: addHours(new Date(), 24),
+      duration: 1,
       userName: "",
     },
   });
 
   const { mutate: createBooking, isPending } = useMutation({
     mutationFn: async (values: BookingFormValues) => {
+      const endDate = values.duration === 30 
+        ? addMonths(values.startDate, 1)
+        : addDays(values.startDate, values.duration);
+
       const { data, error } = await supabase
         .from("equipment_bookings")
         .insert({
           equipment_id: equipmentId,
           start_date: values.startDate.toISOString(),
-          end_date: values.endDate.toISOString(),
+          end_date: endDate.toISOString(),
           user_id: "00000000-0000-0000-0000-000000000000",
           user_name: values.userName,
         })
@@ -176,42 +184,22 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
             />
             <FormField
               control={form.control}
-              name="endDate"
+              name="duration"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel className="text-white">Date de fin</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full pl-3 text-left font-normal bg-[#221F26] text-white border-gray-600",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "d MMMM yyyy", { locale: fr })
-                          ) : (
-                            <span>Choisir une date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-[#1A1F2C] border-gray-600 z-[100]" align="start" side="bottom">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) =>
-                          date < form.getValues("startDate")
-                        }
-                        initialFocus
-                        className="text-white [&_.rdp-day:not(.rdp-day_selected)]:text-white [&_.rdp-day]:cursor-pointer [&_.rdp-button:hover]:bg-blue-500 [&_.rdp-day_selected]:bg-blue-500 [&_.rdp-day_selected]:hover:bg-blue-600 [&_.rdp-button:focus]:bg-blue-500 [&_.rdp-nav_button]:text-white [&_.rdp-caption]:text-white [&_.rdp-head_cell]:text-white [&_.rdp-button[disabled]]:text-gray-500 [&_.rdp-button[disabled]]:hover:bg-transparent"
-                      />
-                    </PopoverContent>
-                  </Popover>
+                <FormItem>
+                  <FormLabel className="text-white">Durée de la réservation</FormLabel>
+                  <select
+                    {...field}
+                    value={field.value}
+                    onChange={(e) => field.onChange(parseInt(e.target.value))}
+                    className="w-full px-3 py-2 rounded-md bg-[#221F26] text-white border-gray-600"
+                  >
+                    {durations.map((duration) => (
+                      <option key={duration.value} value={duration.value} className="bg-[#221F26]">
+                        {duration.label}
+                      </option>
+                    ))}
+                  </select>
                   <FormMessage className="text-red-400" />
                 </FormItem>
               )}
