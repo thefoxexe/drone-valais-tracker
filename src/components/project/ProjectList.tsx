@@ -20,6 +20,7 @@ interface Project {
   status: string;
   archived: boolean;
   project_tasks: Task[];
+  invoice_id: string;
 }
 
 interface ProjectListProps {
