@@ -35,6 +35,7 @@ const bookingSchema = z.object({
   endDate: z.date({
     required_error: "Veuillez sélectionner une date de fin",
   }),
+  userName: z.string().min(1, "Veuillez sélectionner votre nom"),
 }).refine(data => data.endDate > data.startDate, {
   message: "La date de fin doit être après la date de début",
   path: ["endDate"],
@@ -56,6 +57,7 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
     defaultValues: {
       startDate: new Date(),
       endDate: addHours(new Date(), 24),
+      userName: "",
     },
   });
 
@@ -67,7 +69,8 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
           equipment_id: equipmentId,
           start_date: values.startDate.toISOString(),
           end_date: values.endDate.toISOString(),
-          user_id: "00000000-0000-0000-0000-000000000000", // TODO: Remplacer par l'ID de l'utilisateur connecté
+          user_id: "00000000-0000-0000-0000-000000000000",
+          user_name: values.userName,
         })
         .select()
         .single();
@@ -110,6 +113,25 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="userName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Votre nom</FormLabel>
+                  <select
+                    {...field}
+                    className="w-full px-3 py-2 border rounded-md"
+                  >
+                    <option value="">Sélectionnez votre nom</option>
+                    <option value="Vincent">Vincent</option>
+                    <option value="Alice">Alice</option>
+                    <option value="Bob">Bob</option>
+                  </select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="startDate"
