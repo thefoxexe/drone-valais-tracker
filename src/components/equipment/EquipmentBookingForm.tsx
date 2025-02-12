@@ -124,9 +124,9 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
                     className="w-full px-3 py-2 border rounded-md"
                   >
                     <option value="">Sélectionnez votre nom</option>
-                    <option value="Vincent">Vincent</option>
-                    <option value="Alice">Alice</option>
-                    <option value="Bob">Bob</option>
+                    <option value="Bastien Ryser">Bastien Ryser</option>
+                    <option value="Noah Carron">Noah Carron</option>
+                    <option value="Pierre Monnet">Pierre Monnet</option>
                   </select>
                   <FormMessage />
                 </FormItem>
