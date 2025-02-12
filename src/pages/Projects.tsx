@@ -28,6 +28,8 @@ const Projects = () => {
       console.log("Projects fetched:", data);
       return data;
     },
+    refetchOnWindowFocus: true, // Recharger les données quand la fenêtre reprend le focus
+    staleTime: 0, // Considérer les données comme périmées immédiatement
   });
 
   return (
