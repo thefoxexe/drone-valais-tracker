@@ -7,7 +7,7 @@ import { Archive, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 interface Project {
   id: string;
@@ -34,20 +34,6 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
   // Filtrage des projets
   const activeProjects = projects?.filter(p => !p.archived) || [];
   const archivedProjects = projects?.filter(p => p.archived) || [];
-
-  // Check for projects that should be archived automatically
-  useEffect(() => {
-    const checkAndArchiveProjects = async () => {
-      for (const project of activeProjects) {
-        const allTasksCompleted = project.project_tasks.every(task => task.completed);
-        if (allTasksCompleted && !project.archived) {
-          await handleArchive(project.id, true);
-        }
-      }
-    };
-
-    checkAndArchiveProjects();
-  }, [activeProjects]);
 
   const handleDelete = async (projectId: string) => {
     try {
@@ -105,9 +91,6 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
       // Force refresh the data
       await queryClient.invalidateQueries({ queryKey: ["projects"] });
       
-      // Switch to the appropriate tab after archiving/unarchiving
-      setCurrentTab(archived ? "archived" : "active");
-      
       toast({
         title: "Succès",
         description: archived ? "Projet archivé" : "Projet désarchivé",
@@ -123,13 +106,19 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
   };
 
   const ProjectCard = ({ project }: { project: Project }) => {
+    const allTasksCompleted = project.project_tasks.every(task => task.completed);
+
     return (
       <Card key={project.id}>
         <CardHeader>
           <CardTitle>{project.name}</CardTitle>
         </CardHeader>
         <CardContent>
-          <ProjectTasks project={project} />
+          <ProjectTasks project={project} onTasksComplete={() => {
+            if (allTasksCompleted) {
+              handleArchive(project.id, true);
+            }
+          }} />
         </CardContent>
         <CardFooter className="flex justify-end space-x-2">
           {project.archived && (

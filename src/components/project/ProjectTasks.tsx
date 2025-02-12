@@ -1,7 +1,9 @@
+
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 interface Task {
   id: string;
@@ -17,9 +19,10 @@ interface Project {
 
 interface ProjectTasksProps {
   project: Project;
+  onTasksComplete?: () => void;
 }
 
-export const ProjectTasks = ({ project }: ProjectTasksProps) => {
+export const ProjectTasks = ({ project, onTasksComplete }: ProjectTasksProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -43,6 +46,15 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
       title: "Succès",
       description: `Tâche ${completed ? "complétée" : "réinitialisée"}`,
     });
+
+    // Vérifier si toutes les tâches sont complétées
+    const allTasksCompleted = project.project_tasks.every(task => 
+      task.id === taskId ? completed : task.completed
+    );
+
+    if (allTasksCompleted && onTasksComplete) {
+      onTasksComplete();
+    }
   };
 
   return (
