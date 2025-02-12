@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { ProjectTasks } from "./ProjectTasks";
 import { Button } from "@/components/ui/button";
@@ -79,22 +78,18 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
       console.log("Tentative d'archivage du projet:", projectId);
       console.log("État d'archivage souhaité:", archived);
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('projects')
         .update({ 
           archived: archived,
           updated_at: new Date().toISOString()
         })
-        .eq('id', projectId)
-        .select('*')
-        .single();
+        .eq('id', projectId);
 
       if (error) {
         console.error("Erreur lors de l'archivage:", error);
         throw error;
       }
-
-      console.log("Réponse de la mise à jour:", data);
 
       // Basculer immédiatement vers l'onglet archives après l'archivage
       if (archived) {
