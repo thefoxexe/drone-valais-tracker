@@ -30,30 +30,6 @@ export type Database = {
         }
         Relationships: []
       }
-      instagram_stats_history: {
-        Row: {
-          date: string
-          followers_count: number
-          following_count: number
-          id: string
-          media_count: number
-        }
-        Insert: {
-          date?: string
-          followers_count?: number
-          following_count?: number
-          id?: string
-          media_count?: number
-        }
-        Update: {
-          date?: string
-          followers_count?: number
-          following_count?: number
-          id?: string
-          media_count?: number
-        }
-        Relationships: []
-      }
       invoices: {
         Row: {
           amount: number

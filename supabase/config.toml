@@ -21,7 +21,3 @@ verify_jwt = false
 
 [functions.get-youtube-stats]
 verify_jwt = false
-
-[functions.get-instagram-stats]
-verify_jwt = false
-
