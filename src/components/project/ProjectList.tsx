@@ -76,17 +76,12 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
 
   const handleArchive = async (projectId: string, archived: boolean) => {
     try {
-      console.log("Archiving project:", projectId, "archived:", archived);
-      
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('projects')
         .update({ archived })
-        .eq('id', projectId)
-        .select();
+        .eq('id', projectId);
 
       if (error) throw error;
-
-      console.log("Update response:", data);
 
       // Force refresh the data
       await queryClient.invalidateQueries({ queryKey: ["projects"] });
@@ -106,19 +101,13 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
   };
 
   const ProjectCard = ({ project }: { project: Project }) => {
-    const allTasksCompleted = project.project_tasks.every(task => task.completed);
-
     return (
       <Card key={project.id}>
         <CardHeader>
           <CardTitle>{project.name}</CardTitle>
         </CardHeader>
         <CardContent>
-          <ProjectTasks project={project} onTasksComplete={() => {
-            if (allTasksCompleted) {
-              handleArchive(project.id, true);
-            }
-          }} />
+          <ProjectTasks project={project} />
         </CardContent>
         <CardFooter className="flex justify-end space-x-2">
           {project.archived && (

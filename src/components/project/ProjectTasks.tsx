@@ -3,7 +3,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
 
 interface Task {
   id: string;
@@ -19,20 +18,19 @@ interface Project {
 
 interface ProjectTasksProps {
   project: Project;
-  onTasksComplete?: () => void;
 }
 
-export const ProjectTasks = ({ project, onTasksComplete }: ProjectTasksProps) => {
+export const ProjectTasks = ({ project }: ProjectTasksProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const handleTaskToggle = async (taskId: string, completed: boolean) => {
-    const { error } = await supabase
+    const { error: taskError } = await supabase
       .from("project_tasks")
       .update({ completed })
       .eq("id", taskId);
 
-    if (error) {
+    if (taskError) {
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour la tâche",
@@ -41,20 +39,35 @@ export const ProjectTasks = ({ project, onTasksComplete }: ProjectTasksProps) =>
       return;
     }
 
-    queryClient.invalidateQueries({ queryKey: ["projects"] });
+    // Vérifier si toutes les tâches seront complétées après cette mise à jour
+    const allTasksWillBeCompleted = project.project_tasks.every(task => 
+      task.id === taskId ? completed : task.completed
+    );
+
+    if (allTasksWillBeCompleted) {
+      // Archiver le projet
+      const { error: projectError } = await supabase
+        .from('projects')
+        .update({ archived: true })
+        .eq('id', project.id);
+
+      if (projectError) {
+        toast({
+          title: "Erreur",
+          description: "Impossible d'archiver le projet",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Rafraîchir les données
+    await queryClient.invalidateQueries({ queryKey: ["projects"] });
+    
     toast({
       title: "Succès",
       description: `Tâche ${completed ? "complétée" : "réinitialisée"}`,
     });
-
-    // Vérifier si toutes les tâches sont complétées
-    const allTasksCompleted = project.project_tasks.every(task => 
-      task.id === taskId ? completed : task.completed
-    );
-
-    if (allTasksCompleted && onTasksComplete) {
-      onTasksComplete();
-    }
   };
 
   return (
