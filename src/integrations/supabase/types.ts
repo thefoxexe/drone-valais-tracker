@@ -285,6 +285,30 @@ export type Database = {
         }
         Relationships: []
       }
+      youtube_stats_history: {
+        Row: {
+          date: string | null
+          id: string
+          subscriber_count: number
+          video_count: number
+          view_count: number
+        }
+        Insert: {
+          date?: string | null
+          id?: string
+          subscriber_count: number
+          video_count: number
+          view_count: number
+        }
+        Update: {
+          date?: string | null
+          id?: string
+          subscriber_count?: number
+          video_count?: number
+          view_count?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
