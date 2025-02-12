@@ -82,16 +82,22 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
 
   const handleArchiveToggle = async (projectId: string, currentlyArchived: boolean) => {
     try {
-      const { error: updateError } = await supabase
+      console.log("Tentative d'archivage/désarchivage du projet:", projectId, "État actuel:", currentlyArchived);
+      
+      const updates = {
+        archived: !currentlyArchived,
+        archived_at: !currentlyArchived ? new Date().toISOString() : null
+      };
+      
+      const { error } = await supabase
         .from("projects")
-        .update({ 
-          archived: !currentlyArchived,
-          archived_at: !currentlyArchived ? new Date().toISOString() : null
-        })
-        .eq("id", projectId);
+        .update(updates)
+        .eq("id", projectId)
+        .select();
 
-      if (updateError) {
-        throw updateError;
+      if (error) {
+        console.error("Erreur lors de la modification de l'archivage:", error);
+        throw error;
       }
 
       // Rafraîchir les données
@@ -105,7 +111,7 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
         description: currentlyArchived ? "Projet désarchivé" : "Projet archivé",
       });
     } catch (error) {
-      console.error("Erreur lors de la modification de l'archivage:", error);
+      console.error("Erreur détaillée lors de l'archivage/désarchivage:", error);
       toast({
         title: "Erreur",
         description: "Impossible de modifier l'archivage du projet",
