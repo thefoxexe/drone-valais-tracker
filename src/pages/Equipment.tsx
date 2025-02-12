@@ -1,11 +1,34 @@
 
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EquipmentCalendar } from "@/components/equipment/EquipmentCalendar";
 import { EquipmentList } from "@/components/equipment/EquipmentList";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 const Equipment = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          variant: "destructive",
+          title: "Accès refusé",
+          description: "Vous devez être connecté pour accéder à cette page",
+        });
+        navigate("/auth");
+      }
+    };
+
+    checkAuth();
+  }, [navigate, toast]);
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
