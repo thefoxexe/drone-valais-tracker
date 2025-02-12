@@ -64,7 +64,7 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
         console.log("Tentative d'archivage du projet:", project.id);
         
         // Vérifier d'abord si le projet existe et n'est pas déjà archivé
-        const { data: checkProject, error: checkError } = await supabase
+        const { data: projects, error: checkError } = await supabase
           .from("projects")
           .select(`
             id,
@@ -74,18 +74,18 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
             user_id,
             invoice_id
           `)
-          .eq("id", project.id)
-          .maybeSingle();
+          .eq("id", project.id);
 
         if (checkError) {
           console.error("Erreur lors de la vérification du projet:", checkError);
           throw checkError;
         }
 
+        const checkProject = projects?.[0];
         console.log("État actuel du projet:", checkProject);
 
         if (checkProject && !checkProject.archived) {
-          const { data: updateResult, error: archiveError } = await supabase
+          const { data: updateResults, error: archiveError } = await supabase
             .from("projects")
             .update({ 
               archived: true,
@@ -102,9 +102,9 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
               archived,
               user_id,
               invoice_id
-            `)
-            .maybeSingle();
+            `);
 
+          const updateResult = updateResults?.[0];
           console.log("Résultat de l'archivage:", { updateResult, archiveError });
 
           if (archiveError) {
