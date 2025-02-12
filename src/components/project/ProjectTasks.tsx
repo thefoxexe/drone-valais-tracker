@@ -18,6 +18,7 @@ interface Project {
   name: string;
   status: string;
   archived: boolean;
+  invoice_id: string;
 }
 
 interface ProjectTasksProps {
@@ -83,7 +84,8 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
               archived: true,
               name: checkProject.name,
               status: checkProject.status,
-              user_id: checkProject.user_id
+              user_id: checkProject.user_id,
+              invoice_id: checkProject.invoice_id
             })
             .eq("id", project.id)
             .select()
