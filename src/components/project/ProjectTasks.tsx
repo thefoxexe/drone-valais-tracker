@@ -62,22 +62,25 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
           throw archiveError;
         }
 
+        // Rafraîchir immédiatement les données
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["projects", "active"] }),
+          queryClient.invalidateQueries({ queryKey: ["projects", "archived"] })
+        ]);
+
         toast({
           title: "Projet archivé",
           description: "Toutes les tâches sont terminées, le projet a été archivé",
         });
+      } else {
+        // Rafraîchir uniquement les projets actifs si pas d'archivage
+        await queryClient.invalidateQueries({ queryKey: ["projects", "active"] });
+        
+        toast({
+          title: "Succès",
+          description: `Tâche ${completed ? "complétée" : "réinitialisée"}`,
+        });
       }
-
-      // Rafraîchir les deux listes pour s'assurer que l'état est à jour
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["projects", "active"] }),
-        queryClient.invalidateQueries({ queryKey: ["projects", "archived"] })
-      ]);
-      
-      toast({
-        title: "Succès",
-        description: `Tâche ${completed ? "complétée" : "réinitialisée"}`,
-      });
     } catch (error) {
       console.error("Erreur détaillée lors de la mise à jour:", error);
       toast({
