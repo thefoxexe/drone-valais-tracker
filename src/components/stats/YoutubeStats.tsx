@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,12 +68,12 @@ export const YoutubeStats = () => {
             className="w-24 h-24 rounded-full border-4 border-primary/20 shadow-xl"
           />
           <div className="flex-1">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center justify-between">
               <h2 className="text-3xl font-bold mb-2">{stats?.channelName}</h2>
               <img 
-                src="/lovable-uploads/c0f3ece0-5c62-447f-a9f4-de35b1231e72.png"
+                src="/lovable-uploads/215173d0-46bd-406d-bc52-788928e0d6fc.png"
                 alt="YouTube Logo"
-                className="h-6 w-auto"
+                className="h-8 w-auto"
               />
             </div>
             <p className="text-muted-foreground line-clamp-2">{stats?.channelDescription}</p>
