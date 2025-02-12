@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { ProjectTasks } from "./ProjectTasks";
 import { Button } from "@/components/ui/button";
@@ -71,25 +72,28 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
   };
 
   const handleArchive = async (projectId: string, archived: boolean) => {
-    const { error } = await supabase
-      .from("projects")
-      .update({ archived })
-      .eq("id", projectId);
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({ archived })
+        .eq('id', projectId);
 
-    if (error) {
+      if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ["projects"] });
+      
+      toast({
+        title: "Succès",
+        description: archived ? "Projet archivé" : "Projet désarchivé",
+      });
+    } catch (error) {
+      console.error("Archive operation failed:", error);
       toast({
         title: "Erreur",
         description: `Impossible de ${archived ? 'archiver' : 'désarchiver'} le projet`,
         variant: "destructive",
       });
-      return;
     }
-
-    queryClient.invalidateQueries({ queryKey: ["projects"] });
-    toast({
-      title: "Succès",
-      description: archived ? "Projet archivé" : "Projet désarchivé",
-    });
   };
 
   const ProjectCard = ({ project }: { project: Project }) => {
