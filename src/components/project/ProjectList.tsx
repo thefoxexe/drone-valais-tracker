@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { ProjectTasks } from "./ProjectTasks";
 import { Button } from "@/components/ui/button";
@@ -84,16 +83,13 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
     try {
       console.log("Tentative d'archivage/désarchivage du projet:", projectId, "État actuel:", currentlyArchived);
       
-      const updates = {
-        archived: !currentlyArchived,
-        archived_at: !currentlyArchived ? new Date().toISOString() : null
-      };
-      
       const { error } = await supabase
         .from("projects")
-        .update(updates)
-        .eq("id", projectId)
-        .select();
+        .update({
+          archived: !currentlyArchived,
+          archived_at: !currentlyArchived ? new Date().toISOString() : null
+        })
+        .eq("id", projectId);
 
       if (error) {
         console.error("Erreur lors de la modification de l'archivage:", error);
@@ -101,11 +97,8 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
       }
 
       // Rafraîchir les données
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["projects", "active"] }),
-        queryClient.invalidateQueries({ queryKey: ["projects", "archived"] })
-      ]);
-
+      await queryClient.invalidateQueries({ queryKey: ["projects"] });
+      
       toast({
         title: "Succès",
         description: currentlyArchived ? "Projet désarchivé" : "Projet archivé",
@@ -146,25 +139,23 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
               <Trash2 className="h-4 w-4 mr-2" />
               Supprimer
             </Button>
-            {project.archived ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleArchiveToggle(project.id, true)}
-              >
-                <ArchiveRestore className="h-4 w-4 mr-2" />
-                Désarchiver
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleArchiveToggle(project.id, false)}
-              >
-                <Archive className="h-4 w-4 mr-2" />
-                Archiver
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleArchiveToggle(project.id, project.archived)}
+            >
+              {project.archived ? (
+                <>
+                  <ArchiveRestore className="h-4 w-4 mr-2" />
+                  Désarchiver
+                </>
+              ) : (
+                <>
+                  <Archive className="h-4 w-4 mr-2" />
+                  Archiver
+                </>
+              )}
+            </Button>
           </CardFooter>
         </Card>
       ))}
