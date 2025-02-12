@@ -2,18 +2,15 @@
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { ProjectTasks } from "./ProjectTasks";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Archive, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 
 interface Project {
   id: string;
   name: string;
   status: string;
-  archived: boolean;
   project_tasks: Array<{
     id: string;
     description: string;
@@ -29,11 +26,6 @@ interface ProjectListProps {
 export const ProjectList = ({ projects }: ProjectListProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [currentTab, setCurrentTab] = useState<string>("active");
-
-  // Filtrage des projets
-  const activeProjects = projects?.filter(p => !p.archived) || [];
-  const archivedProjects = projects?.filter(p => p.archived) || [];
 
   const handleDelete = async (projectId: string) => {
     try {
@@ -74,48 +66,6 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
     }
   };
 
-  const handleArchive = async (projectId: string, archived: boolean) => {
-    try {
-      console.log("Tentative d'archivage du projet:", projectId);
-      console.log("État d'archivage souhaité:", archived);
-
-      const { error } = await supabase
-        .from('projects')
-        .update({ 
-          archived: archived,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', projectId);
-
-      if (error) {
-        console.error("Erreur lors de l'archivage:", error);
-        throw error;
-      }
-
-      // Force refresh the data immediately
-      await queryClient.invalidateQueries({ queryKey: ["projects"] });
-      
-      toast({
-        title: "Succès",
-        description: archived ? "Projet archivé" : "Projet désarchivé",
-      });
-
-      // Switch to the appropriate tab after successful archiving/unarchiving
-      if (archived) {
-        setCurrentTab("archived");
-      } else {
-        setCurrentTab("active");
-      }
-    } catch (error) {
-      console.error("Archive operation failed:", error);
-      toast({
-        title: "Erreur",
-        description: `Impossible de ${archived ? 'archiver' : 'désarchiver'} le projet`,
-        variant: "destructive",
-      });
-    }
-  };
-
   const ProjectCard = ({ project }: { project: Project }) => {
     return (
       <Card key={project.id}>
@@ -126,25 +76,6 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
           <ProjectTasks project={project} />
         </CardContent>
         <CardFooter className="flex justify-end space-x-2">
-          {!project.archived ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleArchive(project.id, true)}
-            >
-              <Archive className="h-4 w-4 mr-2" />
-              Archiver
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleArchive(project.id, false)}
-            >
-              <Archive className="h-4 w-4 mr-2" />
-              Désarchiver
-            </Button>
-          )}
           <Button
             variant="destructive"
             size="sm"
@@ -159,27 +90,13 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
   };
 
   return (
-    <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-      <TabsList>
-        <TabsTrigger value="active">Projets actifs ({activeProjects.length})</TabsTrigger>
-        <TabsTrigger value="archived">Archives ({archivedProjects.length})</TabsTrigger>
-      </TabsList>
-      <TabsContent value="active" className="space-y-6">
-        {activeProjects.map((project) => (
-          <ProjectCard key={project.id} project={project} />
-        ))}
-        {activeProjects.length === 0 && (
-          <p className="text-center text-muted-foreground">Aucun projet actif</p>
-        )}
-      </TabsContent>
-      <TabsContent value="archived" className="space-y-6">
-        {archivedProjects.map((project) => (
-          <ProjectCard key={project.id} project={project} />
-        ))}
-        {archivedProjects.length === 0 && (
-          <p className="text-center text-muted-foreground">Aucun projet archivé</p>
-        )}
-      </TabsContent>
-    </Tabs>
+    <div className="space-y-6">
+      {projects.map((project) => (
+        <ProjectCard key={project.id} project={project} />
+      ))}
+      {projects.length === 0 && (
+        <p className="text-center text-muted-foreground">Aucun projet</p>
+      )}
+    </div>
   );
 };
