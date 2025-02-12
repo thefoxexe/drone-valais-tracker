@@ -54,7 +54,10 @@ export const EquipmentList = () => {
   const { mutate: deleteEquipment } = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("equipment").delete().eq("id", id);
-      if (error) throw error;
+      if (error) {
+        console.error("Error deleting equipment:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
