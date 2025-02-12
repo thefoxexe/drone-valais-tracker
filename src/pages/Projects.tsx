@@ -14,9 +14,15 @@ const Projects = () => {
       const { data, error } = await supabase
         .from("projects")
         .select(`
-          *,
+          id,
+          name,
+          status,
+          archived,
           project_tasks (
-            *
+            id,
+            description,
+            completed,
+            order_index
           )
         `)
         .eq('archived', false)
@@ -30,8 +36,6 @@ const Projects = () => {
       console.log("Active projects fetched:", data);
       return data;
     },
-    refetchOnWindowFocus: true,
-    staleTime: 0,
   });
 
   const { data: archivedProjects, isLoading: isLoadingArchived } = useQuery({
@@ -41,9 +45,15 @@ const Projects = () => {
       const { data, error } = await supabase
         .from("projects")
         .select(`
-          *,
+          id,
+          name,
+          status,
+          archived,
           project_tasks (
-            *
+            id,
+            description,
+            completed,
+            order_index
           )
         `)
         .eq('archived', true)
@@ -57,8 +67,6 @@ const Projects = () => {
       console.log("Archived projects fetched:", data);
       return data;
     },
-    refetchOnWindowFocus: true,
-    staleTime: 0,
   });
 
   return (
