@@ -10,8 +10,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { EquipmentForm } from "./EquipmentForm";
+import { EquipmentBookingForm } from "./EquipmentBookingForm";
 
 type Equipment = {
   id: string;
@@ -98,9 +98,12 @@ export const EquipmentList = () => {
                 </Badge>
               </TableCell>
               <TableCell>
-                <Button variant="ghost" size="sm">
-                  Réserver
-                </Button>
+                {item.status === "available" && (
+                  <EquipmentBookingForm 
+                    equipmentId={item.id} 
+                    equipmentName={item.name}
+                  />
+                )}
               </TableCell>
             </TableRow>
           ))}
