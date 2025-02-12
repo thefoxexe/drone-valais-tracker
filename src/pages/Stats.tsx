@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { YoutubeStats } from "@/components/stats/YoutubeStats";
+import { InstagramStats } from "@/components/stats/InstagramStats";
 
 const Stats = () => {
   const navigate = useNavigate();
@@ -31,17 +32,7 @@ const Stats = () => {
         
         <div className="grid grid-cols-1 gap-6">
           <YoutubeStats />
-          
-          <Card className="bg-background/80 backdrop-blur-sm border-white/10">
-            <CardHeader>
-              <CardTitle>Instagram</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                L'intégration Instagram sera disponible prochainement...
-              </p>
-            </CardContent>
-          </Card>
+          <InstagramStats />
         </div>
       </div>
     </div>

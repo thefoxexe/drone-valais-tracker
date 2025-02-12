@@ -98,6 +98,33 @@ export type Database = {
           },
         ]
       }
+      instagram_stats_history: {
+        Row: {
+          date: string | null
+          follower_count: number
+          following_count: number
+          id: string
+          media_count: number
+          total_likes: number
+        }
+        Insert: {
+          date?: string | null
+          follower_count: number
+          following_count: number
+          id?: string
+          media_count: number
+          total_likes?: number
+        }
+        Update: {
+          date?: string | null
+          follower_count?: number
+          following_count?: number
+          id?: string
+          media_count?: number
+          total_likes?: number
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           amount: number
