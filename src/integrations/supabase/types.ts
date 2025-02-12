@@ -30,6 +30,71 @@ export type Database = {
         }
         Relationships: []
       }
+      equipment: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          status: Database["public"]["Enums"]["equipment_status"]
+          type: Database["public"]["Enums"]["equipment_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          status?: Database["public"]["Enums"]["equipment_status"]
+          type: Database["public"]["Enums"]["equipment_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          status?: Database["public"]["Enums"]["equipment_status"]
+          type?: Database["public"]["Enums"]["equipment_type"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      equipment_bookings: {
+        Row: {
+          created_at: string | null
+          end_date: string
+          equipment_id: string
+          id: string
+          start_date: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          end_date: string
+          equipment_id: string
+          id?: string
+          start_date: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string
+          equipment_id?: string
+          id?: string
+          start_date?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_bookings_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           amount: number
@@ -192,10 +257,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_equipment_availability: {
+        Args: {
+          p_equipment_id: string
+          p_start_date: string
+          p_end_date: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      equipment_status: "available" | "maintenance" | "out_of_order"
+      equipment_type: "drone" | "camera" | "stabilizer" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
