@@ -15,6 +15,9 @@ interface Project {
   id: string;
   project_tasks: Task[];
   user_id?: string;
+  name: string;
+  status: string;
+  archived: boolean;
 }
 
 interface ProjectTasksProps {
@@ -62,7 +65,7 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
         // Vérifier d'abord si le projet existe et n'est pas déjà archivé
         const { data: checkProject, error: checkError } = await supabase
           .from("projects")
-          .select("id, archived, user_id")
+          .select("*")
           .eq("id", project.id)
           .maybeSingle();
 
@@ -78,7 +81,9 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
             .from("projects")
             .update({ 
               archived: true,
-              user_id: checkProject.user_id // Conserver le user_id existant
+              name: checkProject.name,
+              status: checkProject.status,
+              user_id: checkProject.user_id
             })
             .eq("id", project.id)
             .select()
