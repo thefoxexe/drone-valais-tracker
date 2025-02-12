@@ -1,11 +1,14 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, Play, Video } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 interface YoutubeStatsData {
+  channelName: string;
+  channelDescription: string;
+  channelThumbnail: string;
   subscriberCount: string;
   viewCount: string;
   videoCount: string;
@@ -32,10 +35,7 @@ export const YoutubeStats = () => {
   if (isLoading) {
     return (
       <Card className="bg-background/80 backdrop-blur-sm border-white/10">
-        <CardHeader>
-          <CardTitle>YouTube</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <div className="text-center py-4">
             Chargement des statistiques...
           </div>
@@ -47,10 +47,7 @@ export const YoutubeStats = () => {
   if (error) {
     return (
       <Card className="bg-background/80 backdrop-blur-sm border-white/10">
-        <CardHeader>
-          <CardTitle>YouTube</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <div className="text-center py-4 text-red-500">
             Erreur lors du chargement des statistiques
           </div>
@@ -61,18 +58,27 @@ export const YoutubeStats = () => {
 
   return (
     <Card className="bg-background/80 backdrop-blur-sm border-white/10">
-      <CardHeader>
-        <CardTitle>YouTube</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
+      <CardContent className="p-6">
+        <div className="flex items-center space-x-4 mb-8">
+          <img 
+            src={stats?.channelThumbnail} 
+            alt="Channel thumbnail" 
+            className="w-16 h-16 rounded-full border-2 border-white/10"
+          />
+          <div>
+            <h2 className="text-2xl font-bold">{stats?.channelName}</h2>
+            <p className="text-sm text-muted-foreground line-clamp-2">{stats?.channelDescription}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="bg-card/50 backdrop-blur-sm">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between space-x-4">
                 <div className="flex items-center space-x-4">
-                  <Users className="h-5 w-5 text-muted-foreground" />
+                  <Users className="h-5 w-5 text-primary" />
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium">Abonnés</span>
+                    <span className="text-sm font-medium text-muted-foreground">Abonnés</span>
                     <span className="text-2xl font-bold">
                       {stats?.subscriberCount ? 
                         parseInt(stats.subscriberCount).toLocaleString('fr-FR') : 
@@ -84,13 +90,13 @@ export const YoutubeStats = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-card/50 backdrop-blur-sm">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between space-x-4">
                 <div className="flex items-center space-x-4">
-                  <Play className="h-5 w-5 text-muted-foreground" />
+                  <Play className="h-5 w-5 text-primary" />
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium">Vues totales</span>
+                    <span className="text-sm font-medium text-muted-foreground">Vues totales</span>
                     <span className="text-2xl font-bold">
                       {stats?.viewCount ? 
                         parseInt(stats.viewCount).toLocaleString('fr-FR') : 
@@ -102,13 +108,13 @@ export const YoutubeStats = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-card/50 backdrop-blur-sm">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between space-x-4">
                 <div className="flex items-center space-x-4">
-                  <Video className="h-5 w-5 text-muted-foreground" />
+                  <Video className="h-5 w-5 text-primary" />
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium">Vidéos publiées</span>
+                    <span className="text-sm font-medium text-muted-foreground">Vidéos publiées</span>
                     <span className="text-2xl font-bold">
                       {stats?.videoCount ? 
                         parseInt(stats.videoCount).toLocaleString('fr-FR') : 
@@ -121,9 +127,9 @@ export const YoutubeStats = () => {
           </Card>
         </div>
 
-        <Card className="mt-6">
+        <Card className="bg-card/50 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle>Évolution des abonnés</CardTitle>
+            <h3 className="text-lg font-semibold">Évolution des abonnés</h3>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">

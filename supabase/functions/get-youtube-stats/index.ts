@@ -8,7 +8,6 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -33,12 +32,10 @@ serve(async (req) => {
       )
     }
 
-    // Initialize Supabase client with service role key
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // On utilise le handle de la chaîne YouTube
     const searchParams = new URLSearchParams({
-      part: 'id,statistics,contentDetails',
+      part: 'id,statistics,contentDetails,snippet',
       forUsername: 'dronevalais',
       key: apiKey,
     })
@@ -65,7 +62,6 @@ serve(async (req) => {
       )
     }
 
-    // Si on ne trouve pas avec le username, essayons avec une recherche
     if (!channelData.items || channelData.items.length === 0) {
       console.log('No channel found with username, trying search...')
       const searchChannelParams = new URLSearchParams({
@@ -97,10 +93,9 @@ serve(async (req) => {
         )
       }
 
-      // Utilisons l'ID trouvé pour obtenir les statistiques
       const channelId = searchData.items[0].id.channelId
       const statsParams = new URLSearchParams({
-        part: 'statistics,contentDetails',
+        part: 'statistics,contentDetails,snippet',
         id: channelId,
         key: apiKey,
       })
@@ -129,9 +124,10 @@ serve(async (req) => {
     }
 
     const channelStats = channelData.items[0].statistics
+    const channelInfo = channelData.items[0].snippet
     console.log('Channel stats:', channelStats)
+    console.log('Channel info:', channelInfo)
 
-    // Store stats in the database
     const { error: insertError } = await supabase
       .from('youtube_stats_history')
       .insert({
@@ -144,7 +140,6 @@ serve(async (req) => {
       console.error('Error storing stats:', insertError)
     }
 
-    // Get historical data
     const { data: historicalData, error: fetchError } = await supabase
       .from('youtube_stats_history')
       .select('*')
@@ -157,6 +152,9 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
+        channelName: channelInfo.title,
+        channelDescription: channelInfo.description,
+        channelThumbnail: channelInfo.thumbnails.default.url,
         subscriberCount: channelStats.subscriberCount,
         viewCount: channelStats.viewCount,
         videoCount: channelStats.videoCount,
