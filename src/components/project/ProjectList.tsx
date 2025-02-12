@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { ProjectTasks } from "./ProjectTasks";
 import { Button } from "@/components/ui/button";
@@ -91,13 +92,13 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
         throw error;
       }
 
-      // Basculer immédiatement vers l'onglet archives après l'archivage
-      if (archived) {
-        setCurrentTab("archived");
-      }
-
-      // Force refresh the data
+      // Force refresh the data immediately
       await queryClient.invalidateQueries({ queryKey: ["projects"] });
+      
+      // Basculer vers l'onglet archives après le rafraîchissement des données
+      if (archived) {
+        setTimeout(() => setCurrentTab("archived"), 100);
+      }
       
       toast({
         title: "Succès",

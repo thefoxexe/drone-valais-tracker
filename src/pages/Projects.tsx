@@ -9,6 +9,7 @@ const Projects = () => {
   const { data: projects, isLoading } = useQuery({
     queryKey: ["projects"],
     queryFn: async () => {
+      console.log("Fetching projects...");
       const { data, error } = await supabase
         .from("projects")
         .select(`
@@ -19,7 +20,12 @@ const Projects = () => {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching projects:", error);
+        throw error;
+      }
+      
+      console.log("Projects fetched:", data);
       return data;
     },
   });
