@@ -58,30 +58,49 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
       if (allTasksCompleted) {
         console.log("Tentative d'archivage du projet:", project.id);
         
-        const { data: updateResult, error: archiveError } = await supabase
+        // Vérifier d'abord si le projet existe et n'est pas déjà archivé
+        const { data: checkProject, error: checkError } = await supabase
           .from("projects")
-          .update({ archived: true })
+          .select("id, archived")
           .eq("id", project.id)
-          .select();
+          .single();
 
-        console.log("Résultat de l'archivage:", { updateResult, archiveError });
-
-        if (archiveError) {
-          console.error("Erreur lors de l'archivage automatique:", archiveError);
-          throw archiveError;
+        if (checkError) {
+          console.error("Erreur lors de la vérification du projet:", checkError);
+          throw checkError;
         }
 
-        // Rafraîchir immédiatement les données
-        console.log("Rafraîchissement des données après archivage");
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ["projects", "active"] }),
-          queryClient.invalidateQueries({ queryKey: ["projects", "archived"] })
-        ]);
+        console.log("État actuel du projet:", checkProject);
 
-        toast({
-          title: "Projet archivé",
-          description: "Toutes les tâches sont terminées, le projet a été archivé",
-        });
+        if (!checkProject.archived) {
+          const { data: updateResult, error: archiveError } = await supabase
+            .from("projects")
+            .update({ archived: true })
+            .eq("id", project.id)
+            .select()
+            .single();
+
+          console.log("Résultat de l'archivage:", { updateResult, archiveError });
+
+          if (archiveError) {
+            console.error("Erreur lors de l'archivage automatique:", archiveError);
+            throw archiveError;
+          }
+
+          // Rafraîchir immédiatement les données
+          console.log("Rafraîchissement des données après archivage");
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ["projects", "active"] }),
+            queryClient.invalidateQueries({ queryKey: ["projects", "archived"] })
+          ]);
+
+          toast({
+            title: "Projet archivé",
+            description: "Toutes les tâches sont terminées, le projet a été archivé",
+          });
+        } else {
+          console.log("Le projet est déjà archivé");
+        }
       } else {
         // Rafraîchir uniquement les projets actifs si pas d'archivage
         console.log("Rafraîchissement des projets actifs uniquement");
