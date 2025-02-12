@@ -2,26 +2,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Play, Video, Clock } from "lucide-react";
+import { Users, Play, Video } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 interface YoutubeStatsData {
   subscriberCount: string;
   viewCount: string;
   videoCount: string;
-  watchTimeHours: string;
+  historicalData: Array<{
+    date: string;
+    subscriber_count: number;
+    view_count: number;
+    video_count: number;
+  }>;
   timestamp: string;
 }
-
-const mockViewsData = [
-  { date: '2024-01-01', views: 1200 },
-  { date: '2024-01-02', views: 1500 },
-  { date: '2024-01-03', views: 1300 },
-  { date: '2024-01-04', views: 1800 },
-  { date: '2024-01-05', views: 2000 },
-  { date: '2024-01-06', views: 1700 },
-  { date: '2024-01-07', views: 2200 },
-];
 
 export const YoutubeStats = () => {
   const { data: stats, isLoading, error } = useQuery<YoutubeStatsData>({
@@ -70,7 +65,7 @@ export const YoutubeStats = () => {
         <CardTitle>YouTube</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between space-x-4">
@@ -124,34 +119,16 @@ export const YoutubeStats = () => {
               </div>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between space-x-4">
-                <div className="flex items-center space-x-4">
-                  <Clock className="h-5 w-5 text-muted-foreground" />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium">Heures de visionnage</span>
-                    <span className="text-2xl font-bold">
-                      {stats?.watchTimeHours ? 
-                        parseInt(stats.watchTimeHours).toLocaleString('fr-FR') : 
-                        '0'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>Évolution des vues</CardTitle>
+            <CardTitle>Évolution des abonnés</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={mockViewsData}>
+                <AreaChart data={stats?.historicalData || []}>
                   <XAxis
                     dataKey="date"
                     stroke="#888888"
@@ -177,12 +154,12 @@ export const YoutubeStats = () => {
                                   Date
                                 </span>
                                 <span className="font-bold">
-                                  {label}
+                                  {new Date(label).toLocaleDateString('fr-FR')}
                                 </span>
                               </div>
                               <div className="flex flex-col">
                                 <span className="text-[0.70rem] uppercase text-muted-foreground">
-                                  Vues
+                                  Abonnés
                                 </span>
                                 <span className="font-bold">
                                   {payload[0].value.toLocaleString('fr-FR')}
@@ -197,7 +174,7 @@ export const YoutubeStats = () => {
                   />
                   <Area
                     type="monotone"
-                    dataKey="views"
+                    dataKey="subscriber_count"
                     stroke="hsl(var(--primary))"
                     fill="hsl(var(--primary))"
                     fillOpacity={0.2}

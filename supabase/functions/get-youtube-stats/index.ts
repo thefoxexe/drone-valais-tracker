@@ -1,5 +1,6 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,14 +15,15 @@ serve(async (req) => {
 
   try {
     const apiKey = Deno.env.get('YOUTUBE_API_KEY')
-    console.log('YouTube API key exists:', !!apiKey)
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     
-    if (!apiKey) {
-      console.error('YouTube API key not found')
+    if (!apiKey || !supabaseUrl || !supabaseServiceKey) {
+      console.error('Missing required environment variables')
       return new Response(
         JSON.stringify({
           error: 'Configuration error',
-          details: 'YouTube API key not found',
+          details: 'Missing required environment variables',
           timestamp: new Date().toISOString(),
         }),
         {
@@ -30,6 +32,9 @@ serve(async (req) => {
         }
       )
     }
+
+    // Initialize Supabase client with service role key
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     // On utilise le handle de la chaîne YouTube
     const searchParams = new URLSearchParams({
@@ -124,13 +129,38 @@ serve(async (req) => {
     }
 
     const channelStats = channelData.items[0].statistics
-    console.log('Returning channel stats:', channelStats)
+    console.log('Channel stats:', channelStats)
+
+    // Store stats in the database
+    const { error: insertError } = await supabase
+      .from('youtube_stats_history')
+      .insert({
+        subscriber_count: parseInt(channelStats.subscriberCount),
+        view_count: parseInt(channelStats.viewCount),
+        video_count: parseInt(channelStats.videoCount),
+      })
+
+    if (insertError) {
+      console.error('Error storing stats:', insertError)
+    }
+
+    // Get historical data
+    const { data: historicalData, error: fetchError } = await supabase
+      .from('youtube_stats_history')
+      .select('*')
+      .order('date', { ascending: true })
+      .limit(30)
+
+    if (fetchError) {
+      console.error('Error fetching historical data:', fetchError)
+    }
 
     return new Response(
       JSON.stringify({
         subscriberCount: channelStats.subscriberCount,
         viewCount: channelStats.viewCount,
         videoCount: channelStats.videoCount,
+        historicalData: historicalData || [],
         timestamp: new Date().toISOString(),
       }),
       {
