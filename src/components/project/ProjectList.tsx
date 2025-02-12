@@ -11,6 +11,7 @@ interface Project {
   id: string;
   name: string;
   status: string;
+  archived: boolean;
   project_tasks: Array<{
     id: string;
     description: string;
@@ -71,25 +72,19 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
     try {
       console.log("Début de l'archivage du projet:", projectId);
       
-      // Mettre à jour le projet
-      const { data: updateResult, error: projectError } = await supabase
+      const { error: projectError } = await supabase
         .from("projects")
-        .update({ 
-          archived: true,
-          status: 'archived'
-        })
-        .eq("id", projectId)
-        .select();
+        .update({ archived: true })
+        .eq("id", projectId);
 
       if (projectError) {
         console.error("Erreur lors de l'archivage:", projectError);
         throw projectError;
       }
 
-      console.log("Résultat de la mise à jour:", updateResult);
-
-      // Force le rafraîchissement des deux listes
-      await queryClient.invalidateQueries({ queryKey: ["projects"] });
+      // Rafraîchir immédiatement les deux listes
+      await queryClient.invalidateQueries({ queryKey: ["projects", "active"] });
+      await queryClient.invalidateQueries({ queryKey: ["projects", "archived"] });
       
       toast({
         title: "Succès",
@@ -108,13 +103,6 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
   const ProjectCard = ({ project }: { project: Project }) => {
     const allTasksCompleted = project.project_tasks.length > 0 && 
       project.project_tasks.every(task => task.completed);
-
-    console.log("Project tasks status:", {
-      projectId: project.id,
-      allTasksCompleted,
-      tasksCount: project.project_tasks.length,
-      completedTasks: project.project_tasks.filter(t => t.completed).length
-    });
 
     return (
       <Card key={project.id}>
