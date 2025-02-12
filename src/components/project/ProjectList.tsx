@@ -95,15 +95,17 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
       // Force refresh the data immediately
       await queryClient.invalidateQueries({ queryKey: ["projects"] });
       
-      // Basculer vers l'onglet archives après le rafraîchissement des données
-      if (archived) {
-        setTimeout(() => setCurrentTab("archived"), 100);
-      }
-      
       toast({
         title: "Succès",
         description: archived ? "Projet archivé" : "Projet désarchivé",
       });
+
+      // Switch to the appropriate tab after successful archiving/unarchiving
+      if (archived) {
+        setCurrentTab("archived");
+      } else {
+        setCurrentTab("active");
+      }
     } catch (error) {
       console.error("Archive operation failed:", error);
       toast({
