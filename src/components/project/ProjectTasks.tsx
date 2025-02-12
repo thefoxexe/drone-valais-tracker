@@ -66,7 +66,14 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
         // Vérifier d'abord si le projet existe et n'est pas déjà archivé
         const { data: checkProject, error: checkError } = await supabase
           .from("projects")
-          .select("*")
+          .select(`
+            id,
+            name,
+            status,
+            archived,
+            user_id,
+            invoice_id
+          `)
           .eq("id", project.id)
           .maybeSingle();
 
@@ -88,7 +95,14 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
               invoice_id: checkProject.invoice_id
             })
             .eq("id", project.id)
-            .select()
+            .select(`
+              id,
+              name,
+              status,
+              archived,
+              user_id,
+              invoice_id
+            `)
             .maybeSingle();
 
           console.log("Résultat de l'archivage:", { updateResult, archiveError });
