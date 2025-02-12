@@ -51,11 +51,15 @@ export const EquipmentForm = () => {
     },
   });
 
-  const { mutate: createEquipment, isLoading } = useMutation({
+  const { mutate: createEquipment, isPending } = useMutation({
     mutationFn: async (values: EquipmentFormValues) => {
       const { data, error } = await supabase
         .from("equipment")
-        .insert(values)
+        .insert({
+          name: values.name,
+          type: values.type,
+          status: values.status,
+        })
         .select()
         .single();
 
@@ -156,8 +160,8 @@ export const EquipmentForm = () => {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Ajout en cours..." : "Ajouter"}
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? "Ajout en cours..." : "Ajouter"}
             </Button>
           </form>
         </Form>
