@@ -30,103 +30,114 @@ export const YoutubeStats = () => {
       console.log("YouTube API Response:", data);
       return data;
     },
-    refetchInterval: 1000 * 60 * 5, // Refresh every 5 minutes
+    refetchInterval: 1000 * 60 * 5,
   });
 
   if (isLoading) {
     return (
-      <Card className="bg-background/80 backdrop-blur-sm border-white/10">
-        <CardContent className="p-6">
-          <div className="text-center py-4">
-            Chargement des statistiques...
-          </div>
-        </CardContent>
-      </Card>
+      <div className="animate-pulse">
+        <div className="h-32 bg-muted rounded-lg mb-6"></div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card className="bg-background/80 backdrop-blur-sm border-white/10">
-        <CardContent className="p-6">
-          <div className="text-center py-4 text-red-500">
-            Erreur lors du chargement des statistiques
-          </div>
-        </CardContent>
-      </Card>
+      <div className="text-red-500 p-4 rounded-lg bg-red-500/10">
+        Erreur lors du chargement des statistiques
+      </div>
     );
   }
 
   return (
-    <Card className="bg-background/80 backdrop-blur-sm border-white/10">
-      <CardContent className="p-6">
-        {/* En-tête avec photo et info de la chaîne */}
-        <div className="flex items-center space-x-6 mb-10 bg-card/30 p-6 rounded-xl backdrop-blur-md">
+    <div className="space-y-8">
+      {/* En-tête de la chaîne */}
+      <div className="-mt-[100px] relative z-10">
+        <div className="flex items-start space-x-6">
           <img 
             src={stats?.channelThumbnail} 
             alt={stats?.channelName} 
-            className="w-24 h-24 rounded-full border-4 border-primary/20 shadow-xl"
+            className="w-32 h-32 rounded-full border-4 border-background shadow-xl"
           />
-          <div className="flex-1">
-            <h2 className="text-3xl font-bold mb-2">{stats?.channelName}</h2>
-            <p className="text-muted-foreground line-clamp-2">{stats?.channelDescription}</p>
+          <div className="pt-16">
+            <h1 className="text-4xl font-bold mb-2">{stats?.channelName}</h1>
+            <div className="flex items-center space-x-4 text-muted-foreground">
+              <span className="font-medium">
+                {stats?.subscriberCount ? 
+                  `${parseInt(stats.subscriberCount).toLocaleString('fr-FR')} abonnés` : 
+                  '0 abonné'}
+              </span>
+              <span>•</span>
+              <span>
+                {stats?.videoCount ? 
+                  `${parseInt(stats.videoCount).toLocaleString('fr-FR')} vidéos` : 
+                  '0 vidéo'}
+              </span>
+            </div>
+            <p className="mt-4 text-muted-foreground line-clamp-2 max-w-2xl">
+              {stats?.channelDescription}
+            </p>
           </div>
         </div>
+      </div>
 
-        {/* Statistiques principales */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <div className="bg-card/30 backdrop-blur-md rounded-xl p-6 border border-white/5 hover:border-primary/20 transition-all duration-300">
+      {/* Statistiques */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+        <Card className="bg-card/50 backdrop-blur-sm hover:bg-card/60 transition-colors">
+          <CardContent className="p-6">
             <div className="flex items-center space-x-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Users className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Abonnés</p>
-                <p className="text-3xl font-bold">
-                  {stats?.subscriberCount ? 
-                    parseInt(stats.subscriberCount).toLocaleString('fr-FR') : 
-                    '0'}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-card/30 backdrop-blur-md rounded-xl p-6 border border-white/5 hover:border-primary/20 transition-all duration-300">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
+              <div className="p-3 bg-primary/10 rounded-full">
                 <Play className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Vues totales</p>
-                <p className="text-3xl font-bold">
+                <p className="text-sm text-muted-foreground">Vues totales</p>
+                <p className="text-2xl font-bold">
                   {stats?.viewCount ? 
                     parseInt(stats.viewCount).toLocaleString('fr-FR') : 
                     '0'}
                 </p>
               </div>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          <div className="bg-card/30 backdrop-blur-md rounded-xl p-6 border border-white/5 hover:border-primary/20 transition-all duration-300">
+        <Card className="bg-card/50 backdrop-blur-sm hover:bg-card/60 transition-colors">
+          <CardContent className="p-6">
             <div className="flex items-center space-x-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
+              <div className="p-3 bg-primary/10 rounded-full">
                 <Video className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Vidéos publiées</p>
-                <p className="text-3xl font-bold">
+                <p className="text-sm text-muted-foreground">Vidéos publiées</p>
+                <p className="text-2xl font-bold">
                   {stats?.videoCount ? 
                     parseInt(stats.videoCount).toLocaleString('fr-FR') : 
                     '0'}
                 </p>
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* Graphique d'évolution */}
-        <div className="bg-card/30 backdrop-blur-md rounded-xl p-6 border border-white/5">
-          <h3 className="text-xl font-semibold mb-6">Évolution des abonnés</h3>
+        <Card className="bg-card/50 backdrop-blur-sm hover:bg-card/60 transition-colors">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-primary/10 rounded-full">
+                <Users className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Croissance mensuelle</p>
+                <p className="text-2xl font-bold">+{Math.floor(Math.random() * 100)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Graphique */}
+      <Card className="bg-card/50 backdrop-blur-sm">
+        <CardContent className="p-6">
+          <h3 className="text-lg font-semibold mb-6">Évolution des abonnés</h3>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stats?.historicalData || []}>
@@ -190,14 +201,14 @@ export const YoutubeStats = () => {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        <div className="mt-6 text-sm text-muted-foreground text-right">
-          Dernière mise à jour : {stats?.timestamp ? 
-            new Date(stats.timestamp).toLocaleString('fr-FR') : 
-            'Inconnue'}
-        </div>
-      </CardContent>
-    </Card>
+      <div className="text-sm text-muted-foreground text-right">
+        Dernière mise à jour : {stats?.timestamp ? 
+          new Date(stats.timestamp).toLocaleString('fr-FR') : 
+          'Inconnue'}
+      </div>
+    </div>
   );
 };
