@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { LogOut, FilePlus, HardDrive, LayoutDashboard, Briefcase, Mail, BarChart } from "lucide-react";
+import { LogOut, FilePlus, HardDrive, LayoutDashboard, Briefcase, Mail, BarChart, Tools } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface NavLinksProps {
@@ -27,6 +27,15 @@ export const NavLinks = ({ onResourceClick, onInvoiceClick, onLogout }: NavLinks
       >
         <Briefcase className="h-5 w-5 mr-2" />
         Projets
+      </Button>
+    </Link>
+    <Link to="/equipment">
+      <Button 
+        variant="ghost" 
+        className="text-white hover:text-white/80 w-full justify-start"
+      >
+        <Tools className="h-5 w-5 mr-2" />
+        Matériel
       </Button>
     </Link>
     <Link to="/emails">
