@@ -69,6 +69,8 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
 
   const handleArchive = async (projectId: string) => {
     try {
+      console.log("Attempting to archive project:", projectId);
+      
       const { error: projectError } = await supabase
         .from("projects")
         .update({ archived: true })
@@ -79,7 +81,9 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
         throw projectError;
       }
 
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      await queryClient.invalidateQueries({ queryKey: ["projects", "active"] });
+      await queryClient.invalidateQueries({ queryKey: ["projects", "archived"] });
+      
       toast({
         title: "Succès",
         description: "Projet archivé",
@@ -97,6 +101,13 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
   const ProjectCard = ({ project }: { project: Project }) => {
     const allTasksCompleted = project.project_tasks.length > 0 && 
       project.project_tasks.every(task => task.completed);
+
+    console.log("Project tasks status:", {
+      projectId: project.id,
+      allTasksCompleted,
+      tasksCount: project.project_tasks.length,
+      completedTasks: project.project_tasks.filter(t => t.completed).length
+    });
 
     return (
       <Card key={project.id}>
