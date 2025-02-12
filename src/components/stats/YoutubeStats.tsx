@@ -60,6 +60,15 @@ export const YoutubeStats = () => {
   return (
     <Card className="bg-background/80 backdrop-blur-sm border-white/10">
       <CardContent className="p-6">
+        {/* Logo YouTube */}
+        <div className="flex justify-center mb-6">
+          <img 
+            src="/lovable-uploads/348905c7-3da9-40d6-a921-26b59a67c90d.png"
+            alt="YouTube Logo"
+            className="h-12 w-auto"
+          />
+        </div>
+
         {/* En-tête avec photo et info de la chaîne */}
         <div className="flex items-center space-x-6 mb-10 bg-card/30 p-6 rounded-xl backdrop-blur-md">
           <img 
