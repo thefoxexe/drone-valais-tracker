@@ -25,28 +25,35 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
   const queryClient = useQueryClient();
 
   const handleTaskToggle = async (taskId: string, completed: boolean) => {
-    // Mise à jour de la tâche
-    const { error: taskError } = await supabase
-      .from("project_tasks")
-      .update({ completed })
-      .eq("id", taskId);
+    try {
+      // Mise à jour de la tâche
+      const { error: taskError } = await supabase
+        .from("project_tasks")
+        .update({ completed })
+        .eq("id", taskId)
+        .select();
 
-    if (taskError) {
+      if (taskError) {
+        console.error("Erreur lors de la mise à jour de la tâche:", taskError);
+        throw taskError;
+      }
+
+      // Rafraîchir les deux listes pour s'assurer que l'état est à jour
+      await queryClient.invalidateQueries({ queryKey: ["projects", "active"] });
+      await queryClient.invalidateQueries({ queryKey: ["projects", "archived"] });
+      
+      toast({
+        title: "Succès",
+        description: `Tâche ${completed ? "complétée" : "réinitialisée"}`,
+      });
+    } catch (error) {
+      console.error("Erreur détaillée lors de la mise à jour:", error);
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour la tâche",
         variant: "destructive",
       });
-      return;
     }
-
-    // Rafraîchir les données
-    await queryClient.invalidateQueries({ queryKey: ["projects"] });
-    
-    toast({
-      title: "Succès",
-      description: `Tâche ${completed ? "complétée" : "réinitialisée"}`,
-    });
   };
 
   return (

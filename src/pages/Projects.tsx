@@ -10,7 +10,7 @@ const Projects = () => {
   const { data: activeProjects, isLoading: isLoadingActive } = useQuery({
     queryKey: ["projects", "active"],
     queryFn: async () => {
-      console.log("Fetching active projects...");
+      console.log("Récupération des projets actifs...");
       const { data, error } = await supabase
         .from("projects")
         .select(`
@@ -29,11 +29,11 @@ const Projects = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error("Error fetching active projects:", error);
+        console.error("Erreur lors de la récupération des projets actifs:", error);
         throw error;
       }
       
-      console.log("Active projects fetched:", data);
+      console.log("Projets actifs récupérés:", data);
       return data;
     },
   });
@@ -41,7 +41,7 @@ const Projects = () => {
   const { data: archivedProjects, isLoading: isLoadingArchived } = useQuery({
     queryKey: ["projects", "archived"],
     queryFn: async () => {
-      console.log("Fetching archived projects...");
+      console.log("Récupération des projets archivés...");
       const { data, error } = await supabase
         .from("projects")
         .select(`
@@ -60,11 +60,11 @@ const Projects = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error("Error fetching archived projects:", error);
+        console.error("Erreur lors de la récupération des projets archivés:", error);
         throw error;
       }
       
-      console.log("Archived projects fetched:", data);
+      console.log("Projets archivés récupérés:", data);
       return data;
     },
   });

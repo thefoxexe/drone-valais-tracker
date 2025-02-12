@@ -7,17 +7,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
+interface Task {
+  id: string;
+  description: string;
+  completed: boolean;
+  order_index: number;
+}
+
 interface Project {
   id: string;
   name: string;
   status: string;
   archived: boolean;
-  project_tasks: Array<{
-    id: string;
-    description: string;
-    completed: boolean;
-    order_index: number;
-  }>;
+  project_tasks: Task[];
 }
 
 interface ProjectListProps {
@@ -31,35 +33,37 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
 
   const handleDelete = async (projectId: string) => {
     try {
-      // First, delete all tasks associated with the project
+      // D'abord, supprimer toutes les tâches associées au projet
       const { error: tasksError } = await supabase
         .from("project_tasks")
         .delete()
         .eq("project_id", projectId);
 
       if (tasksError) {
-        console.error("Error deleting tasks:", tasksError);
+        console.error("Erreur lors de la suppression des tâches:", tasksError);
         throw tasksError;
       }
 
-      // Then delete the project
+      // Ensuite, supprimer le projet
       const { error: projectError } = await supabase
         .from("projects")
         .delete()
         .eq("id", projectId);
 
       if (projectError) {
-        console.error("Error deleting project:", projectError);
+        console.error("Erreur lors de la suppression du projet:", projectError);
         throw projectError;
       }
 
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      // Rafraîchir les données
+      await queryClient.invalidateQueries({ queryKey: ["projects"] });
+      
       toast({
         title: "Succès",
         description: "Projet supprimé",
       });
     } catch (error) {
-      console.error("Delete operation failed:", error);
+      console.error("Erreur détaillée lors de la suppression:", error);
       toast({
         title: "Erreur",
         description: "Impossible de supprimer le projet",
@@ -70,19 +74,18 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
 
   const handleArchive = async (projectId: string) => {
     try {
-      console.log("Début de l'archivage du projet:", projectId);
-      
       const { error: projectError } = await supabase
         .from("projects")
         .update({ archived: true })
-        .eq("id", projectId);
+        .eq("id", projectId)
+        .select();
 
       if (projectError) {
         console.error("Erreur lors de l'archivage:", projectError);
         throw projectError;
       }
 
-      // Rafraîchir immédiatement les deux listes
+      // Rafraîchir les deux listes (active et archivée)
       await queryClient.invalidateQueries({ queryKey: ["projects", "active"] });
       await queryClient.invalidateQueries({ queryKey: ["projects", "archived"] });
       
@@ -100,47 +103,43 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
     }
   };
 
-  const ProjectCard = ({ project }: { project: Project }) => {
-    const allTasksCompleted = project.project_tasks.length > 0 && 
-      project.project_tasks.every(task => task.completed);
-
-    return (
-      <Card key={project.id}>
-        <CardHeader>
-          <CardTitle>{project.name}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ProjectTasks project={project} />
-        </CardContent>
-        <CardFooter className="flex justify-end space-x-2">
-          {showArchiveButton && allTasksCompleted && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => handleArchive(project.id)}
-            >
-              <Archive className="h-4 w-4 mr-2" />
-              Archiver
-            </Button>
-          )}
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => handleDelete(project.id)}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Supprimer
-          </Button>
-        </CardFooter>
-      </Card>
-    );
-  };
-
   return (
     <div className="space-y-6">
-      {projects.map((project) => (
-        <ProjectCard key={project.id} project={project} />
-      ))}
+      {projects.map((project) => {
+        const allTasksCompleted = project.project_tasks.length > 0 && 
+          project.project_tasks.every(task => task.completed);
+
+        return (
+          <Card key={project.id}>
+            <CardHeader>
+              <CardTitle>{project.name}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProjectTasks project={project} />
+            </CardContent>
+            <CardFooter className="flex justify-end space-x-2">
+              {showArchiveButton && allTasksCompleted && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => handleArchive(project.id)}
+                >
+                  <Archive className="h-4 w-4 mr-2" />
+                  Archiver
+                </Button>
+              )}
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => handleDelete(project.id)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Supprimer
+              </Button>
+            </CardFooter>
+          </Card>
+        );
+      })}
       {projects.length === 0 && (
         <p className="text-center text-muted-foreground">Aucun projet</p>
       )}
