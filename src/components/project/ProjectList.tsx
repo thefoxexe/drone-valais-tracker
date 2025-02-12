@@ -71,15 +71,6 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
     try {
       console.log("Début de l'archivage du projet:", projectId);
       
-      // Log des données avant la mise à jour
-      const { data: beforeUpdate } = await supabase
-        .from("projects")
-        .select("*")
-        .eq("id", projectId)
-        .single();
-      
-      console.log("État du projet avant mise à jour:", beforeUpdate);
-      
       // Mettre à jour le projet
       const { data: updateResult, error: projectError } = await supabase
         .from("projects")
@@ -88,8 +79,7 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
           status: 'archived'
         })
         .eq("id", projectId)
-        .select()
-        .single();
+        .select();
 
       if (projectError) {
         console.error("Erreur lors de l'archivage:", projectError);
@@ -97,15 +87,6 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
       }
 
       console.log("Résultat de la mise à jour:", updateResult);
-
-      // Vérifier que la mise à jour a bien été effectuée
-      const { data: afterUpdate } = await supabase
-        .from("projects")
-        .select("*")
-        .eq("id", projectId)
-        .single();
-      
-      console.log("État du projet après mise à jour:", afterUpdate);
 
       // Force le rafraîchissement des deux listes
       await queryClient.invalidateQueries({ queryKey: ["projects"] });
