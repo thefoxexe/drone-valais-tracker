@@ -26,12 +26,13 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
 
   const handleTaskToggle = async (taskId: string, completed: boolean) => {
     try {
+      console.log("Mise à jour de la tâche:", taskId, "completed:", completed);
+      
       // Mise à jour de la tâche
       const { error: taskError } = await supabase
         .from("project_tasks")
         .update({ completed })
-        .eq("id", taskId)
-        .select();
+        .eq("id", taskId);
 
       if (taskError) {
         console.error("Erreur lors de la mise à jour de la tâche:", taskError);
@@ -39,8 +40,10 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
       }
 
       // Rafraîchir les deux listes pour s'assurer que l'état est à jour
-      await queryClient.invalidateQueries({ queryKey: ["projects", "active"] });
-      await queryClient.invalidateQueries({ queryKey: ["projects", "archived"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["projects", "active"] }),
+        queryClient.invalidateQueries({ queryKey: ["projects", "archived"] })
+      ]);
       
       toast({
         title: "Succès",

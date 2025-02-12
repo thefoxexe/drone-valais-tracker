@@ -33,6 +33,8 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
 
   const handleDelete = async (projectId: string) => {
     try {
+      console.log("Suppression du projet:", projectId);
+      
       // D'abord, supprimer toutes les tâches associées au projet
       const { error: tasksError } = await supabase
         .from("project_tasks")
@@ -56,7 +58,10 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
       }
 
       // Rafraîchir les données
-      await queryClient.invalidateQueries({ queryKey: ["projects"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["projects", "active"] }),
+        queryClient.invalidateQueries({ queryKey: ["projects", "archived"] })
+      ]);
       
       toast({
         title: "Succès",
@@ -74,11 +79,12 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
 
   const handleArchive = async (projectId: string) => {
     try {
+      console.log("Archivage du projet:", projectId);
+      
       const { error: projectError } = await supabase
         .from("projects")
         .update({ archived: true })
-        .eq("id", projectId)
-        .select();
+        .eq("id", projectId);
 
       if (projectError) {
         console.error("Erreur lors de l'archivage:", projectError);
@@ -86,8 +92,10 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
       }
 
       // Rafraîchir les deux listes (active et archivée)
-      await queryClient.invalidateQueries({ queryKey: ["projects", "active"] });
-      await queryClient.invalidateQueries({ queryKey: ["projects", "archived"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["projects", "active"] }),
+        queryClient.invalidateQueries({ queryKey: ["projects", "archived"] })
+      ]);
       
       toast({
         title: "Succès",
