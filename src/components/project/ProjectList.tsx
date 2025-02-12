@@ -69,21 +69,43 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
 
   const handleArchive = async (projectId: string) => {
     try {
-      console.log("Attempting to archive project:", projectId);
+      console.log("Début de l'archivage du projet:", projectId);
       
-      // Mettre à jour à la fois le statut et le flag archived
-      const { error: projectError } = await supabase
+      // Log des données avant la mise à jour
+      const { data: beforeUpdate } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("id", projectId)
+        .single();
+      
+      console.log("État du projet avant mise à jour:", beforeUpdate);
+      
+      // Mettre à jour le projet
+      const { data: updateResult, error: projectError } = await supabase
         .from("projects")
         .update({ 
           archived: true,
           status: 'archived'
         })
-        .eq("id", projectId);
+        .eq("id", projectId)
+        .select()
+        .single();
 
       if (projectError) {
-        console.error("Error archiving project:", projectError);
+        console.error("Erreur lors de l'archivage:", projectError);
         throw projectError;
       }
+
+      console.log("Résultat de la mise à jour:", updateResult);
+
+      // Vérifier que la mise à jour a bien été effectuée
+      const { data: afterUpdate } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("id", projectId)
+        .single();
+      
+      console.log("État du projet après mise à jour:", afterUpdate);
 
       // Force le rafraîchissement des deux listes
       await queryClient.invalidateQueries({ queryKey: ["projects"] });
@@ -93,7 +115,7 @@ export const ProjectList = ({ projects, showArchiveButton }: ProjectListProps) =
         description: "Projet archivé",
       });
     } catch (error) {
-      console.error("Archive operation failed:", error);
+      console.error("Erreur détaillée lors de l'archivage:", error);
       toast({
         title: "Erreur",
         description: "Impossible d'archiver le projet",
