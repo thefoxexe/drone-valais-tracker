@@ -71,18 +71,14 @@ export const BookingForm = ({ form, onSubmit, isPending }: BookingFormProps) => 
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-[#1A1F2C] border-gray-600 z-[100]" align="start" side="bottom">
+                <PopoverContent className="w-auto p-0 bg-[#1A1F2C] border-gray-600" align="start">
                   <Calendar
                     mode="single"
                     selected={field.value}
-                    onSelect={(date) => {
-                      field.onChange(date);
-                    }}
-                    disabled={(date) =>
-                      date < new Date()
-                    }
+                    onSelect={field.onChange}
+                    disabled={(date) => date < new Date()}
                     initialFocus
-                    className="text-white [&_.rdp-day:not(.rdp-day_selected)]:text-white [&_.rdp-day]:cursor-pointer [&_.rdp-button:hover]:bg-blue-500 [&_.rdp-day_selected]:bg-blue-500 [&_.rdp-day_selected]:hover:bg-blue-600 [&_.rdp-button:focus]:bg-blue-500 [&_.rdp-nav_button]:text-white [&_.rdp-caption]:text-white [&_.rdp-head_cell]:text-white [&_.rdp-button[disabled]]:text-gray-500 [&_.rdp-button[disabled]]:hover:bg-transparent"
+                    className="bg-[#1A1F2C] text-white [&_.rdp-day]:text-white [&_.rdp-day]:hover:bg-blue-500 [&_.rdp-day_selected]:bg-blue-500 [&_.rdp-day_selected]:hover:bg-blue-600 [&_.rdp-nav_button]:text-white [&_.rdp-caption]:text-white [&_.rdp-head_cell]:text-white [&_.rdp-button[disabled]]:text-gray-500"
                   />
                 </PopoverContent>
               </Popover>
