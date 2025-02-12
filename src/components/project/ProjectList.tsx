@@ -76,12 +76,25 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
 
   const handleArchive = async (projectId: string, archived: boolean) => {
     try {
-      const { error } = await supabase
-        .from('projects')
-        .update({ archived })
-        .eq('id', projectId);
+      console.log("Tentative d'archivage du projet:", projectId);
+      console.log("État d'archivage souhaité:", archived);
 
-      if (error) throw error;
+      const { data, error } = await supabase
+        .from('projects')
+        .update({ 
+          archived: archived,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', projectId)
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error("Erreur lors de l'archivage:", error);
+        throw error;
+      }
+
+      console.log("Réponse de la mise à jour:", data);
 
       // Basculer immédiatement vers l'onglet archives après l'archivage
       if (archived) {
