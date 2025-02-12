@@ -1,5 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { supabaseClient } from '@/integrations/supabase/client.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,6 +13,12 @@ serve(async (req) => {
   }
 
   try {
+    // Initialize Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
     const apiKey = Deno.env.get('YOUTUBE_API_KEY')
     console.log('YouTube API key exists:', !!apiKey)
     
@@ -31,99 +37,43 @@ serve(async (req) => {
       )
     }
 
-    // On utilise le handle de la chaîne YouTube
-    const searchParams = new URLSearchParams({
-      part: 'id,statistics,contentDetails',
-      forUsername: 'dronevalais',
+    let channelData
+    let channelId
+
+    // First try with channel search
+    const searchChannelParams = new URLSearchParams({
+      part: 'id',
+      q: 'Drone Valais',
+      type: 'channel',
       key: apiKey,
     })
 
-    const url = `https://www.googleapis.com/youtube/v3/channels?${searchParams.toString()}`
-    console.log('Fetching channel stats:', url.replace(apiKey, 'REDACTED'))
+    const searchUrl = `https://www.googleapis.com/youtube/v3/search?${searchChannelParams.toString()}`
+    console.log('Searching for channel:', searchUrl.replace(apiKey, 'REDACTED'))
 
-    const response = await fetch(url)
-    let channelData = await response.json()
-    console.log('API Response:', JSON.stringify(channelData, null, 2))
+    const searchResponse = await fetch(searchUrl)
+    const searchData = await searchResponse.json()
+    console.log('Search Response:', JSON.stringify(searchData, null, 2))
 
-    if (!response.ok) {
-      console.error('API error:', channelData)
+    if (!searchResponse.ok || !searchData.items || searchData.items.length === 0) {
+      console.error('Search failed:', searchData)
       return new Response(
         JSON.stringify({
-          error: 'API Error',
-          details: channelData.error?.message || 'Unknown error',
+          error: 'Channel not found',
+          details: 'Could not find the channel',
           timestamp: new Date().toISOString(),
         }),
         {
-          status: response.status,
+          status: 404,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       )
     }
 
-    // Si on ne trouve pas avec le username, essayons avec une recherche
-    if (!channelData.items || channelData.items.length === 0) {
-      console.log('No channel found with username, trying search...')
-      const searchChannelParams = new URLSearchParams({
-        part: 'id',
-        q: 'Drone Valais',
-        type: 'channel',
-        key: apiKey,
-      })
+    // Get channel ID from search results
+    channelId = searchData.items[0].id.channelId
 
-      const searchUrl = `https://www.googleapis.com/youtube/v3/search?${searchChannelParams.toString()}`
-      console.log('Searching for channel:', searchUrl.replace(apiKey, 'REDACTED'))
-
-      const searchResponse = await fetch(searchUrl)
-      const searchData = await searchResponse.json()
-      console.log('Search Response:', JSON.stringify(searchData, null, 2))
-
-      if (!searchResponse.ok || !searchData.items || searchData.items.length === 0) {
-        console.error('Search failed:', searchData)
-        return new Response(
-          JSON.stringify({
-            error: 'Channel not found',
-            details: 'Could not find the channel',
-            timestamp: new Date().toISOString(),
-          }),
-          {
-            status: 404,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
-        )
-      }
-
-      // Utilisons l'ID trouvé pour obtenir les statistiques
-      const channelId = searchData.items[0].id.channelId
-      const statsParams = new URLSearchParams({
-        part: 'statistics,contentDetails',
-        id: channelId,
-        key: apiKey,
-      })
-
-      const statsUrl = `https://www.googleapis.com/youtube/v3/channels?${statsParams.toString()}`
-      console.log('Fetching stats for found channel:', statsUrl.replace(apiKey, 'REDACTED'))
-
-      const statsResponse = await fetch(statsUrl)
-      channelData = await statsResponse.json()
-      console.log('Stats Response:', JSON.stringify(channelData, null, 2))
-
-      if (!statsResponse.ok || !channelData.items || channelData.items.length === 0) {
-        console.error('Stats fetch failed:', channelData)
-        return new Response(
-          JSON.stringify({
-            error: 'Statistics not found',
-            details: 'Could not fetch channel statistics',
-            timestamp: new Date().toISOString(),
-          }),
-          {
-            status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
-        )
-      }
-    }
-
-    // Get channel statistics and content details
+    // Get channel statistics
     const statsParams = new URLSearchParams({
       part: 'statistics,contentDetails',
       id: channelId,
@@ -131,8 +81,11 @@ serve(async (req) => {
     })
 
     const statsUrl = `https://www.googleapis.com/youtube/v3/channels?${statsParams.toString()}`
+    console.log('Fetching stats for found channel:', statsUrl.replace(apiKey, 'REDACTED'))
+
     const statsResponse = await fetch(statsUrl)
     channelData = await statsResponse.json()
+    console.log('Stats Response:', JSON.stringify(channelData, null, 2))
 
     if (!statsResponse.ok || !channelData.items || channelData.items.length === 0) {
       console.error('Stats fetch failed:', channelData)
@@ -159,8 +112,11 @@ serve(async (req) => {
     })
 
     const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?${playlistParams.toString()}`
+    console.log('Fetching playlist:', playlistUrl.replace(apiKey, 'REDACTED'))
+
     const playlistResponse = await fetch(playlistUrl)
     const playlistData = await playlistResponse.json()
+    console.log('Playlist Response:', JSON.stringify(playlistData, null, 2))
 
     if (!playlistResponse.ok) {
       console.error('Playlist fetch failed:', playlistData)
@@ -176,8 +132,11 @@ serve(async (req) => {
     })
 
     const videosUrl = `https://www.googleapis.com/youtube/v3/videos?${videosParams.toString()}`
+    console.log('Fetching videos:', videosUrl.replace(apiKey, 'REDACTED'))
+
     const videosResponse = await fetch(videosUrl)
     const videosData = await videosResponse.json()
+    console.log('Videos Response:', JSON.stringify(videosData, null, 2))
 
     if (!videosResponse.ok) {
       console.error('Videos fetch failed:', videosData)
