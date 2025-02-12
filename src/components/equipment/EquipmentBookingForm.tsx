@@ -166,7 +166,7 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
                           date < new Date()
                         }
                         initialFocus
-                        className="text-white"
+                        className="text-white [&_.rdp-day]:text-white [&_.rdp-day_button:hover]:bg-gray-600 [&_.rdp-day_button:focus]:bg-gray-600 [&_.rdp-day_button:focus]:text-white [&_.rdp-day_button:hover]:text-white [&_.rdp-nav_button]:text-white [&_.rdp-caption]:text-white [&_.rdp-head_cell]:text-white"
                       />
                     </PopoverContent>
                   </Popover>
@@ -208,7 +208,7 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
                           date < form.getValues("startDate")
                         }
                         initialFocus
-                        className="text-white"
+                        className="text-white [&_.rdp-day]:text-white [&_.rdp-day_button:hover]:bg-gray-600 [&_.rdp-day_button:focus]:bg-gray-600 [&_.rdp-day_button:focus]:text-white [&_.rdp-day_button:hover]:text-white [&_.rdp-nav_button]:text-white [&_.rdp-caption]:text-white [&_.rdp-head_cell]:text-white"
                       />
                     </PopoverContent>
                   </Popover>
