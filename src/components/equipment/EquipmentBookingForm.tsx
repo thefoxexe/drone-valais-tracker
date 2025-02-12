@@ -27,6 +27,7 @@ import { fr } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
+import { useState } from "react";
 
 const durations = [
   { label: "1 jour", value: 1 },
@@ -55,6 +56,7 @@ interface EquipmentBookingFormProps {
 export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBookingFormProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
 
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingSchema),
@@ -93,6 +95,7 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
         description: "Le matériel a été réservé avec succès",
       });
       form.reset();
+      setOpen(false);
     },
     onError: (error) => {
       console.error("Erreur lors de la réservation:", error);
@@ -109,7 +112,7 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           Réserver
