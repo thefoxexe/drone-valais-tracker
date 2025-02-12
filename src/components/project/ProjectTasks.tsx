@@ -25,6 +25,7 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
   const queryClient = useQueryClient();
 
   const handleTaskToggle = async (taskId: string, completed: boolean) => {
+    // Mise à jour de la tâche
     const { error: taskError } = await supabase
       .from("project_tasks")
       .update({ completed })
@@ -37,28 +38,6 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
         variant: "destructive",
       });
       return;
-    }
-
-    // Vérifier si toutes les tâches seront complétées après cette mise à jour
-    const allTasksWillBeCompleted = project.project_tasks.every(task => 
-      task.id === taskId ? completed : task.completed
-    );
-
-    if (allTasksWillBeCompleted) {
-      // Archiver le projet
-      const { error: projectError } = await supabase
-        .from('projects')
-        .update({ archived: true })
-        .eq('id', project.id);
-
-      if (projectError) {
-        toast({
-          title: "Erreur",
-          description: "Impossible d'archiver le projet",
-          variant: "destructive",
-        });
-        return;
-      }
     }
 
     // Rafraîchir les données
