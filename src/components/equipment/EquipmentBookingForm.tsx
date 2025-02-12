@@ -107,7 +107,7 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
           Réserver
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] bg-[#1A1F2C] relative">
+      <DialogContent className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] sm:max-w-[425px] bg-[#1A1F2C] relative">
         <DialogHeader>
           <DialogTitle className="text-white">Réserver {equipmentName}</DialogTitle>
         </DialogHeader>
