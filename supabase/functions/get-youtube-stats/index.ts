@@ -162,6 +162,13 @@ serve(async (req) => {
     const channelStats = channelData.items[0].statistics
     const currentDate = new Date().toISOString().split('T')[0]
 
+    console.log('Channel stats:', {
+      subscriberCount: channelStats.subscriberCount,
+      viewCount: channelStats.viewCount,
+      videoCount: channelStats.videoCount,
+      watchTimeHours: Math.round(totalWatchTimeHours)
+    })
+
     // Save today's stats to the database
     const { error: insertError } = await supabaseClient
       .from('youtube_stats_history')
@@ -171,6 +178,8 @@ serve(async (req) => {
         view_count: parseInt(channelStats.viewCount),
         video_count: parseInt(channelStats.videoCount),
         watch_time_hours: Math.round(totalWatchTimeHours)
+      }, {
+        onConflict: 'date'
       })
 
     if (insertError) {
@@ -184,7 +193,9 @@ serve(async (req) => {
     twelveMonthsAgo.setDate(1) // Start from the 1st of the month
     const startDate = twelveMonthsAgo.toISOString().split('T')[0]
 
-    // Fetch and aggregate monthly data
+    console.log('Fetching history from:', startDate, 'to:', currentDate)
+
+    // Fetch historical data
     const { data: monthlyData, error: historyError } = await supabaseClient
       .from('youtube_stats_history')
       .select('*')
@@ -195,6 +206,8 @@ serve(async (req) => {
       console.error('Error fetching history:', historyError)
     }
 
+    console.log('Retrieved history data:', monthlyData)
+
     // Aggregate data by month
     const monthlyAggregated = monthlyData?.reduce((acc: Record<string, any>[], entry) => {
       const date = new Date(entry.date)
@@ -202,7 +215,7 @@ serve(async (req) => {
       
       const existingMonth = acc.find(m => m.month === monthYear)
       if (existingMonth) {
-        // Keep the latest view count for the month
+        // Garder la valeur la plus récente pour le mois
         if (new Date(entry.date) > new Date(existingMonth.originalDate)) {
           existingMonth.view_count = entry.view_count
           existingMonth.originalDate = entry.date
@@ -217,20 +230,27 @@ serve(async (req) => {
       return acc
     }, []) || []
 
-    // Fill in missing months with null values
+    console.log('Monthly aggregated data:', monthlyAggregated)
+
+    // Remplir les mois manquants
     const allMonths = []
     const currentMonth = new Date(twelveMonthsAgo)
+    
     while (currentMonth <= today) {
       const monthStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}`
       const existingData = monthlyAggregated.find(m => m.month === monthStr)
       
+      console.log('Processing month:', monthStr, 'Found data:', existingData)
+      
       allMonths.push({
         month: monthStr,
-        view_count: existingData?.view_count || null
+        view_count: existingData?.view_count || 0 // Utiliser 0 au lieu de null
       })
       
       currentMonth.setMonth(currentMonth.getMonth() + 1)
     }
+
+    console.log('Final monthly data:', allMonths)
 
     return new Response(
       JSON.stringify({
