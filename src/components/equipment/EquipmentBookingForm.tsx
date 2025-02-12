@@ -166,7 +166,7 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
                           date < new Date()
                         }
                         initialFocus
-                        className="text-white [&_.rdp-day]:text-white [&_.rdp-day_button:hover]:bg-gray-600 [&_.rdp-day_button:focus]:bg-gray-600 [&_.rdp-day_button:focus]:text-white [&_.rdp-day_button:hover]:text-white [&_.rdp-nav_button]:text-white [&_.rdp-caption]:text-white [&_.rdp-head_cell]:text-white"
+                        className="text-white [&_.rdp-day:not(.rdp-day_selected)]:text-white [&_.rdp-day]:cursor-pointer [&_.rdp-button:hover]:bg-blue-500 [&_.rdp-day_selected]:bg-blue-500 [&_.rdp-day_selected]:hover:bg-blue-600 [&_.rdp-button:focus]:bg-blue-500 [&_.rdp-nav_button]:text-white [&_.rdp-caption]:text-white [&_.rdp-head_cell]:text-white [&_.rdp-button[disabled]]:text-gray-500 [&_.rdp-button[disabled]]:hover:bg-transparent"
                       />
                     </PopoverContent>
                   </Popover>
@@ -208,7 +208,7 @@ export const EquipmentBookingForm = ({ equipmentId, equipmentName }: EquipmentBo
                           date < form.getValues("startDate")
                         }
                         initialFocus
-                        className="text-white [&_.rdp-day]:text-white [&_.rdp-day_button:hover]:bg-gray-600 [&_.rdp-day_button:focus]:bg-gray-600 [&_.rdp-day_button:focus]:text-white [&_.rdp-day_button:hover]:text-white [&_.rdp-nav_button]:text-white [&_.rdp-caption]:text-white [&_.rdp-head_cell]:text-white"
+                        className="text-white [&_.rdp-day:not(.rdp-day_selected)]:text-white [&_.rdp-day]:cursor-pointer [&_.rdp-button:hover]:bg-blue-500 [&_.rdp-day_selected]:bg-blue-500 [&_.rdp-day_selected]:hover:bg-blue-600 [&_.rdp-button:focus]:bg-blue-500 [&_.rdp-nav_button]:text-white [&_.rdp-caption]:text-white [&_.rdp-head_cell]:text-white [&_.rdp-button[disabled]]:text-gray-500 [&_.rdp-button[disabled]]:hover:bg-transparent"
                       />
                     </PopoverContent>
                   </Popover>
