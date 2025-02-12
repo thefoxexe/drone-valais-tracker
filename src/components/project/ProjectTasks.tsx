@@ -63,7 +63,7 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
           .from("projects")
           .select("id, archived")
           .eq("id", project.id)
-          .single();
+          .maybeSingle();
 
         if (checkError) {
           console.error("Erreur lors de la vérification du projet:", checkError);
@@ -72,13 +72,13 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
 
         console.log("État actuel du projet:", checkProject);
 
-        if (!checkProject.archived) {
+        if (checkProject && !checkProject.archived) {
           const { data: updateResult, error: archiveError } = await supabase
             .from("projects")
             .update({ archived: true })
             .eq("id", project.id)
             .select()
-            .single();
+            .maybeSingle();
 
           console.log("Résultat de l'archivage:", { updateResult, archiveError });
 
@@ -98,8 +98,15 @@ export const ProjectTasks = ({ project }: ProjectTasksProps) => {
             title: "Projet archivé",
             description: "Toutes les tâches sont terminées, le projet a été archivé",
           });
-        } else {
+        } else if (checkProject && checkProject.archived) {
           console.log("Le projet est déjà archivé");
+        } else {
+          console.error("Projet non trouvé:", project.id);
+          toast({
+            title: "Erreur",
+            description: "Impossible d'archiver le projet : projet non trouvé",
+            variant: "destructive",
+          });
         }
       } else {
         // Rafraîchir uniquement les projets actifs si pas d'archivage
