@@ -73,7 +73,7 @@ export const YoutubeStats = () => {
               <img 
                 src="/lovable-uploads/215173d0-46bd-406d-bc52-788928e0d6fc.png"
                 alt="YouTube Logo"
-                className="h-8 w-auto"
+                className="h-16 w-auto"
               />
             </div>
             <p className="text-muted-foreground line-clamp-2">{stats?.channelDescription}</p>
