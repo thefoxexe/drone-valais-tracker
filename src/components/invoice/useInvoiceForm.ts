@@ -85,7 +85,8 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
         const { error } = await supabase
           .from('invoices')
           .update({ 
-            ...data, 
+            invoice_number: data.invoice_number,
+            client_name: data.client_name,
             pdf_path: pdfPath, 
             user_id: session.user.id,
             status: invoice.status || 'pending',
@@ -100,7 +101,8 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
         const { data: newInvoice, error } = await supabase
           .from('invoices')
           .insert([{ 
-            ...data, 
+            invoice_number: data.invoice_number,
+            client_name: data.client_name,
             pdf_path: pdfPath, 
             user_id: session.user.id,
             status: 'pending',
@@ -117,9 +119,19 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
 
       // Insert lines if invoice created successfully
       if (invoiceId && data.lines) {
+        // D'abord supprimer les anciennes lignes si c'est une mise à jour
+        if (invoice?.id) {
+          const { error: deleteError } = await supabase
+            .from('invoice_lines')
+            .delete()
+            .eq('invoice_id', invoiceId);
+          if (deleteError) throw deleteError;
+        }
+
+        // Insérer les nouvelles lignes
         const { error: linesError } = await supabase
           .from('invoice_lines')
-          .upsert(
+          .insert(
             data.lines.map((line: any) => ({
               invoice_id: invoiceId,
               description: line.description,
