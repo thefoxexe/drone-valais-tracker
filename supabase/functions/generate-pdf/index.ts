@@ -133,7 +133,7 @@ serve(async (req) => {
       doc.text('BIC: XXXXXXXXXXXX', 20, yPos)
     }
     
-    // Convert PDF to base64
+    // Convert PDF to array buffer
     console.log('Converting PDF to array buffer...')
     const pdfOutput = doc.output('arraybuffer')
     
@@ -141,11 +141,28 @@ serve(async (req) => {
     const fileName = `${invoice.status === 'approved' ? 'facture' : 'devis'}_${invoice.invoice_number}.pdf`
     console.log('Uploading PDF with filename:', fileName)
     
+    // Vérifier si le fichier existe déjà et le supprimer si c'est le cas
+    const { data: existingFile } = await supabaseClient.storage
+      .from('PDF')
+      .list('', {
+        limit: 1,
+        search: fileName
+      })
+
+    if (existingFile && existingFile.length > 0) {
+      console.log('Removing existing file...')
+      await supabaseClient.storage
+        .from('PDF')
+        .remove([fileName])
+    }
+    
+    // Upload the new file
     const { data: uploadData, error: uploadError } = await supabaseClient.storage
       .from('PDF')
       .upload(fileName, pdfOutput, {
         contentType: 'application/pdf',
-        upsert: true
+        cacheControl: '3600',
+        upsert: false
       })
 
     if (uploadError) {
@@ -154,6 +171,13 @@ serve(async (req) => {
     }
 
     console.log('Upload successful:', uploadData)
+
+    // Get the public URL
+    const { data: { publicUrl } } = supabaseClient.storage
+      .from('PDF')
+      .getPublicUrl(fileName)
+
+    console.log('Public URL generated:', publicUrl)
 
     // Update invoice with PDF path
     console.log('Updating invoice with PDF path...')
@@ -172,7 +196,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        pdf_path: fileName 
+        pdf_path: fileName,
+        public_url: publicUrl
       }),
       { 
         headers: { 
