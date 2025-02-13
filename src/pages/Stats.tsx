@@ -43,9 +43,12 @@ const Stats = () => {
                 Statistiques YouTube
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[90vw] sm:w-[600px] overflow-y-auto">
+            <SheetContent 
+              side="right" 
+              className="w-[95vw] h-[95vh] sm:w-[80vw] inset-0 m-auto overflow-y-auto border-l-0 rounded-lg"
+            >
               <SheetHeader>
-                <SheetTitle>Statistiques YouTube</SheetTitle>
+                <SheetTitle className="text-2xl">Statistiques YouTube</SheetTitle>
               </SheetHeader>
               <div className="mt-6">
                 <YoutubeStats />
@@ -64,9 +67,12 @@ const Stats = () => {
                 Statistiques Instagram
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[90vw] sm:w-[600px] overflow-y-auto">
+            <SheetContent 
+              side="right" 
+              className="w-[95vw] h-[95vh] sm:w-[80vw] inset-0 m-auto overflow-y-auto border-l-0 rounded-lg"
+            >
               <SheetHeader>
-                <SheetTitle>Statistiques Instagram</SheetTitle>
+                <SheetTitle className="text-2xl">Statistiques Instagram</SheetTitle>
               </SheetHeader>
               <div className="mt-6">
                 <InstagramStats />
