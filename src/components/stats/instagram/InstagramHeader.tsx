@@ -21,26 +21,19 @@ export const InstagramHeader = ({ onStatsUpdate }: InstagramHeaderProps) => {
           <h2 className="text-3xl font-bold mb-2">Drone Valais Production</h2>
         </div>
       </div>
-      <div className="flex items-center gap-4">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="icon">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Ajouter des statistiques Instagram</SheetTitle>
-            </SheetHeader>
-            <InstagramStatsForm onSuccess={onStatsUpdate} />
-          </SheetContent>
-        </Sheet>
-        <img 
-          src="/lovable-uploads/8ab656e0-b9b8-4da6-b361-4849a223409b.png"
-          alt="Instagram Logo"
-          className="h-20 w-auto"
-        />
-      </div>
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="outline" size="icon">
+            <Plus className="h-4 w-4" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>Ajouter des statistiques Instagram</SheetTitle>
+          </SheetHeader>
+          <InstagramStatsForm onSuccess={onStatsUpdate} />
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
