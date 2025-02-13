@@ -79,75 +79,29 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
         pdfPath = fileName;
       }
 
-      // Insert or update invoice
-      let invoiceId = invoice?.id;
-      const invoiceData = {
-        invoice_number: data.invoice_number,
-        client_name: data.client_name,
-        amount: data.totalHT || 0, // Utiliser le total HT comme montant
-        pdf_path: pdfPath,
-        user_id: session.user.id,
-        status: invoice?.status || 'pending',
-        invoice_date: data.invoice_date,
-        total_ht: data.totalHT || 0,
-        total_ttc: data.totalTTC || 0,
-        tva_rate: data.tvaRate || 8.1
-      };
-
       if (invoice?.id) {
         const { error } = await supabase
           .from('invoices')
-          .update(invoiceData)
+          .update({ 
+            ...data, 
+            pdf_path: pdfPath, 
+            user_id: session.user.id,
+            status: invoice.status || 'pending',
+            invoice_date: data.invoice_date,
+          })
           .eq('id', invoice.id);
         if (error) throw error;
       } else {
-        const { data: newInvoice, error } = await supabase
+        const { error } = await supabase
           .from('invoices')
-          .insert([invoiceData])
-          .select()
-          .single();
+          .insert([{ 
+            ...data, 
+            pdf_path: pdfPath, 
+            user_id: session.user.id,
+            status: 'pending',
+            invoice_date: data.invoice_date,
+          }]);
         if (error) throw error;
-        invoiceId = newInvoice.id;
-      }
-
-      // Insert lines if invoice created successfully
-      if (invoiceId && data.lines) {
-        // D'abord supprimer les anciennes lignes si c'est une mise à jour
-        if (invoice?.id) {
-          const { error: deleteError } = await supabase
-            .from('invoice_lines')
-            .delete()
-            .eq('invoice_id', invoiceId);
-          if (deleteError) throw deleteError;
-        }
-
-        // Insérer les nouvelles lignes
-        const { error: linesError } = await supabase
-          .from('invoice_lines')
-          .insert(
-            data.lines.map((line: any) => ({
-              invoice_id: invoiceId,
-              description: line.description,
-              quantity: line.quantity,
-              unit_price: line.unit_price,
-              total: line.total
-            }))
-          );
-        if (linesError) throw linesError;
-      }
-
-      // Generate PDF
-      const { error: pdfError } = await supabase.functions.invoke('generate-pdf', {
-        body: { invoice_id: invoiceId }
-      });
-
-      if (pdfError) {
-        console.error('Error generating PDF:', pdfError);
-        toast({
-          title: "Attention",
-          description: "Le document a été sauvegardé mais il y a eu une erreur lors de la génération du PDF",
-          variant: "destructive",
-        });
       }
 
       await Promise.all([
