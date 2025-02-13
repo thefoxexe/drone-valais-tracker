@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { LogOut, FilePlus, HardDrive, LayoutDashboard, Briefcase, Mail, BarChart, Wrench } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface NavLinksProps {
   onResourceClick: () => void;
@@ -11,6 +12,8 @@ interface NavLinksProps {
 }
 
 export const NavLinks = ({ onResourceClick, onInvoiceClick, onLogout, inHamburgerMenu = false }: NavLinksProps) => {
+  const isMobile = useIsMobile();
+
   // Les liens qui apparaîtront dans le menu hamburger
   const hamburgerLinks = (
     <>
@@ -77,17 +80,19 @@ export const NavLinks = ({ onResourceClick, onInvoiceClick, onLogout, inHamburge
         onClick={onInvoiceClick} 
         variant="ghost" 
         className="text-white hover:text-white/80"
+        size={isMobile ? "icon" : "default"}
       >
-        <FilePlus className="h-5 w-5 mr-2" />
-        Nouveau devis
+        <FilePlus className="h-5 w-5" />
+        {!isMobile && <span className="ml-2">Nouveau devis</span>}
       </Button>
       <Button 
         onClick={onLogout} 
         variant="ghost" 
         className="text-white hover:text-white/80"
+        size={isMobile ? "icon" : "default"}
       >
-        <LogOut className="h-5 w-5 mr-2" />
-        Déconnexion
+        <LogOut className="h-5 w-5" />
+        {!isMobile && <span className="ml-2">Déconnexion</span>}
       </Button>
     </>
   );
