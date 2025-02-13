@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
@@ -9,6 +10,7 @@ import { RevenueChart } from "@/components/RevenueChart";
 import { useNavigate } from "react-router-dom";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
+import { Footer } from "@/components/Footer";
 
 const Dashboard = () => {
   const [showForm, setShowForm] = useState(false);
@@ -61,13 +63,13 @@ const Dashboard = () => {
 
   return (
     <div 
-      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed"
+      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed flex flex-col"
       style={{ 
         backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('/lovable-uploads/deccad97-d3eb-4324-b51b-6bde7ebac742.png')"
       }}
     >
       <Navigation />
-      <div className="container mx-auto py-8 px-4">
+      <div className="container mx-auto py-8 px-4 flex-grow">
         <DashboardStats 
           totalRevenue={totalRevenue}
           totalInvoices={totalInvoices}
@@ -92,6 +94,7 @@ const Dashboard = () => {
 
         {showForm && <InvoiceForm onClose={() => setShowForm(false)} />}
       </div>
+      <Footer />
     </div>
   );
 };

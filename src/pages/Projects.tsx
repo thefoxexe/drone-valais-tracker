@@ -5,6 +5,7 @@ import { ProjectList } from "@/components/project/ProjectList";
 import { Navigation } from "@/components/Navigation";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Footer } from "@/components/Footer";
 
 const Projects = () => {
   const { data: activeProjects, isLoading: isLoadingActive } = useQuery({
@@ -74,9 +75,9 @@ const Projects = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 flex-grow">
         <DashboardHeader title="Projets" description="Gérez vos projets en cours" />
         <Tabs defaultValue="active" className="mt-6">
           <TabsList className="grid w-full grid-cols-2">
@@ -95,6 +96,7 @@ const Projects = () => {
           </TabsContent>
         </Tabs>
       </main>
+      <Footer />
     </div>
   );
 };

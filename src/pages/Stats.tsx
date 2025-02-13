@@ -7,6 +7,7 @@ import { Instagram, Youtube } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { YoutubeStats } from "@/components/stats/YoutubeStats";
 import { InstagramStats } from "@/components/stats/InstagramStats";
+import { Footer } from "@/components/Footer";
 
 const Stats = () => {
   const navigate = useNavigate();
@@ -22,13 +23,13 @@ const Stats = () => {
 
   return (
     <div 
-      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed"
+      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed flex flex-col"
       style={{ 
         backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('/lovable-uploads/deccad97-d3eb-4324-b51b-6bde7ebac742.png')"
       }}
     >
       <Navigation />
-      <div className="container mx-auto py-8 px-4">
+      <div className="container mx-auto py-8 px-4 flex-grow">
         <div className="flex gap-6 justify-center mb-8">
           <Button 
             variant={activeTab === 'youtube' ? 'default' : 'outline'}
@@ -73,6 +74,7 @@ const Stats = () => {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 };

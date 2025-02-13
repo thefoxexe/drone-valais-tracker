@@ -8,6 +8,7 @@ import { EquipmentCalendar } from "@/components/equipment/EquipmentCalendar";
 import { EquipmentList } from "@/components/equipment/EquipmentList";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { Footer } from "@/components/Footer";
 
 const Equipment = () => {
   const navigate = useNavigate();
@@ -30,9 +31,9 @@ const Equipment = () => {
   }, [navigate, toast]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 flex-grow">
         <DashboardHeader 
           title="Matériel" 
           description="Gérez et réservez le matériel de production" 
@@ -50,6 +51,7 @@ const Equipment = () => {
           </TabsContent>
         </Tabs>
       </main>
+      <Footer />
     </div>
   );
 };

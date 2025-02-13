@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Footer } from "@/components/Footer";
 
 const Emails = () => {
   const [receivedEmail, setReceivedEmail] = useState("");
@@ -68,14 +69,14 @@ const Emails = () => {
 
   return (
     <div
-      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed"
+      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed flex flex-col"
       style={{
         backgroundImage:
           "linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('/lovable-uploads/deccad97-d3eb-4324-b51b-6bde7ebac742.png')",
       }}
     >
       <Navigation />
-      <div className="container mx-auto py-8 px-4">
+      <div className="container mx-auto py-8 px-4 flex-grow">
         <Card className="bg-background/80 backdrop-blur-sm border-white/10 p-6">
           <h1 className="text-2xl font-bold mb-6">Générateur d'Emails Professionnels</h1>
           
@@ -127,6 +128,7 @@ const Emails = () => {
           </div>
         </Card>
       </div>
+      <Footer />
     </div>
   );
 };
