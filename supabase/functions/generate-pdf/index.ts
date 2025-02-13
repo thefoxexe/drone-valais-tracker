@@ -28,17 +28,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Récupérer le template de base
-    const { data: template, error: templateError } = await supabaseClient
-      .from('templates')
-      .select('file_path')
-      .eq('type', 'quote')
-      .single()
-
-    if (templateError || !template) {
-      throw new Error('Template not found')
-    }
-
     // Fetch invoice data with its lines
     const { data: invoice, error: invoiceError } = await supabaseClient
       .from('invoices')
@@ -58,19 +47,8 @@ serve(async (req) => {
       throw new Error('Invoice not found')
     }
 
-    // Télécharger le template PDF depuis le storage
-    const { data: pdfTemplate, error: downloadError } = await supabaseClient.storage
-      .from('templates')
-      .download(template.file_path)
-
-    if (downloadError) {
-      throw new Error('Failed to download template')
-    }
-
-    // Convertir le PDF template en base64
-    const pdfBytes = await pdfTemplate.arrayBuffer()
+    // Create PDF
     const doc = new jsPDF()
-    doc.loadFile(pdfBytes)
     
     // Add company logo/header
     doc.setFontSize(20)
@@ -149,10 +127,10 @@ serve(async (req) => {
     // Convert PDF to base64
     const pdfOutput = doc.output('arraybuffer')
     
-    // Upload to Supabase Storage
+    // Upload to Supabase Storage using the PDF bucket
     const fileName = `${invoice.status === 'approved' ? 'facture' : 'devis'}_${invoice.invoice_number}.pdf`
     const { error: uploadError } = await supabaseClient.storage
-      .from('invoices')
+      .from('PDF')  // Utiliser le bucket PDF existant
       .upload(fileName, pdfOutput, {
         contentType: 'application/pdf',
         upsert: true
