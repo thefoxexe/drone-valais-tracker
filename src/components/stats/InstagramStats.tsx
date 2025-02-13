@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -134,92 +133,97 @@ export const InstagramStats = () => {
       <CardContent className="p-6">
         {/* En-tête avec info du compte */}
         <div className="flex items-center justify-between mb-10 bg-card/30 p-6 rounded-xl backdrop-blur-md">
-          <div className="flex-1">
-            <div className="flex items-center justify-between">
-              <h2 className="text-3xl font-bold mb-2">Instagram</h2>
-              <div className="flex items-center gap-4">
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button variant="outline" size="icon">
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent>
-                    <SheetHeader>
-                      <SheetTitle>Ajouter des statistiques Instagram</SheetTitle>
-                    </SheetHeader>
-                    <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                      <div className="space-y-4">
-                        <div>
-                          <label htmlFor="follower_count" className="block text-sm font-medium mb-2">
-                            Nombre d'abonnés
-                          </label>
-                          <Input
-                            id="follower_count"
-                            name="follower_count"
-                            type="number"
-                            value={stats.follower_count}
-                            onChange={handleChange}
-                            required
-                            min="0"
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="following_count" className="block text-sm font-medium mb-2">
-                            Nombre d'abonnements
-                          </label>
-                          <Input
-                            id="following_count"
-                            name="following_count"
-                            type="number"
-                            value={stats.following_count}
-                            onChange={handleChange}
-                            required
-                            min="0"
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="media_count" className="block text-sm font-medium mb-2">
-                            Nombre de publications
-                          </label>
-                          <Input
-                            id="media_count"
-                            name="media_count"
-                            type="number"
-                            value={stats.media_count}
-                            onChange={handleChange}
-                            required
-                            min="0"
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="total_likes" className="block text-sm font-medium mb-2">
-                            Nombre total de likes
-                          </label>
-                          <Input
-                            id="total_likes"
-                            name="total_likes"
-                            type="number"
-                            value={stats.total_likes}
-                            onChange={handleChange}
-                            required
-                            min="0"
-                          />
-                        </div>
-                      </div>
-                      <Button type="submit" className="w-full" disabled={loading}>
-                        {loading ? "Enregistrement..." : "Enregistrer les statistiques"}
-                      </Button>
-                    </form>
-                  </SheetContent>
-                </Sheet>
-                <img 
-                  src="/lovable-uploads/e2ad46c3-367b-4223-acfa-1217eaef449a.png"
-                  alt="Instagram Logo"
-                  className="h-20 w-auto"
-                />
-              </div>
+          <div className="flex items-center space-x-6">
+            <img 
+              src="/lovable-uploads/7090a80c-d493-413b-a458-7b7e5296e1ac.png"
+              alt="Instagram Logo"
+              className="w-24 h-24 object-contain"
+            />
+            <div>
+              <h2 className="text-3xl font-bold mb-2">Drone Valais Production</h2>
             </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Ajouter des statistiques Instagram</SheetTitle>
+                </SheetHeader>
+                <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="follower_count" className="block text-sm font-medium mb-2">
+                        Nombre d'abonnés
+                      </label>
+                      <Input
+                        id="follower_count"
+                        name="follower_count"
+                        type="number"
+                        value={stats.follower_count}
+                        onChange={handleChange}
+                        required
+                        min="0"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="following_count" className="block text-sm font-medium mb-2">
+                        Nombre d'abonnements
+                      </label>
+                      <Input
+                        id="following_count"
+                        name="following_count"
+                        type="number"
+                        value={stats.following_count}
+                        onChange={handleChange}
+                        required
+                        min="0"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="media_count" className="block text-sm font-medium mb-2">
+                        Nombre de publications
+                      </label>
+                      <Input
+                        id="media_count"
+                        name="media_count"
+                        type="number"
+                        value={stats.media_count}
+                        onChange={handleChange}
+                        required
+                        min="0"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="total_likes" className="block text-sm font-medium mb-2">
+                        Nombre total de likes
+                      </label>
+                      <Input
+                        id="total_likes"
+                        name="total_likes"
+                        type="number"
+                        value={stats.total_likes}
+                        onChange={handleChange}
+                        required
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? "Enregistrement..." : "Enregistrer les statistiques"}
+                  </Button>
+                </form>
+              </SheetContent>
+            </Sheet>
+            <img 
+              src="/lovable-uploads/e2ad46c3-367b-4223-acfa-1217eaef449a.png"
+              alt="Instagram Logo"
+              className="h-20 w-auto"
+            />
           </div>
         </div>
 
