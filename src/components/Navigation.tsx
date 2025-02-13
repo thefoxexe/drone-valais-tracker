@@ -67,16 +67,7 @@ export const Navigation = () => {
     <>
       <nav className="border-b border-white/10 bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Logo showText={true} />
-            <MobileMenu
-              mobileMenuOpen={mobileMenuOpen}
-              setMobileMenuOpen={setMobileMenuOpen}
-              onResourceClick={() => setShowResourceDialog(true)}
-              onInvoiceClick={() => setShowInvoiceForm(true)}
-              onLogout={handleLogout}
-            />
-          </div>
+          <Logo showText={true} />
           
           <div className="flex items-center space-x-4">
             <NavLinks 
@@ -84,6 +75,13 @@ export const Navigation = () => {
               onInvoiceClick={() => setShowInvoiceForm(true)}
               onLogout={handleLogout}
               inHamburgerMenu={false}
+            />
+            <MobileMenu
+              mobileMenuOpen={mobileMenuOpen}
+              setMobileMenuOpen={setMobileMenuOpen}
+              onResourceClick={() => setShowResourceDialog(true)}
+              onInvoiceClick={() => setShowInvoiceForm(true)}
+              onLogout={handleLogout}
             />
           </div>
         </div>
