@@ -1,10 +1,14 @@
+
 import { Link } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface LogoProps {
   showText?: boolean;
 }
 
 export const Logo = ({ showText = true }: LogoProps) => {
+  const isMobile = useIsMobile();
+  
   return (
     <Link to="/" className="flex items-center space-x-4 hover:opacity-80 transition-opacity">
       <img 
@@ -12,7 +16,7 @@ export const Logo = ({ showText = true }: LogoProps) => {
         alt="Logo" 
         className="h-10 w-auto" 
       />
-      {showText && (
+      {showText && !isMobile && (
         <h1 className="text-2xl font-bold text-white">
           Drone Valais Production
         </h1>
