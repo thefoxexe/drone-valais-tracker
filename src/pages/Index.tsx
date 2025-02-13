@@ -1,3 +1,4 @@
+
 import { Auth } from "@supabase/auth-ui-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useRef } from "react";
@@ -5,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Footer } from "@/components/Footer";
 
 declare global {
   interface Window {
@@ -39,9 +39,9 @@ const Index = () => {
           rel: 0,
           showinfo: 0,
           mute: 1,
-          start: 52, // Start at 52 seconds
-          end: 193, // End at 3:13 (193 seconds)
-          playlist: 'U5gptyRV8IU', // needed for looping
+          start: 52,
+          end: 193,
+          playlist: 'U5gptyRV8IU',
         },
         events: {
           onReady: (event: any) => {
@@ -158,7 +158,6 @@ const Index = () => {
           }}
         />
       </div>
-      <Footer />
     </div>
   );
 };
