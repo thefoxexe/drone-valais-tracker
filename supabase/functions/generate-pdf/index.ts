@@ -28,10 +28,18 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Fetch invoice data
+    // Fetch invoice data with its lines
     const { data: invoice, error: invoiceError } = await supabaseClient
       .from('invoices')
-      .select('*')
+      .select(`
+        *,
+        invoice_lines (
+          description,
+          quantity,
+          unit_price,
+          total
+        )
+      `)
       .eq('id', invoice_id)
       .single()
 
@@ -44,11 +52,11 @@ serve(async (req) => {
     
     // Add company logo/header
     doc.setFontSize(20)
-    doc.text('FACTURE', 105, 20, { align: 'center' })
+    doc.text(invoice.status === 'approved' ? 'FACTURE' : 'DEVIS', 105, 20, { align: 'center' })
     
     // Add invoice details
     doc.setFontSize(12)
-    doc.text(`Facture N°: ${invoice.invoice_number}`, 20, 40)
+    doc.text(`${invoice.status === 'approved' ? 'Facture' : 'Devis'} N°: ${invoice.invoice_number}`, 20, 40)
     doc.text(`Date: ${format(new Date(invoice.invoice_date), 'dd/MM/yyyy')}`, 20, 50)
     
     // Add client details
@@ -58,33 +66,69 @@ serve(async (req) => {
     // Add services table header
     doc.line(20, 100, 190, 100)
     doc.text('Description', 20, 95)
-    doc.text('Montant CHF', 160, 95)
+    doc.text('Qté', 120, 95)
+    doc.text('Prix Unit.', 140, 95)
+    doc.text('Total CHF', 170, 95)
     doc.line(20, 97, 190, 97)
     
-    // Add services
+    // Add invoice lines
     let yPos = 110
-    let total = 0
-    const services = invoice.rate_details || []
+    const lines = invoice.invoice_lines || []
     
-    services.forEach((service: any) => {
-      doc.text(service.description, 20, yPos)
-      doc.text(service.amount.toFixed(2), 160, yPos, { align: 'right' })
-      total += service.amount
+    lines.forEach((line: any) => {
+      // Description (with word wrap if needed)
+      const words = line.description.split(' ')
+      let currentLine = ''
+      words.forEach((word: string) => {
+        if ((currentLine + ' ' + word).length > 40) {
+          doc.text(currentLine, 20, yPos)
+          yPos += 6
+          currentLine = word
+        } else {
+          currentLine += (currentLine ? ' ' : '') + word
+        }
+      })
+      doc.text(currentLine, 20, yPos)
+      
+      // Quantity, unit price and total
+      doc.text(line.quantity.toString(), 120, yPos)
+      doc.text(line.unit_price.toFixed(2), 140, yPos)
+      doc.text(line.total.toFixed(2), 170, yPos)
       yPos += 10
     })
     
-    // Add total
+    // Add totals
     doc.line(20, yPos, 190, yPos)
     yPos += 10
+    doc.setFont(undefined, 'normal')
+    doc.text('Total HT:', 140, yPos)
+    doc.text(invoice.total_ht.toFixed(2), 170, yPos)
+    
+    yPos += 8
+    doc.text(`TVA (${invoice.tva_rate}%):`, 140, yPos)
+    doc.text((invoice.total_ttc - invoice.total_ht).toFixed(2), 170, yPos)
+    
+    yPos += 8
     doc.setFont(undefined, 'bold')
-    doc.text('Total CHF:', 130, yPos)
-    doc.text(total.toFixed(2), 160, yPos, { align: 'right' })
+    doc.text('Total TTC:', 140, yPos)
+    doc.text(invoice.total_ttc.toFixed(2), 170, yPos)
+    
+    // Add footer with payment details if it's an approved invoice
+    if (invoice.status === 'approved') {
+      yPos += 20
+      doc.setFont(undefined, 'normal')
+      doc.text('Coordonnées bancaires:', 20, yPos)
+      yPos += 8
+      doc.text('IBAN: CH00 0000 0000 0000 0000 0', 20, yPos)
+      yPos += 8
+      doc.text('BIC: XXXXXXXXXXXX', 20, yPos)
+    }
     
     // Convert PDF to base64
     const pdfOutput = doc.output('arraybuffer')
     
     // Upload to Supabase Storage
-    const fileName = `invoice_${invoice.invoice_number}.pdf`
+    const fileName = `${invoice.status === 'approved' ? 'facture' : 'devis'}_${invoice.invoice_number}.pdf`
     const { error: uploadError } = await supabaseClient.storage
       .from('invoices')
       .upload(fileName, pdfOutput, {
