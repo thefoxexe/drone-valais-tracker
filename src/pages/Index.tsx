@@ -1,3 +1,4 @@
+
 import { Auth } from "@supabase/auth-ui-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useRef } from "react";
@@ -90,6 +91,18 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+      {/* Back to site button */}
+      <div className="absolute top-4 right-4 z-30">
+        <Button
+          variant="ghost"
+          className="text-white hover:bg-white/10"
+          onClick={() => window.location.href = 'https://dronevalais-production.ch'}
+        >
+          <ExternalLink className="mr-2 h-4 w-4" />
+          Retour au site
+        </Button>
+      </div>
+
       {/* YouTube Background */}
       <div className="absolute inset-0 w-full h-full">
         <div className="relative w-full h-full">
@@ -159,16 +172,6 @@ const Index = () => {
           }}
         />
       </div>
-      
-      {/* Back to site button */}
-      <Button
-        variant="link"
-        className="text-white mt-4 z-20"
-        onClick={() => window.location.href = 'https://dronevalais-production.ch'}
-      >
-        <ExternalLink className="mr-2 h-4 w-4" />
-        Retour au site
-      </Button>
     </div>
   );
 };
