@@ -1,7 +1,16 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InvoiceFormFields } from "./invoice/InvoiceFormFields";
 import { InvoiceFormActions } from "./invoice/InvoiceFormActions";
 import { useInvoiceForm } from "./invoice/useInvoiceForm";
+import { useState } from "react";
+
+interface InvoiceLine {
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+}
 
 interface InvoiceFormProps {
   onClose: () => void;
@@ -17,6 +26,10 @@ interface InvoiceFormProps {
 }
 
 export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
+  const [lines, setLines] = useState<InvoiceLine[]>([
+    { description: "", quantity: 1, unit_price: 0, total: 0 }
+  ]);
+
   const {
     register,
     handleSubmit,
@@ -25,6 +38,11 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
     onSubmit,
     setSelectedFile,
   } = useInvoiceForm({ onClose, invoice });
+
+  // Calculer les totaux basés sur les lignes
+  const totalHT = lines.reduce((sum, line) => sum + line.total, 0);
+  const tvaRate = 8.1;
+  const totalTTC = totalHT * (1 + tvaRate / 100);
 
   return (
     <Card className="mb-6">
@@ -38,6 +56,11 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
             errors={errors}
             isQuote={!invoice?.status || invoice.status !== 'approved'}
             onFileChange={setSelectedFile}
+            lines={lines}
+            onLinesChange={setLines}
+            totalHT={totalHT}
+            tvaRate={tvaRate}
+            totalTTC={totalTTC}
           />
           <InvoiceFormActions
             onClose={onClose}
