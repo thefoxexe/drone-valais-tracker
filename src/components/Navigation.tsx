@@ -1,8 +1,8 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "./ui/use-toast";
 import { useEffect, useState } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { Logo } from "./navigation/Logo";
 import { NavLinks } from "./navigation/NavLinks";
 import { MobileMenu } from "./navigation/MobileMenu";
@@ -15,7 +15,6 @@ export const Navigation = () => {
   const [showInvoiceForm, setShowInvoiceForm] = useState(false);
   const [showResourceDialog, setShowResourceDialog] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -68,9 +67,8 @@ export const Navigation = () => {
     <>
       <nav className="border-b border-white/10 bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Logo showText={!isMobile} />
-          
-          {isMobile ? (
+          <div className="flex items-center gap-4">
+            <Logo showText={true} />
             <MobileMenu
               mobileMenuOpen={mobileMenuOpen}
               setMobileMenuOpen={setMobileMenuOpen}
@@ -78,15 +76,16 @@ export const Navigation = () => {
               onInvoiceClick={() => setShowInvoiceForm(true)}
               onLogout={handleLogout}
             />
-          ) : (
-            <div className="flex items-center space-x-4">
-              <NavLinks 
-                onResourceClick={() => setShowResourceDialog(true)}
-                onInvoiceClick={() => setShowInvoiceForm(true)}
-                onLogout={handleLogout}
-              />
-            </div>
-          )}
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <NavLinks 
+              onResourceClick={() => setShowResourceDialog(true)}
+              onInvoiceClick={() => setShowInvoiceForm(true)}
+              onLogout={handleLogout}
+              inHamburgerMenu={false}
+            />
+          </div>
         </div>
       </nav>
 

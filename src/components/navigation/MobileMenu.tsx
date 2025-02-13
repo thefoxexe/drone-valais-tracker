@@ -38,6 +38,7 @@ export const MobileMenu = ({
               setMobileMenuOpen(false);
             }}
             onLogout={onLogout}
+            inHamburgerMenu={true}
           />
         </div>
       </SheetContent>
