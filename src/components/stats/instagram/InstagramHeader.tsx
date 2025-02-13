@@ -13,8 +13,8 @@ export const InstagramHeader = ({ onStatsUpdate }: InstagramHeaderProps) => {
     <div className="flex items-center justify-between mb-10 bg-card/30 p-6 rounded-xl backdrop-blur-md">
       <div className="flex items-center space-x-6">
         <img 
-          src="/lovable-uploads/348905c7-3da9-40d6-a921-26b59a67c90d.png"
-          alt="DroneValais Logo"
+          src="/lovable-uploads/a6e0c54f-1eeb-4e27-b67d-1da98918ba36.png"
+          alt="Instagram Logo"
           className="w-24 h-24 object-contain"
         />
         <div>
