@@ -81,36 +81,29 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
 
       // Insert or update invoice
       let invoiceId = invoice?.id;
+      const invoiceData = {
+        invoice_number: data.invoice_number,
+        client_name: data.client_name,
+        amount: data.totalHT || 0, // Utiliser le total HT comme montant
+        pdf_path: pdfPath,
+        user_id: session.user.id,
+        status: invoice?.status || 'pending',
+        invoice_date: data.invoice_date,
+        total_ht: data.totalHT || 0,
+        total_ttc: data.totalTTC || 0,
+        tva_rate: data.tvaRate || 8.1
+      };
+
       if (invoice?.id) {
         const { error } = await supabase
           .from('invoices')
-          .update({ 
-            invoice_number: data.invoice_number,
-            client_name: data.client_name,
-            pdf_path: pdfPath, 
-            user_id: session.user.id,
-            status: invoice.status || 'pending',
-            invoice_date: data.invoice_date,
-            total_ht: data.totalHT,
-            total_ttc: data.totalTTC,
-            tva_rate: data.tvaRate
-          })
+          .update(invoiceData)
           .eq('id', invoice.id);
         if (error) throw error;
       } else {
         const { data: newInvoice, error } = await supabase
           .from('invoices')
-          .insert([{ 
-            invoice_number: data.invoice_number,
-            client_name: data.client_name,
-            pdf_path: pdfPath, 
-            user_id: session.user.id,
-            status: 'pending',
-            invoice_date: data.invoice_date,
-            total_ht: data.totalHT,
-            total_ttc: data.totalTTC,
-            tva_rate: data.tvaRate
-          }])
+          .insert([invoiceData])
           .select()
           .single();
         if (error) throw error;
