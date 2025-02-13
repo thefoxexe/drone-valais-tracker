@@ -29,26 +29,24 @@ const Stats = () => {
     >
       <Navigation />
       <div className="container mx-auto py-8 px-4">
-        <h1 className="text-3xl font-bold mb-8">Statistiques Réseaux Sociaux</h1>
-        
-        <div className="flex gap-4 justify-center mb-8">
+        <div className="flex gap-6 justify-center mb-8">
           <Button 
             variant={activeTab === 'youtube' ? 'default' : 'outline'}
             size="lg"
-            className="flex items-center gap-2 hover:bg-red-500/10"
+            className="flex items-center gap-3 hover:bg-red-500/10 h-16 px-12 text-lg"
             onClick={() => setActiveTab(activeTab === 'youtube' ? null : 'youtube')}
           >
-            <Youtube className="h-5 w-5 text-red-500" />
+            <Youtube className="h-7 w-7 text-red-500" />
             Statistiques YouTube
           </Button>
 
           <Button 
             variant={activeTab === 'instagram' ? 'default' : 'outline'}
             size="lg"
-            className="flex items-center gap-2 hover:bg-pink-500/10"
+            className="flex items-center gap-3 hover:bg-pink-500/10 h-16 px-12 text-lg"
             onClick={() => setActiveTab(activeTab === 'instagram' ? null : 'instagram')}
           >
-            <Instagram className="h-5 w-5 text-pink-500" />
+            <Instagram className="h-7 w-7 text-pink-500" />
             Statistiques Instagram
           </Button>
         </div>
@@ -62,7 +60,6 @@ const Stats = () => {
         {activeTab === 'youtube' && (
           <div className="bg-card/30 backdrop-blur-md rounded-xl p-8 border border-white/5 animate-fade-in">
             <div className="max-w-[1400px] mx-auto">
-              <h2 className="text-3xl font-bold mb-6">Statistiques YouTube</h2>
               <YoutubeStats />
             </div>
           </div>
@@ -71,7 +68,6 @@ const Stats = () => {
         {activeTab === 'instagram' && (
           <div className="bg-card/30 backdrop-blur-md rounded-xl p-8 border border-white/5 animate-fade-in">
             <div className="max-w-[1400px] mx-auto">
-              <h2 className="text-3xl font-bold mb-6">Statistiques Instagram</h2>
               <InstagramStats />
             </div>
           </div>
