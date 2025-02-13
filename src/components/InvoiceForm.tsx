@@ -35,7 +35,7 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
     handleSubmit,
     errors,
     isSubmitting,
-    onSubmit,
+    onSubmit: originalOnSubmit,
     setSelectedFile,
   } = useInvoiceForm({ onClose, invoice });
 
@@ -43,6 +43,18 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
   const totalHT = lines.reduce((sum, line) => sum + line.total, 0);
   const tvaRate = 8.1;
   const totalTTC = totalHT * (1 + tvaRate / 100);
+
+  // Wrapper pour ajouter les lignes et totaux aux données du formulaire
+  const onSubmit = async (data: any) => {
+    const formData = {
+      ...data,
+      lines,
+      totalHT,
+      totalTTC,
+      tvaRate
+    };
+    await originalOnSubmit(formData);
+  };
 
   return (
     <Card className="mb-6">
