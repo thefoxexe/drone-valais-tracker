@@ -68,14 +68,7 @@ export const YoutubeStats = () => {
             className="w-24 h-24 rounded-full border-4 border-primary/20 shadow-xl"
           />
           <div className="flex-1">
-            <div className="flex items-center justify-between">
-              <h2 className="text-3xl font-bold mb-2">{stats?.channelName}</h2>
-              <img 
-                src="/lovable-uploads/215173d0-46bd-406d-bc52-788928e0d6fc.png"
-                alt="YouTube Logo"
-                className="h-20 w-auto"
-              />
-            </div>
+            <h2 className="text-3xl font-bold mb-2">{stats?.channelName}</h2>
             <p className="text-muted-foreground line-clamp-2">{stats?.channelDescription}</p>
           </div>
         </div>
@@ -97,7 +90,6 @@ export const YoutubeStats = () => {
                   <p className="text-sm font-medium text-muted-foreground">Abonnés</p>
                 </div>
               </div>
-              <span className="text-xs text-muted-foreground bg-primary/5 px-2 py-1 rounded-full">YouTube</span>
             </div>
           </div>
 
@@ -116,7 +108,6 @@ export const YoutubeStats = () => {
                   <p className="text-sm font-medium text-muted-foreground">Vues totales</p>
                 </div>
               </div>
-              <span className="text-xs text-muted-foreground bg-primary/5 px-2 py-1 rounded-full">YouTube</span>
             </div>
           </div>
 
@@ -135,7 +126,6 @@ export const YoutubeStats = () => {
                   <p className="text-sm font-medium text-muted-foreground">Vidéos publiées</p>
                 </div>
               </div>
-              <span className="text-xs text-muted-foreground bg-primary/5 px-2 py-1 rounded-full">YouTube</span>
             </div>
           </div>
         </div>
@@ -144,7 +134,6 @@ export const YoutubeStats = () => {
         <div className="bg-card/30 backdrop-blur-md rounded-xl p-6 border border-white/5">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-semibold">Évolution des abonnés</h3>
-            <span className="text-xs text-muted-foreground bg-primary/5 px-2 py-1 rounded-full">YouTube</span>
           </div>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
