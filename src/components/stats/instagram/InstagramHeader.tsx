@@ -36,7 +36,7 @@ export const InstagramHeader = ({ onStatsUpdate }: InstagramHeaderProps) => {
           </SheetContent>
         </Sheet>
         <img 
-          src="/lovable-uploads/7090a80c-d493-413b-a458-7b7e5296e1ac.png"
+          src="/lovable-uploads/8ab656e0-b9b8-4da6-b361-4849a223409b.png"
           alt="Instagram Logo"
           className="h-20 w-auto"
         />
