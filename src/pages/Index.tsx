@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 declare global {
   interface Window {
@@ -89,6 +91,18 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+      {/* Back to site button */}
+      <div className="absolute top-4 right-4 z-30">
+        <Button
+          variant="ghost"
+          className="text-white hover:bg-white/10"
+          onClick={() => window.location.href = 'https://dronevalais-production.ch'}
+        >
+          <ExternalLink className="mr-2 h-4 w-4" />
+          Retour au site
+        </Button>
+      </div>
+
       {/* YouTube Background */}
       <div className="absolute inset-0 w-full h-full">
         <div className="relative w-full h-full">
