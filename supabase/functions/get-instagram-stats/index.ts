@@ -33,29 +33,20 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Simulons des données pour l'instant
-    const mockStats = {
-      followerCount: 1234,
-      followingCount: 567,
-      mediaCount: 89,
-      totalLikes: 5678
-    }
-
-    // Stockons ces données dans l'historique
-    const { error: insertError } = await supabase
+    // Récupérer les dernières statistiques
+    const { data: latestStats, error: latestError } = await supabase
       .from('instagram_stats_history')
-      .insert({
-        follower_count: mockStats.followerCount,
-        following_count: mockStats.followingCount,
-        media_count: mockStats.mediaCount,
-        total_likes: mockStats.totalLikes
-      })
+      .select('*')
+      .order('date', { ascending: false })
+      .limit(1)
+      .single()
 
-    if (insertError) {
-      console.error('Error storing stats:', insertError)
+    if (latestError) {
+      console.error('Error fetching latest stats:', latestError)
+      throw latestError
     }
 
-    // Récupérons l'historique des 30 derniers jours
+    // Récupérer l'historique des 30 derniers jours
     const { data: historicalData, error: fetchError } = await supabase
       .from('instagram_stats_history')
       .select('*')
@@ -64,14 +55,15 @@ serve(async (req) => {
 
     if (fetchError) {
       console.error('Error fetching historical data:', fetchError)
+      throw fetchError
     }
 
     return new Response(
       JSON.stringify({
-        followerCount: mockStats.followerCount,
-        followingCount: mockStats.followingCount,
-        mediaCount: mockStats.mediaCount,
-        totalLikes: mockStats.totalLikes,
+        followerCount: latestStats?.follower_count || 0,
+        followingCount: latestStats?.following_count || 0,
+        mediaCount: latestStats?.media_count || 0,
+        totalLikes: latestStats?.total_likes || 0,
         historicalData: historicalData || [],
         timestamp: new Date().toISOString(),
       }),
