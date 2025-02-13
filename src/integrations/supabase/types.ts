@@ -125,6 +125,47 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_lines: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          invoice_id: string | null
+          quantity: number
+          total: number
+          unit_price: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          invoice_id?: string | null
+          quantity?: number
+          total?: number
+          unit_price?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          invoice_id?: string | null
+          quantity?: number
+          total?: number
+          unit_price?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_lines_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           amount: number
@@ -137,6 +178,9 @@ export type Database = {
           pdf_path: string | null
           rate_details: Json | null
           status: string
+          total_ht: number
+          total_ttc: number
+          tva_rate: number
           updated_at: string | null
           user_id: string | null
         }
@@ -151,6 +195,9 @@ export type Database = {
           pdf_path?: string | null
           rate_details?: Json | null
           status?: string
+          total_ht?: number
+          total_ttc?: number
+          tva_rate?: number
           updated_at?: string | null
           user_id?: string | null
         }
@@ -165,6 +212,9 @@ export type Database = {
           pdf_path?: string | null
           rate_details?: Json | null
           status?: string
+          total_ht?: number
+          total_ttc?: number
+          tva_rate?: number
           updated_at?: string | null
           user_id?: string | null
         }

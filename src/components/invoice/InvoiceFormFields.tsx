@@ -1,19 +1,39 @@
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UseFormRegister, FieldErrors } from "react-hook-form";
+import { InvoiceLineForm } from "./InvoiceLineForm";
+import { InvoiceTotals } from "./InvoiceTotals";
+
+interface InvoiceLine {
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+}
 
 interface InvoiceFormFieldsProps {
   register: UseFormRegister<any>;
   errors: FieldErrors;
   isQuote: boolean;
   onFileChange: (file: File | null) => void;
+  lines: InvoiceLine[];
+  onLinesChange: (lines: InvoiceLine[]) => void;
+  totalHT: number;
+  tvaRate: number;
+  totalTTC: number;
 }
 
 export const InvoiceFormFields = ({ 
   register, 
   errors, 
   isQuote,
-  onFileChange 
+  onFileChange,
+  lines,
+  onLinesChange,
+  totalHT,
+  tvaRate,
+  totalTTC
 }: InvoiceFormFieldsProps) => {
   return (
     <>
@@ -40,22 +60,6 @@ export const InvoiceFormFields = ({
       </div>
 
       <div>
-        <Label htmlFor="amount">Montant (CHF)</Label>
-        <Input
-          id="amount"
-          type="number"
-          step="0.01"
-          {...register("amount", { 
-            required: "Ce champ est requis",
-            valueAsNumber: true 
-          })}
-        />
-        {errors.amount && (
-          <p className="text-sm text-red-500">{errors.amount.message as string}</p>
-        )}
-      </div>
-
-      <div>
         <Label htmlFor="invoice_date">Date</Label>
         <Input
           id="invoice_date"
@@ -65,6 +69,22 @@ export const InvoiceFormFields = ({
         {errors.invoice_date && (
           <p className="text-sm text-red-500">{errors.invoice_date.message as string}</p>
         )}
+      </div>
+
+      <div className="space-y-2">
+        <Label>Lignes du {isQuote ? 'devis' : 'facture'}</Label>
+        <InvoiceLineForm
+          lines={lines}
+          onChange={onLinesChange}
+        />
+      </div>
+
+      <div className="mt-6">
+        <InvoiceTotals
+          totalHT={totalHT}
+          tvaRate={tvaRate}
+          totalTTC={totalTTC}
+        />
       </div>
 
       <div>
