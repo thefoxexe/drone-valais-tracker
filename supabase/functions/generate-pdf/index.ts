@@ -28,6 +28,17 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Récupérer le template de base
+    const { data: template, error: templateError } = await supabaseClient
+      .from('templates')
+      .select('file_path')
+      .eq('type', 'quote')
+      .single()
+
+    if (templateError || !template) {
+      throw new Error('Template not found')
+    }
+
     // Fetch invoice data with its lines
     const { data: invoice, error: invoiceError } = await supabaseClient
       .from('invoices')
@@ -47,8 +58,19 @@ serve(async (req) => {
       throw new Error('Invoice not found')
     }
 
-    // Create PDF
+    // Télécharger le template PDF depuis le storage
+    const { data: pdfTemplate, error: downloadError } = await supabaseClient.storage
+      .from('templates')
+      .download(template.file_path)
+
+    if (downloadError) {
+      throw new Error('Failed to download template')
+    }
+
+    // Convertir le PDF template en base64
+    const pdfBytes = await pdfTemplate.arrayBuffer()
     const doc = new jsPDF()
+    doc.loadFile(pdfBytes)
     
     // Add company logo/header
     doc.setFontSize(20)
