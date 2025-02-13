@@ -79,6 +79,8 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
         pdfPath = fileName;
       }
 
+      // Insert or update invoice
+      let invoiceId = invoice?.id;
       if (invoice?.id) {
         const { error } = await supabase
           .from('invoices')
@@ -88,11 +90,14 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
             user_id: session.user.id,
             status: invoice.status || 'pending',
             invoice_date: data.invoice_date,
+            total_ht: data.totalHT,
+            total_ttc: data.totalTTC,
+            tva_rate: data.tvaRate
           })
           .eq('id', invoice.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { data: newInvoice, error } = await supabase
           .from('invoices')
           .insert([{ 
             ...data, 
@@ -100,8 +105,44 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
             user_id: session.user.id,
             status: 'pending',
             invoice_date: data.invoice_date,
-          }]);
+            total_ht: data.totalHT,
+            total_ttc: data.totalTTC,
+            tva_rate: data.tvaRate
+          }])
+          .select()
+          .single();
         if (error) throw error;
+        invoiceId = newInvoice.id;
+      }
+
+      // Insert lines if invoice created successfully
+      if (invoiceId && data.lines) {
+        const { error: linesError } = await supabase
+          .from('invoice_lines')
+          .upsert(
+            data.lines.map((line: any) => ({
+              invoice_id: invoiceId,
+              description: line.description,
+              quantity: line.quantity,
+              unit_price: line.unit_price,
+              total: line.total
+            }))
+          );
+        if (linesError) throw linesError;
+      }
+
+      // Generate PDF
+      const { error: pdfError } = await supabase.functions.invoke('generate-pdf', {
+        body: { invoice_id: invoiceId }
+      });
+
+      if (pdfError) {
+        console.error('Error generating PDF:', pdfError);
+        toast({
+          title: "Attention",
+          description: "Le document a été sauvegardé mais il y a eu une erreur lors de la génération du PDF",
+          variant: "destructive",
+        });
       }
 
       await Promise.all([
