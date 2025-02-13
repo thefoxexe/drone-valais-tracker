@@ -17,6 +17,7 @@ serve(async (req) => {
 
   try {
     const { invoice_id } = await req.json()
+    console.log('Processing invoice_id:', invoice_id)
 
     if (!invoice_id) {
       throw new Error('Invoice ID is required')
@@ -28,6 +29,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    console.log('Fetching invoice data...')
     // Fetch invoice data with its lines
     const { data: invoice, error: invoiceError } = await supabaseClient
       .from('invoices')
@@ -43,10 +45,17 @@ serve(async (req) => {
       .eq('id', invoice_id)
       .single()
 
-    if (invoiceError || !invoice) {
+    if (invoiceError) {
+      console.error('Error fetching invoice:', invoiceError)
       throw new Error('Invoice not found')
     }
 
+    if (!invoice) {
+      console.error('No invoice found for id:', invoice_id)
+      throw new Error('Invoice not found')
+    }
+
+    console.log('Creating PDF document...')
     // Create PDF
     const doc = new jsPDF()
     
@@ -125,31 +134,40 @@ serve(async (req) => {
     }
     
     // Convert PDF to base64
+    console.log('Converting PDF to array buffer...')
     const pdfOutput = doc.output('arraybuffer')
     
     // Upload to Supabase Storage using the PDF bucket
     const fileName = `${invoice.status === 'approved' ? 'facture' : 'devis'}_${invoice.invoice_number}.pdf`
-    const { error: uploadError } = await supabaseClient.storage
-      .from('PDF')  // Utiliser le bucket PDF existant
+    console.log('Uploading PDF with filename:', fileName)
+    
+    const { data: uploadData, error: uploadError } = await supabaseClient.storage
+      .from('PDF')
       .upload(fileName, pdfOutput, {
         contentType: 'application/pdf',
         upsert: true
       })
 
     if (uploadError) {
-      throw new Error('Failed to upload PDF')
+      console.error('Error uploading PDF:', uploadError)
+      throw new Error(`Failed to upload PDF: ${uploadError.message}`)
     }
 
+    console.log('Upload successful:', uploadData)
+
     // Update invoice with PDF path
+    console.log('Updating invoice with PDF path...')
     const { error: updateError } = await supabaseClient
       .from('invoices')
       .update({ pdf_path: fileName })
       .eq('id', invoice_id)
 
     if (updateError) {
+      console.error('Error updating invoice:', updateError)
       throw new Error('Failed to update invoice')
     }
 
+    console.log('Successfully generated and stored PDF')
     // Return success response with PDF data
     return new Response(
       JSON.stringify({ 
@@ -168,7 +186,8 @@ serve(async (req) => {
     console.error('Error generating PDF:', error)
     return new Response(
       JSON.stringify({ 
-        error: error.message 
+        error: error.message,
+        details: error.stack
       }),
       { 
         headers: { 
