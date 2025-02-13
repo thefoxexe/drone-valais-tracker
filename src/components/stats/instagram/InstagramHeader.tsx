@@ -15,7 +15,7 @@ export const InstagramHeader = ({ onStatsUpdate }: InstagramHeaderProps) => {
         <img 
           src="/lovable-uploads/a6e0c54f-1eeb-4e27-b67d-1da98918ba36.png"
           alt="Instagram Logo"
-          className="w-24 h-24 object-contain"
+          className="w-24 h-24 object-contain rounded-full"
         />
         <div>
           <h2 className="text-3xl font-bold mb-2">Drone Valais Production</h2>
