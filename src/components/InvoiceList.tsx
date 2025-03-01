@@ -1,7 +1,7 @@
+
 import { InvoiceForm } from "./InvoiceForm";
 import { InvoiceTable } from "./invoice/InvoiceTable";
 import { useInvoiceOperations } from "./invoice/useInvoiceOperations";
-import { Json } from "@/integrations/supabase/types";
 
 interface Invoice {
   id: string;
@@ -15,7 +15,6 @@ interface Invoice {
   updated_at?: string;
   user_id?: string;
   description?: string;
-  rate_details?: Json;
 }
 
 interface InvoiceListProps {

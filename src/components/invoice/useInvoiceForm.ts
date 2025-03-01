@@ -69,8 +69,11 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
       let pdfPath = invoice?.pdf_path;
 
       if (selectedFile) {
+        // Générer un nom de fichier unique
         const fileExt = selectedFile.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
+        
+        // Télécharger le fichier dans le bucket "invoices"
         const { error: uploadError } = await supabase.storage
           .from('invoices')
           .upload(fileName, selectedFile);

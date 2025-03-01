@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -93,27 +94,44 @@ export const useInvoiceOperations = (isQuote: boolean) => {
   };
 
   const handleDownload = async (pdfPath: string) => {
-    const { data, error } = await supabase.storage
-      .from("PDF")
-      .download(pdfPath);
+    try {
+      console.log("Downloading file path:", pdfPath);
+      
+      // Vérifier si le chemin du fichier est valide
+      if (!pdfPath || pdfPath.trim() === '') {
+        toast({
+          title: "Erreur",
+          description: "Chemin de fichier invalide",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    if (error) {
+      // Récupérer l'URL publique du fichier
+      const { data } = supabase.storage
+        .from("invoices")
+        .getPublicUrl(pdfPath);
+
+      if (!data?.publicUrl) {
+        toast({
+          title: "Erreur",
+          description: "Impossible de récupérer l'URL du fichier",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Ouvrir l'URL dans un nouvel onglet
+      window.open(data.publicUrl, '_blank');
+      
+    } catch (error) {
+      console.error("Download error:", error);
       toast({
         title: "Erreur",
         description: "Impossible de télécharger le fichier",
         variant: "destructive",
       });
-      return;
     }
-
-    const url = window.URL.createObjectURL(data);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = pdfPath.split("/").pop() || "document.pdf";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
   };
 
   return {
