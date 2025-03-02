@@ -98,6 +98,63 @@ export type Database = {
           },
         ]
       }
+      filming_spots: {
+        Row: {
+          authorization_link: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          ideal_weather:
+            | Database["public"]["Enums"]["weather_condition"][]
+            | null
+          latitude: number
+          longitude: number
+          name: string
+          rating_average: number | null
+          requires_authorization: boolean | null
+          shooting_history: Json | null
+          type: Database["public"]["Enums"]["spot_type"]
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          authorization_link?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          ideal_weather?:
+            | Database["public"]["Enums"]["weather_condition"][]
+            | null
+          latitude: number
+          longitude: number
+          name: string
+          rating_average?: number | null
+          requires_authorization?: boolean | null
+          shooting_history?: Json | null
+          type: Database["public"]["Enums"]["spot_type"]
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          authorization_link?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          ideal_weather?:
+            | Database["public"]["Enums"]["weather_condition"][]
+            | null
+          latitude?: number
+          longitude?: number
+          name?: string
+          rating_average?: number | null
+          requires_authorization?: boolean | null
+          shooting_history?: Json | null
+          type?: Database["public"]["Enums"]["spot_type"]
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       instagram_stats_history: {
         Row: {
           date: string | null
@@ -282,6 +339,126 @@ export type Database = {
         }
         Relationships: []
       }
+      spot_documents: {
+        Row: {
+          created_at: string | null
+          document_type: string
+          expiration_date: string | null
+          file_path: string
+          id: string
+          spot_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_type: string
+          expiration_date?: string | null
+          file_path: string
+          id?: string
+          spot_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_type?: string
+          expiration_date?: string | null
+          file_path?: string
+          id?: string
+          spot_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spot_documents_spot_id_fkey"
+            columns: ["spot_id"]
+            isOneToOne: false
+            referencedRelation: "filming_spots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spot_media: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          file_path: string
+          file_type: string
+          id: string
+          is_cover: boolean | null
+          spot_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          file_path: string
+          file_type: string
+          id?: string
+          is_cover?: boolean | null
+          spot_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          file_path?: string
+          file_type?: string
+          id?: string
+          is_cover?: boolean | null
+          spot_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spot_media_spot_id_fkey"
+            columns: ["spot_id"]
+            isOneToOne: false
+            referencedRelation: "filming_spots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spot_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          rating: number
+          spot_id: string
+          updated_at: string | null
+          user_id: string | null
+          user_name: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating: number
+          spot_id: string
+          updated_at?: string | null
+          user_id?: string | null
+          user_name: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number
+          spot_id?: string
+          updated_at?: string | null
+          user_id?: string | null
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spot_reviews_spot_id_fkey"
+            columns: ["spot_id"]
+            isOneToOne: false
+            referencedRelation: "filming_spots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       youtube_stats_history: {
         Row: {
           date: string | null
@@ -323,6 +500,24 @@ export type Database = {
     Enums: {
       equipment_status: "available" | "maintenance" | "out_of_order"
       equipment_type: "drone" | "camera" | "stabilizer" | "other"
+      spot_type:
+        | "urbain"
+        | "montagne"
+        | "lac"
+        | "riviere"
+        | "foret"
+        | "indoor"
+        | "autre"
+      weather_condition:
+        | "ensoleille"
+        | "nuageux"
+        | "couvert"
+        | "pluie_legere"
+        | "variable"
+        | "neige"
+        | "vent_faible"
+        | "vent_fort"
+        | "brouillard"
     }
     CompositeTypes: {
       [_ in never]: never
