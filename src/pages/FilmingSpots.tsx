@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { SpotMap } from "@/components/spots/SpotMap";
@@ -31,7 +30,7 @@ const FilmingSpots = () => {
       `);
 
       if (filters.type && filters.type !== "all") {
-        query = query.eq("type", filters.type);
+        query = query.eq("type", filters.type as SpotType);
       }
 
       if (filters.requiresAuth) {
