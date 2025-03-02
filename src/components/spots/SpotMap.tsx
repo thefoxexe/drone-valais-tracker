@@ -6,8 +6,8 @@ import { Card } from "@/components/ui/card";
 import { Spot } from "@/types/spots";
 import { MAP_MARKER_ICONS } from "./spot-utils";
 
-// Placeholder pour la clé API Mapbox - À remplacer par votre propre clé
-const MAPBOX_TOKEN = "pk.eyJ1IjoiZXhhbXBsZSIsImEiOiJjbGVhcml0ZXh0In0.ZXhhbXBsZV9jbGVhcml0ZXh0";
+// Utilisation de la clé API Mapbox fournie
+const MAPBOX_TOKEN = "pk.eyJ1IjoiYmFzdGllbnJ5c2VyIiwiYSI6ImNtN3JnbHQyZzBobW8ycnNlNXVuemtmYmEifQ.7qQos4iZs1ZRpe4hNBmYCw";
 
 interface SpotMapProps {
   spots: Spot[];
@@ -24,7 +24,7 @@ export const SpotMap = ({ spots, isLoading, onSpotClick, selectedSpotId }: SpotM
 
   // État pour stocker la clé API Mapbox temporairement
   const [tempToken, setTempToken] = useState<string>("");
-  const [showTokenInput, setShowTokenInput] = useState<boolean>(MAPBOX_TOKEN === "pk.eyJ1IjoiZXhhbXBsZSIsImEiOiJjbGVhcml0ZXh0In0.ZXhhbXBsZV9jbGVhcml0ZXh0");
+  const [showTokenInput, setShowTokenInput] = useState<boolean>(false);
 
   useEffect(() => {
     if (!mapContainer.current || isLoading || !mapboxToken || showTokenInput) return;

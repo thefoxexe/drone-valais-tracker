@@ -1,5 +1,5 @@
 
-import { Building, Mountain, Tree, Droplet, Home, Camera } from "lucide-react";
+import { Building, Mountain, Trees, Droplet, Home, Camera } from "lucide-react";
 
 export const SPOT_TYPE_LABELS: Record<string, string> = {
   urbain: "Urbain",
@@ -28,7 +28,7 @@ export const MAP_MARKER_ICONS: Record<string, JSX.Element> = {
   montagne: <Mountain className="h-6 w-6" />,
   lac: <Droplet className="h-6 w-6" />,
   riviere: <Droplet className="h-6 w-6" />,
-  foret: <Tree className="h-6 w-6" />,
+  foret: <Trees className="h-6 w-6" />,
   indoor: <Home className="h-6 w-6" />,
   autre: <Camera className="h-6 w-6" />
 };

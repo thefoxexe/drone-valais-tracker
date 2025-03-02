@@ -9,13 +9,13 @@ import { PlusCircle } from "lucide-react";
 import { SpotFormDialog } from "@/components/spots/SpotFormDialog";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Spot } from "@/types/spots";
+import { Spot, SpotType } from "@/types/spots";
 
 const FilmingSpots = () => {
   const [showSpotForm, setShowSpotForm] = useState(false);
   const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
   const [filters, setFilters] = useState({
-    type: "",
+    type: "" as SpotType | "",
     requiresAuth: false,
     weatherConditions: [] as string[],
   });
@@ -48,7 +48,7 @@ const FilmingSpots = () => {
         throw error;
       }
       
-      return data || [];
+      return data as unknown as Spot[];
     },
   });
 

@@ -22,7 +22,7 @@ export interface Spot {
   authorization_link?: string;
   ideal_weather?: WeatherCondition[];
   description?: string;
-  shooting_history?: any[];
+  shooting_history?: any; // Changé de any[] à any pour accepter le type Json de Supabase
   rating_average: number;
   created_at?: string;
   updated_at?: string;
