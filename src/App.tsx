@@ -11,6 +11,7 @@ import Projects from "./pages/Projects";
 import Emails from "./pages/Emails";
 import Stats from "./pages/Stats";
 import Equipment from "./pages/Equipment";
+import FilmingSpots from "./pages/FilmingSpots";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/emails" element={<Emails />} />
             <Route path="/stats" element={<Stats />} />
             <Route path="/equipment" element={<Equipment />} />
+            <Route path="/filming-spots" element={<FilmingSpots />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>

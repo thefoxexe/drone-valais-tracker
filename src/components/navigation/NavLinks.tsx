@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { LogOut, FilePlus, HardDrive, LayoutDashboard, Briefcase, Mail, BarChart, Wrench } from "lucide-react";
+import { LogOut, FilePlus, HardDrive, LayoutDashboard, Briefcase, Mail, BarChart, Wrench, Map } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -42,6 +42,15 @@ export const NavLinks = ({ onResourceClick, onInvoiceClick, onLogout, inHamburge
         >
           <Wrench className="h-5 w-5 mr-2" />
           Matériel
+        </Button>
+      </Link>
+      <Link to="/filming-spots">
+        <Button 
+          variant="ghost" 
+          className="text-white hover:text-white/80 w-full justify-start"
+        >
+          <Map className="h-5 w-5 mr-2" />
+          Spots de tournage
         </Button>
       </Link>
       <Link to="/emails">
