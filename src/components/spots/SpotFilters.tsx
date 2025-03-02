@@ -60,7 +60,7 @@ export const SpotFilters = ({ filters, setFilters }: SpotFiltersProps) => {
                 <SelectValue placeholder="Tous les types" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les types</SelectItem>
+                <SelectItem value="all">Tous les types</SelectItem>
                 {Object.entries(SPOT_TYPE_LABELS).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
                     {label}

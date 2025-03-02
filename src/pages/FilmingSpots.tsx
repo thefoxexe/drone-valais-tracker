@@ -10,26 +10,27 @@ import { SpotFormDialog } from "@/components/spots/SpotFormDialog";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Spot, SpotType } from "@/types/spots";
+import { toast } from "sonner";
 
 const FilmingSpots = () => {
   const [showSpotForm, setShowSpotForm] = useState(false);
   const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
   const [filters, setFilters] = useState({
-    type: "" as SpotType | "",
+    type: "all" as string,
     requiresAuth: false,
     weatherConditions: [] as string[],
   });
 
-  const { data: spots, isLoading, refetch } = useQuery({
-    queryKey: ["filming-spots"],
+  const { data: spots, isLoading, error, refetch } = useQuery({
+    queryKey: ["filming-spots", filters],
     queryFn: async () => {
       let query = supabase.from("filming_spots").select(`
         *,
-        spot_reviews(id, rating),
+        spot_reviews(id, rating, user_name, comment, created_at),
         spot_media(id, file_path, file_type, is_cover)
       `);
 
-      if (filters.type) {
+      if (filters.type && filters.type !== "all") {
         query = query.eq("type", filters.type);
       }
 
@@ -45,6 +46,7 @@ const FilmingSpots = () => {
       
       if (error) {
         console.error("Error fetching spots:", error);
+        toast.error("Erreur lors du chargement des spots");
         throw error;
       }
       
@@ -53,8 +55,10 @@ const FilmingSpots = () => {
   });
 
   useEffect(() => {
-    refetch();
-  }, [filters, refetch]);
+    if (error) {
+      console.error("Query error:", error);
+    }
+  }, [error]);
 
   const handleSpotClick = (spot: Spot) => {
     setSelectedSpot(spot);
