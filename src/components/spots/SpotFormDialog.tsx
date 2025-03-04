@@ -47,6 +47,7 @@ export const SpotFormDialog = ({ spot, onClose }: SpotFormDialogProps) => {
     handleLocationChange,
     handleAuthRequiredChange,
     handleAuthLinkChange,
+    suggestSpotName,
     onSubmit
   } = useSpotForm(spot || null, onClose);
 
@@ -99,6 +100,7 @@ export const SpotFormDialog = ({ spot, onClose }: SpotFormDialogProps) => {
             latitude={latitude} 
             longitude={longitude} 
             onLocationChange={handleLocationChange}
+            suggestSpotName={suggestSpotName}
           />
           
           <AuthorizationSection 

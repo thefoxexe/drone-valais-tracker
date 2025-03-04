@@ -16,12 +16,14 @@ interface LocationSelectorProps {
   latitude: number;
   longitude: number;
   onLocationChange: (lat: number, lng: number) => void;
+  suggestSpotName?: (placeName: string | null) => void;
 }
 
 export const LocationSelector = ({ 
   latitude, 
   longitude, 
-  onLocationChange 
+  onLocationChange,
+  suggestSpotName
 }: LocationSelectorProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -48,7 +50,7 @@ export const LocationSelector = ({
       new mapboxgl.NavigationControl({
         visualizePitch: true,
       }),
-      "top-right"
+      'top-right'
     );
     
     // Ajouter un marqueur par défaut
@@ -61,6 +63,8 @@ export const LocationSelector = ({
       const lngLat = marker.current?.getLngLat();
       if (lngLat) {
         onLocationChange(lngLat.lat, lngLat.lng);
+        // Essayer de faire une géolocalisation inverse pour obtenir le nom du lieu
+        reverseGeocode(lngLat.lat, lngLat.lng);
       }
     });
     
@@ -68,6 +72,8 @@ export const LocationSelector = ({
     map.current.on('click', (e) => {
       marker.current?.setLngLat([e.lngLat.lng, e.lngLat.lat]);
       onLocationChange(e.lngLat.lat, e.lngLat.lng);
+      // Essayer de faire une géolocalisation inverse pour obtenir le nom du lieu
+      reverseGeocode(e.lngLat.lat, e.lngLat.lng);
     });
     
     setMapInitialized(true);
@@ -91,19 +97,66 @@ export const LocationSelector = ({
   
   // Fonction pour rechercher des lieux via l'API Mapbox
   const searchLocations = async () => {
-    if (!searchQuery || searchQuery.length < 3) return;
+    if (!searchQuery || searchQuery.length < 3) {
+      toast.error("Veuillez entrer au moins 3 caractères pour la recherche");
+      return;
+    }
     
     try {
       const response = await fetch(
         `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?access_token=${MAPBOX_TOKEN}&limit=5`
       );
       
+      if (!response.ok) {
+        throw new Error("Erreur lors de la recherche");
+      }
+      
       const data = await response.json();
-      setSearchResults(data.features || []);
-      setShowSearchResults(true);
+      
+      if (data.features && data.features.length > 0) {
+        setSearchResults(data.features);
+        setShowSearchResults(true);
+      } else {
+        toast.info("Aucun résultat trouvé pour cette recherche");
+        setSearchResults([]);
+        setShowSearchResults(false);
+      }
     } catch (error) {
       console.error("Erreur lors de la recherche:", error);
       toast.error("Erreur lors de la recherche de lieu");
+      setSearchResults([]);
+      setShowSearchResults(false);
+    }
+  };
+  
+  // Fonction pour la géolocalisation inverse (obtenir le nom du lieu à partir des coordonnées)
+  const reverseGeocode = async (lat: number, lng: number) => {
+    if (!suggestSpotName) return;
+    
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}`
+      );
+      
+      if (!response.ok) {
+        throw new Error("Erreur lors de la géolocalisation inverse");
+      }
+      
+      const data = await response.json();
+      
+      if (data.features && data.features.length > 0) {
+        // Essayer de trouver un nom pertinent
+        const place = data.features.find((f: any) => 
+          f.place_type.includes('poi') || 
+          f.place_type.includes('place') || 
+          f.place_type.includes('neighborhood')
+        ) || data.features[0];
+        
+        const placeName = place.text || place.place_name.split(',')[0];
+        suggestSpotName(placeName);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la géolocalisation inverse:", error);
     }
   };
   
@@ -124,13 +177,16 @@ export const LocationSelector = ({
       if (marker.current) {
         marker.current.setLngLat([lng, lat]);
       }
+      
+      // Suggérer le nom du lieu
+      if (suggestSpotName) {
+        const placeName = result.text || result.place_name.split(',')[0];
+        suggestSpotName(placeName);
+      }
     }
     
     setShowSearchResults(false);
     setSearchQuery("");
-    
-    // Return the place name for potential use
-    return result.place_name ? result.place_name.split(',')[0] : null;
   };
   
   return (
@@ -169,7 +225,8 @@ export const LocationSelector = ({
         <div ref={mapContainer} className="absolute inset-0" />
       </div>
       
-      <div className="grid grid-cols-2 gap-2 mt-2">
+      {/* Les champs latitude et longitude sont masqués mais restent fonctionnels */}
+      <div className="hidden">
         <div>
           <Label htmlFor="latitude">Latitude</Label>
           <Input 
@@ -179,7 +236,6 @@ export const LocationSelector = ({
             value={latitude}
             onChange={(e) => onLocationChange(parseFloat(e.target.value), longitude)}
             placeholder="46.2044"
-            className="mt-1"
           />
         </div>
         
@@ -192,7 +248,6 @@ export const LocationSelector = ({
             value={longitude}
             onChange={(e) => onLocationChange(latitude, parseFloat(e.target.value))}
             placeholder="7.3601"
-            className="mt-1"
           />
         </div>
       </div>
