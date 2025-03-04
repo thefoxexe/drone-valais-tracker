@@ -39,6 +39,7 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
   };
 
   const handleLocationChange = (lat: number, lng: number) => {
+    console.log("Mise à jour des coordonnées:", { lat, lng });
     setValue("latitude", lat);
     setValue("longitude", lng);
   };
@@ -58,12 +59,16 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
   };
   
   const onSubmit = async (data: Spot) => {
+    console.log("Données du formulaire à soumettre:", { ...data, conditions: selectedWeatherConditions });
     setIsSubmitting(true);
     
     try {
       const spotData = {
         ...data,
         ideal_weather: selectedWeatherConditions,
+        // S'assurer que latitude et longitude sont des nombres
+        latitude: Number(data.latitude),
+        longitude: Number(data.longitude),
       };
       
       let result;
@@ -76,12 +81,14 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
           .eq("id", spot.id);
       } else {
         // Création d'un nouveau spot
+        console.log("Création d'un nouveau spot avec les données:", spotData);
         result = await supabase
           .from("filming_spots")
           .insert([spotData]);
       }
       
       if (result.error) {
+        console.error("Erreur Supabase:", result.error);
         throw result.error;
       }
       

@@ -184,12 +184,19 @@ export const LocationSelector = ({
   
   // Sélectionner un résultat de recherche
   const selectSearchResult = (result: any) => {
+    console.log("Sélection du résultat:", result);
+    
     if (!result.center || !map.current || !marker.current) {
-      console.error("Impossible de sélectionner le résultat: données manquantes");
+      console.error("Impossible de sélectionner le résultat: données manquantes", {
+        center: result.center,
+        map: !!map.current,
+        marker: !!marker.current
+      });
       return;
     }
     
     const [lng, lat] = result.center;
+    console.log("Coordonnées sélectionnées:", { lat, lng });
     
     // Mettre à jour le marqueur et la carte
     marker.current.setLngLat([lng, lat]);
