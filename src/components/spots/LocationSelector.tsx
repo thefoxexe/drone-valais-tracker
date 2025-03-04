@@ -32,6 +32,7 @@ export const LocationSelector = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   
   // Initialisation de la carte
   useEffect(() => {
@@ -70,10 +71,12 @@ export const LocationSelector = ({
     
     // Événement de clic sur la carte pour placer le marqueur
     map.current.on('click', (e) => {
-      marker.current?.setLngLat([e.lngLat.lng, e.lngLat.lat]);
-      onLocationChange(e.lngLat.lat, e.lngLat.lng);
-      // Essayer de faire une géolocalisation inverse pour obtenir le nom du lieu
-      reverseGeocode(e.lngLat.lat, e.lngLat.lng);
+      if (marker.current) {
+        marker.current.setLngLat([e.lngLat.lng, e.lngLat.lat]);
+        onLocationChange(e.lngLat.lat, e.lngLat.lng);
+        // Essayer de faire une géolocalisation inverse pour obtenir le nom du lieu
+        reverseGeocode(e.lngLat.lat, e.lngLat.lng);
+      }
     });
     
     setMapInitialized(true);
@@ -95,12 +98,30 @@ export const LocationSelector = ({
     }
   }, [latitude, longitude, mapInitialized]);
   
+  // Effet pour rechercher automatiquement lors de la frappe
+  useEffect(() => {
+    if (searchQuery.length < 3) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+    
+    const timer = setTimeout(() => {
+      searchLocations();
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+  
   // Fonction pour rechercher des lieux via l'API Mapbox
   const searchLocations = async () => {
     if (!searchQuery || searchQuery.length < 3) {
-      toast.error("Veuillez entrer au moins 3 caractères pour la recherche");
+      setSearchResults([]);
+      setShowSearchResults(false);
       return;
     }
+    
+    setIsSearching(true);
     
     try {
       const response = await fetch(
@@ -117,7 +138,6 @@ export const LocationSelector = ({
         setSearchResults(data.features);
         setShowSearchResults(true);
       } else {
-        toast.info("Aucun résultat trouvé pour cette recherche");
         setSearchResults([]);
         setShowSearchResults(false);
       }
@@ -126,6 +146,8 @@ export const LocationSelector = ({
       toast.error("Erreur lors de la recherche de lieu");
       setSearchResults([]);
       setShowSearchResults(false);
+    } finally {
+      setIsSearching(false);
     }
   };
   
@@ -162,29 +184,31 @@ export const LocationSelector = ({
   
   // Sélectionner un résultat de recherche
   const selectSearchResult = (result: any) => {
-    if (result.center) {
-      const [lng, lat] = result.center;
-      onLocationChange(lat, lng);
-      
-      if (map.current) {
-        map.current.flyTo({
-          center: [lng, lat],
-          zoom: 14,
-          essential: true
-        });
-      }
-      
-      if (marker.current) {
-        marker.current.setLngLat([lng, lat]);
-      }
-      
-      // Suggérer le nom du lieu
-      if (suggestSpotName) {
-        const placeName = result.text || result.place_name.split(',')[0];
-        suggestSpotName(placeName);
-      }
+    if (!result.center || !map.current || !marker.current) {
+      console.error("Impossible de sélectionner le résultat: données manquantes");
+      return;
     }
     
+    const [lng, lat] = result.center;
+    
+    // Mettre à jour le marqueur et la carte
+    marker.current.setLngLat([lng, lat]);
+    map.current.flyTo({
+      center: [lng, lat],
+      zoom: 14,
+      essential: true
+    });
+    
+    // Mettre à jour les coordonnées dans le formulaire
+    onLocationChange(lat, lng);
+    
+    // Suggérer le nom du lieu
+    if (suggestSpotName) {
+      const placeName = result.text || result.place_name.split(',')[0];
+      suggestSpotName(placeName);
+    }
+    
+    // Réinitialiser la recherche
     setShowSearchResults(false);
     setSearchQuery("");
   };
@@ -192,34 +216,33 @@ export const LocationSelector = ({
   return (
     <div className="space-y-2">
       <Label>Emplacement du spot</Label>
-      <div className="flex items-center space-x-2 mb-2">
+      <div className="flex items-center space-x-2 mb-2 relative">
         <Input 
           placeholder="Rechercher un lieu..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), searchLocations())}
           className="flex-1"
         />
-        <Button type="button" variant="outline" onClick={searchLocations}>
+        <Button type="button" variant="outline" onClick={() => searchLocations()}>
           <Search className="h-4 w-4" />
         </Button>
+        
+        {showSearchResults && searchResults.length > 0 && (
+          <Card className="absolute z-10 w-full top-full left-0 mt-1 p-2 bg-background shadow-lg rounded-md">
+            <ul className="space-y-1 max-h-60 overflow-y-auto">
+              {searchResults.map((result, index) => (
+                <li 
+                  key={index} 
+                  className="p-2 hover:bg-muted rounded cursor-pointer"
+                  onClick={() => selectSearchResult(result)}
+                >
+                  {result.place_name}
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
       </div>
-      
-      {showSearchResults && searchResults.length > 0 && (
-        <Card className="absolute z-10 w-full max-w-md p-2 bg-background shadow-lg rounded-md">
-          <ul className="space-y-1">
-            {searchResults.map((result, index) => (
-              <li 
-                key={index} 
-                className="p-2 hover:bg-muted rounded cursor-pointer"
-                onClick={() => selectSearchResult(result)}
-              >
-                {result.place_name}
-              </li>
-            ))}
-          </ul>
-        </Card>
-      )}
       
       <div className="relative h-64 border rounded-md overflow-hidden">
         <div ref={mapContainer} className="absolute inset-0" />
