@@ -36,71 +36,130 @@ export const LocationSelector = ({
   
   // Initialisation de la carte
   useEffect(() => {
-    if (!mapContainer.current || mapInitialized) return;
+    if (!mapContainer.current) return;
+    
+    // Nettoyer la carte précédente si elle existe
+    if (map.current) {
+      map.current.remove();
+      map.current = null;
+    }
     
     mapboxgl.accessToken = MAPBOX_TOKEN;
     
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: "mapbox://styles/mapbox/streets-v12",
-      center: [longitude, latitude],
-      zoom: 12,
-    });
-    
-    map.current.addControl(
-      new mapboxgl.NavigationControl({
-        visualizePitch: true,
-      }),
-      'top-right'
-    );
-    
-    // Ajouter un marqueur par défaut
-    marker.current = new mapboxgl.Marker({ draggable: true })
-      .setLngLat([longitude, latitude])
-      .addTo(map.current);
-    
-    // Événement lorsqu'on finit de déplacer le marqueur
-    marker.current.on('dragend', () => {
-      const lngLat = marker.current?.getLngLat();
-      if (lngLat) {
-        onLocationChange(lngLat.lat, lngLat.lng);
-        // Essayer de faire une géolocalisation inverse pour obtenir le nom du lieu
-        reverseGeocode(lngLat.lat, lngLat.lng);
-      }
-    });
-    
-    // Événement de clic sur la carte pour placer le marqueur
-    map.current.on('click', (e) => {
-      if (marker.current) {
-        marker.current.setLngLat([e.lngLat.lng, e.lngLat.lat]);
+    try {
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: "mapbox://styles/mapbox/streets-v12",
+        center: [longitude, latitude],
+        zoom: 12,
+        failIfMajorPerformanceCaveat: false
+      });
+      
+      map.current.addControl(
+        new mapboxgl.NavigationControl({
+          visualizePitch: true,
+        }),
+        'top-right'
+      );
+      
+      // Attendre que la carte soit chargée avant d'ajouter le marqueur
+      map.current.on('load', () => {
+        // Ajouter un marqueur par défaut
+        if (marker.current) {
+          marker.current.remove();
+        }
+        
+        marker.current = new mapboxgl.Marker({ draggable: true, color: "#3b82f6" })
+          .setLngLat([longitude, latitude])
+          .addTo(map.current!);
+        
+        // Événement lorsqu'on finit de déplacer le marqueur
+        marker.current.on('dragend', () => {
+          const lngLat = marker.current?.getLngLat();
+          if (lngLat) {
+            onLocationChange(lngLat.lat, lngLat.lng);
+            // Essayer de faire une géolocalisation inverse pour obtenir le nom du lieu
+            reverseGeocode(lngLat.lat, lngLat.lng);
+          }
+        });
+        
+        setMapInitialized(true);
+      });
+      
+      // Événement de clic sur la carte pour placer le marqueur
+      map.current.on('click', (e) => {
+        console.log("Clic sur la carte:", e.lngLat);
+        
+        if (marker.current) {
+          marker.current.setLngLat([e.lngLat.lng, e.lngLat.lat]);
+        } else {
+          // Créer un nouveau marqueur si nécessaire
+          marker.current = new mapboxgl.Marker({ draggable: true, color: "#3b82f6" })
+            .setLngLat([e.lngLat.lng, e.lngLat.lat])
+            .addTo(map.current!);
+            
+          // Ajouter l'événement dragend au nouveau marqueur
+          marker.current.on('dragend', () => {
+            const lngLat = marker.current?.getLngLat();
+            if (lngLat) {
+              onLocationChange(lngLat.lat, lngLat.lng);
+              reverseGeocode(lngLat.lat, lngLat.lng);
+            }
+          });
+        }
+        
+        // Mise à jour des coordonnées dans le formulaire
         onLocationChange(e.lngLat.lat, e.lngLat.lng);
+        
         // Essayer de faire une géolocalisation inverse pour obtenir le nom du lieu
         reverseGeocode(e.lngLat.lat, e.lngLat.lng);
-      }
-    });
-    
-    setMapInitialized(true);
+      });
+    } catch (error) {
+      console.error("Erreur lors de l'initialisation de la carte:", error);
+      toast.error("Erreur lors du chargement de la carte. Veuillez réessayer.");
+    }
     
     return () => {
-      map.current?.remove();
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
     };
-  }, [longitude, latitude, onLocationChange]);
+  }, []);
   
-  // Mise à jour du marqueur quand les coordonnées changent
+  // Mise à jour du marqueur et de la carte quand les coordonnées changent
   useEffect(() => {
-    if (marker.current && map.current && mapInitialized) {
-      marker.current.setLngLat([longitude, latitude]);
+    if (map.current) {
+      // Centre la carte sur les nouvelles coordonnées
       map.current.flyTo({
         center: [longitude, latitude],
         zoom: 12,
         essential: true
       });
+      
+      // Met à jour ou crée le marqueur
+      if (marker.current) {
+        marker.current.setLngLat([longitude, latitude]);
+      } else if (map.current.loaded()) {
+        marker.current = new mapboxgl.Marker({ draggable: true, color: "#3b82f6" })
+          .setLngLat([longitude, latitude])
+          .addTo(map.current);
+          
+        // Ajouter l'événement dragend au nouveau marqueur
+        marker.current.on('dragend', () => {
+          const lngLat = marker.current?.getLngLat();
+          if (lngLat) {
+            onLocationChange(lngLat.lat, lngLat.lng);
+            reverseGeocode(lngLat.lat, lngLat.lng);
+          }
+        });
+      }
     }
-  }, [latitude, longitude, mapInitialized]);
+  }, [latitude, longitude]);
   
   // Effet pour rechercher automatiquement lors de la frappe
   useEffect(() => {
-    if (searchQuery.length < 3) {
+    if (searchQuery.length < 2) {
       setSearchResults([]);
       setShowSearchResults(false);
       return;
@@ -115,7 +174,7 @@ export const LocationSelector = ({
   
   // Fonction pour rechercher des lieux via l'API Mapbox
   const searchLocations = async () => {
-    if (!searchQuery || searchQuery.length < 3) {
+    if (!searchQuery || searchQuery.length < 2) {
       setSearchResults([]);
       setShowSearchResults(false);
       return;
@@ -186,11 +245,9 @@ export const LocationSelector = ({
   const selectSearchResult = (result: any) => {
     console.log("Sélection du résultat:", result);
     
-    if (!result.center || !map.current || !marker.current) {
-      console.error("Impossible de sélectionner le résultat: données manquantes", {
-        center: result.center,
-        map: !!map.current,
-        marker: !!marker.current
+    if (!result.center) {
+      console.error("Impossible de sélectionner le résultat: coordonnées manquantes", {
+        center: result.center
       });
       return;
     }
@@ -198,15 +255,7 @@ export const LocationSelector = ({
     const [lng, lat] = result.center;
     console.log("Coordonnées sélectionnées:", { lat, lng });
     
-    // Mettre à jour le marqueur et la carte
-    marker.current.setLngLat([lng, lat]);
-    map.current.flyTo({
-      center: [lng, lat],
-      zoom: 14,
-      essential: true
-    });
-    
-    // Mettre à jour les coordonnées dans le formulaire
+    // Mise à jour des coordonnées dans le formulaire (avant d'actualiser la carte)
     onLocationChange(lat, lng);
     
     // Suggérer le nom du lieu

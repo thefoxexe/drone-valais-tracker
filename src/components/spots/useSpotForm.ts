@@ -63,6 +63,7 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
     setIsSubmitting(true);
     
     try {
+      // S'assurer que les données sont formatées correctement
       const spotData = {
         ...data,
         ideal_weather: selectedWeatherConditions,
@@ -82,9 +83,22 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
       } else {
         // Création d'un nouveau spot
         console.log("Création d'un nouveau spot avec les données:", spotData);
-        result = await supabase
-          .from("filming_spots")
-          .insert([spotData]);
+        
+        try {
+          // Vérifier si l'utilisateur est authentifié
+          const { data: authData } = await supabase.auth.getSession();
+          if (!authData.session) {
+            throw new Error("Vous devez être connecté pour ajouter un spot");
+          }
+          
+          result = await supabase
+            .from("filming_spots")
+            .insert([spotData]);
+        } catch (authError) {
+          console.error("Erreur d'authentification:", authError);
+          toast.error("Vous devez être connecté pour ajouter un spot");
+          throw authError;
+        }
       }
       
       if (result.error) {
@@ -96,7 +110,7 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
       onClose();
     } catch (error) {
       console.error("Erreur lors de l'enregistrement:", error);
-      toast.error("Erreur lors de l'enregistrement du spot");
+      toast.error((error as any)?.message || "Erreur lors de l'enregistrement du spot");
     } finally {
       setIsSubmitting(false);
     }
