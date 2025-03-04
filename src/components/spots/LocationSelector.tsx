@@ -12,6 +12,18 @@ import "mapbox-gl/dist/mapbox-gl.css";
 // Utilisation de la clé API Mapbox
 const MAPBOX_TOKEN = "pk.eyJ1IjoiYmFzdGllbnJ5c2VyIiwiYSI6ImNtN3JnbHQyZzBobW8ycnNlNXVuemtmYmEifQ.7qQos4iZs1ZRpe4hNBmYCw";
 
+// Coordonnées de la Suisse
+const SWITZERLAND_BOUNDS = {
+  sw: [5.9559, 45.8181], // Sud-Ouest
+  ne: [10.4921, 47.8084]  // Nord-Est
+};
+
+// Coordonnées de l'Europe
+const EUROPE_BOUNDS = {
+  sw: [-10.5, 36.0], // Sud-Ouest
+  ne: [40.0, 72.0]   // Nord-Est
+};
+
 interface LocationSelectorProps {
   latitude: number;
   longitude: number;
@@ -129,7 +141,7 @@ export const LocationSelector = ({
   
   // Mise à jour du marqueur et de la carte quand les coordonnées changent
   useEffect(() => {
-    if (map.current) {
+    if (map.current && map.current.loaded()) {
       // Centre la carte sur les nouvelles coordonnées
       map.current.flyTo({
         center: [longitude, latitude],
@@ -140,7 +152,7 @@ export const LocationSelector = ({
       // Met à jour ou crée le marqueur
       if (marker.current) {
         marker.current.setLngLat([longitude, latitude]);
-      } else if (map.current.loaded()) {
+      } else {
         marker.current = new mapboxgl.Marker({ draggable: true, color: "#3b82f6" })
           .setLngLat([longitude, latitude])
           .addTo(map.current);
@@ -183,8 +195,20 @@ export const LocationSelector = ({
     setIsSearching(true);
     
     try {
+      // Construire l'URL avec les paramètres pour limiter à l'Europe et privilégier la Suisse
+      const queryParams = new URLSearchParams({
+        access_token: MAPBOX_TOKEN,
+        limit: '5',
+        // Ajouter les bornes géographiques pour l'Europe
+        bbox: `${EUROPE_BOUNDS.sw[0]},${EUROPE_BOUNDS.sw[1]},${EUROPE_BOUNDS.ne[0]},${EUROPE_BOUNDS.ne[1]}`,
+        // Privilégier les résultats en Suisse
+        proximity: '8.2275,46.8182', // Longitude,Latitude du centre de la Suisse
+        // Types de lieux à privilégier
+        types: 'place,locality,neighborhood,address,poi'
+      });
+      
       const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?access_token=${MAPBOX_TOKEN}&limit=5`
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?${queryParams}`
       );
       
       if (!response.ok) {
@@ -193,8 +217,19 @@ export const LocationSelector = ({
       
       const data = await response.json();
       
+      // Filtrer et trier les résultats pour mettre la Suisse en premier
       if (data.features && data.features.length > 0) {
-        setSearchResults(data.features);
+        // Trier les résultats pour privilégier la Suisse
+        const sortedFeatures = data.features.sort((a: any, b: any) => {
+          const aInSwitzerland = a.context?.some((c: any) => c.short_code === 'ch');
+          const bInSwitzerland = b.context?.some((c: any) => c.short_code === 'ch');
+          
+          if (aInSwitzerland && !bInSwitzerland) return -1;
+          if (!aInSwitzerland && bInSwitzerland) return 1;
+          return 0;
+        });
+        
+        setSearchResults(sortedFeatures);
         setShowSearchResults(true);
       } else {
         setSearchResults([]);
@@ -255,13 +290,41 @@ export const LocationSelector = ({
     const [lng, lat] = result.center;
     console.log("Coordonnées sélectionnées:", { lat, lng });
     
-    // Mise à jour des coordonnées dans le formulaire (avant d'actualiser la carte)
+    // Mise à jour des coordonnées dans le formulaire
     onLocationChange(lat, lng);
     
     // Suggérer le nom du lieu
     if (suggestSpotName) {
       const placeName = result.text || result.place_name.split(',')[0];
       suggestSpotName(placeName);
+    }
+    
+    // Si la carte est initialisée, mettre à jour la position du marqueur
+    if (map.current && map.current.loaded()) {
+      // Centre la carte sur les nouvelles coordonnées
+      map.current.flyTo({
+        center: [lng, lat],
+        zoom: 14,
+        essential: true
+      });
+      
+      // Met à jour ou crée le marqueur
+      if (marker.current) {
+        marker.current.setLngLat([lng, lat]);
+      } else {
+        marker.current = new mapboxgl.Marker({ draggable: true, color: "#3b82f6" })
+          .setLngLat([lng, lat])
+          .addTo(map.current);
+          
+        // Ajouter l'événement dragend au nouveau marqueur
+        marker.current.on('dragend', () => {
+          const lngLat = marker.current?.getLngLat();
+          if (lngLat) {
+            onLocationChange(lngLat.lat, lngLat.lng);
+            reverseGeocode(lngLat.lat, lngLat.lng);
+          }
+        });
+      }
     }
     
     // Réinitialiser la recherche
@@ -274,7 +337,7 @@ export const LocationSelector = ({
       <Label>Emplacement du spot</Label>
       <div className="flex items-center space-x-2 mb-2 relative">
         <Input 
-          placeholder="Rechercher un lieu..."
+          placeholder="Rechercher un lieu en Europe..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1"
@@ -286,15 +349,21 @@ export const LocationSelector = ({
         {showSearchResults && searchResults.length > 0 && (
           <Card className="absolute z-10 w-full top-full left-0 mt-1 p-2 bg-background shadow-lg rounded-md">
             <ul className="space-y-1 max-h-60 overflow-y-auto">
-              {searchResults.map((result, index) => (
-                <li 
-                  key={index} 
-                  className="p-2 hover:bg-muted rounded cursor-pointer"
-                  onClick={() => selectSearchResult(result)}
-                >
-                  {result.place_name}
-                </li>
-              ))}
+              {searchResults.map((result, index) => {
+                // Vérifier si le lieu est en Suisse pour le mettre en évidence
+                const isInSwitzerland = result.context?.some((c: any) => c.short_code === 'ch');
+                
+                return (
+                  <li 
+                    key={index} 
+                    className={`p-2 hover:bg-muted rounded cursor-pointer ${isInSwitzerland ? 'font-semibold border-l-4 border-blue-500 pl-3' : ''}`}
+                    onClick={() => selectSearchResult(result)}
+                  >
+                    {result.place_name}
+                    {isInSwitzerland && <span className="ml-2 text-xs text-blue-500">🇨🇭</span>}
+                  </li>
+                );
+              })}
             </ul>
           </Card>
         )}
