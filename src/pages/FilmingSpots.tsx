@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { SpotMap } from "@/components/spots/SpotMap";
