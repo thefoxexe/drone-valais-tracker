@@ -11,7 +11,7 @@ import { Spot } from "@/types/spots";
 import { getSpotTypeIcon, SPOT_TYPE_LABELS } from "./spot-utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Star } from "lucide-react";
+import { Edit } from "lucide-react";
 
 interface SpotListProps {
   spots: Spot[];
@@ -88,19 +88,10 @@ export const SpotList = ({
                       </Button>
                     </div>
                     
-                    <div className="mt-2 flex justify-between items-center">
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 mr-1 text-amber-500" fill="currentColor" />
-                        <span className="text-sm">
-                          {spot.rating_average ? spot.rating_average.toFixed(1) : 'N/A'}
-                        </span>
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-1 justify-end">
-                        {spot.requires_authorization && (
-                          <Badge variant="outline" className="text-xs">Autorisation</Badge>
-                        )}
-                      </div>
+                    <div className="mt-2 flex justify-end">
+                      {spot.requires_authorization && (
+                        <Badge variant="outline" className="text-xs">Autorisation</Badge>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

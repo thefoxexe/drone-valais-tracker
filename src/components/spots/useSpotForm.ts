@@ -93,7 +93,7 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
           .from("filming_spots")
           .update(spotData)
           .eq("id", spot.id)
-          .select();
+          .select("*");
 
         console.log("Résultat de la mise à jour:", result);
       } else {
@@ -103,7 +103,7 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
         result = await supabase
           .from("filming_spots")
           .insert([spotData])
-          .select();
+          .select("*");
 
         console.log("Résultat de la création:", result);
       }

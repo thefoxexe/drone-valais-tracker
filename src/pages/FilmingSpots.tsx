@@ -77,6 +77,7 @@ const FilmingSpots = () => {
   const handleSpotFormClose = () => {
     setShowSpotForm(false);
     setSelectedSpot(null);
+    // Force a refetch to ensure the updated data is displayed
     refetch();
   };
 
