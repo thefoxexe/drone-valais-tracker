@@ -203,8 +203,8 @@ export const LocationSelector = ({
         bbox: `${EUROPE_BOUNDS.sw[0]},${EUROPE_BOUNDS.sw[1]},${EUROPE_BOUNDS.ne[0]},${EUROPE_BOUNDS.ne[1]}`,
         // Privilégier les résultats en Suisse
         proximity: '8.2275,46.8182', // Longitude,Latitude du centre de la Suisse
-        // Types de lieux à privilégier
-        types: 'place,locality,neighborhood,address,poi'
+        // Types de lieux à privilégier - inclure plus de types de lieux comme demandé
+        types: 'place,locality,neighborhood,address,poi,region,postcode,district,water,natural,mountain,lake'
       });
       
       const response = await fetch(
@@ -265,7 +265,11 @@ export const LocationSelector = ({
         const place = data.features.find((f: any) => 
           f.place_type.includes('poi') || 
           f.place_type.includes('place') || 
-          f.place_type.includes('neighborhood')
+          f.place_type.includes('neighborhood') ||
+          f.place_type.includes('natural') ||
+          f.place_type.includes('mountain') ||
+          f.place_type.includes('water') ||
+          f.place_type.includes('lake')
         ) || data.features[0];
         
         const placeName = place.text || place.place_name.split(',')[0];
@@ -337,7 +341,7 @@ export const LocationSelector = ({
       <Label>Emplacement du spot</Label>
       <div className="flex items-center space-x-2 mb-2 relative">
         <Input 
-          placeholder="Rechercher un lieu en Europe..."
+          placeholder="Rechercher un lieu (montagne, lac, rue, etc.)..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1"
@@ -353,14 +357,28 @@ export const LocationSelector = ({
                 // Vérifier si le lieu est en Suisse pour le mettre en évidence
                 const isInSwitzerland = result.context?.some((c: any) => c.short_code === 'ch');
                 
+                // Déterminer le type de lieu
+                let typeLabel = "";
+                if (result.place_type) {
+                  if (result.place_type.includes('mountain')) typeLabel = "🏔️ Montagne";
+                  else if (result.place_type.includes('water') || result.place_type.includes('lake')) typeLabel = "💧 Eau";
+                  else if (result.place_type.includes('address')) typeLabel = "🏠 Adresse";
+                  else if (result.place_type.includes('place')) typeLabel = "🏙️ Lieu";
+                  else if (result.place_type.includes('poi')) typeLabel = "📍 Point d'intérêt";
+                  else if (result.place_type.includes('natural')) typeLabel = "🌳 Nature";
+                }
+                
                 return (
                   <li 
                     key={index} 
                     className={`p-2 hover:bg-muted rounded cursor-pointer ${isInSwitzerland ? 'font-semibold border-l-4 border-blue-500 pl-3' : ''}`}
                     onClick={() => selectSearchResult(result)}
                   >
-                    {result.place_name}
-                    {isInSwitzerland && <span className="ml-2 text-xs text-blue-500">🇨🇭</span>}
+                    <div>
+                      {result.place_name}
+                      {isInSwitzerland && <span className="ml-2 text-xs text-blue-500">🇨🇭</span>}
+                    </div>
+                    {typeLabel && <span className="text-xs text-muted-foreground">{typeLabel}</span>}
                   </li>
                 );
               })}

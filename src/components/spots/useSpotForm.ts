@@ -87,6 +87,8 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
       
       if (isEditing && spot) {
         // Mise à jour d'un spot existant
+        console.log("Mise à jour du spot existant:", spot.id);
+        
         result = await supabase
           .from("filming_spots")
           .update(spotData)

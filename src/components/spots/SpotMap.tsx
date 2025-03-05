@@ -55,15 +55,14 @@ export const SpotMap = ({ spots, isLoading, onSpotClick, selectedSpotId }: SpotM
 
     // Ajouter les nouveaux marqueurs pour chaque spot
     spots.forEach((spot) => {
-      const spotType = spot.type || "autre";
-      const markerIcon = MAP_MARKER_ICONS[spotType] || MAP_MARKER_ICONS.autre;
-      
       // Créer un élément personnalisé pour le marqueur
       const el = document.createElement("div");
       el.className = "spot-marker";
-      el.innerHTML = `<div class="${selectedSpotId === spot.id ? 'ring-2 ring-primary animate-pulse' : ''} flex items-center justify-center w-10 h-10 rounded-full bg-background text-primary border-2 border-primary shadow-lg cursor-pointer hover:scale-110 transition-transform">
-        ${markerIcon}
-      </div>`;
+      
+      // Utiliser un point rouge pour le marqueur
+      el.innerHTML = `<div class="${selectedSpotId === spot.id ? 'animate-pulse' : ''} 
+        w-3 h-3 rounded-full bg-red-600 border border-white shadow-lg 
+        cursor-pointer hover:w-4 hover:h-4 transition-all"></div>`;
       
       el.addEventListener("click", () => {
         onSpotClick(spot);
