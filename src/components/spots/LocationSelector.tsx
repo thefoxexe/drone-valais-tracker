@@ -212,6 +212,7 @@ export const LocationSelector = ({
     
     try {
       // Construire l'URL avec les paramètres pour limiter à l'Europe et privilégier la Suisse
+      // CORRECTION: N'utiliser que les types valides supportés par l'API Mapbox
       const queryParams = new URLSearchParams({
         access_token: MAPBOX_TOKEN,
         limit: '5',
@@ -219,19 +220,25 @@ export const LocationSelector = ({
         bbox: `${EUROPE_BOUNDS.sw[0]},${EUROPE_BOUNDS.sw[1]},${EUROPE_BOUNDS.ne[0]},${EUROPE_BOUNDS.ne[1]}`,
         // Privilégier les résultats en Suisse
         proximity: '8.2275,46.8182', // Longitude,Latitude du centre de la Suisse
-        // Types de lieux à privilégier - inclure plus de types de lieux comme demandé
-        types: 'place,locality,neighborhood,address,poi,region,postcode,district,water,natural,mountain,lake'
+        // Types de lieux supportés par Mapbox
+        types: 'country,region,place,district,locality,postcode,neighborhood,address'
       });
+      
+      console.log("Requête de recherche:", `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?${queryParams}`);
       
       const response = await fetch(
         `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?${queryParams}`
       );
       
       if (!response.ok) {
-        throw new Error("Erreur lors de la recherche");
+        console.error("Erreur de réponse:", response.status, response.statusText);
+        const errorData = await response.json();
+        console.error("Détail de l'erreur:", errorData);
+        throw new Error(`Erreur de l'API (${response.status}): ${errorData.message || 'Erreur inconnue'}`);
       }
       
       const data = await response.json();
+      console.log("Résultats de recherche:", data);
       
       // Filtrer et trier les résultats pour mettre la Suisse en premier
       if (data.features && data.features.length > 0) {
@@ -250,10 +257,11 @@ export const LocationSelector = ({
       } else {
         setSearchResults([]);
         setShowSearchResults(false);
+        toast.info("Aucun résultat trouvé pour cette recherche");
       }
     } catch (error) {
       console.error("Erreur lors de la recherche:", error);
-      toast.error("Erreur lors de la recherche de lieu");
+      toast.error(`Erreur lors de la recherche: ${(error as Error).message}`);
       setSearchResults([]);
       setShowSearchResults(false);
     } finally {
@@ -281,11 +289,7 @@ export const LocationSelector = ({
         const place = data.features.find((f: any) => 
           f.place_type.includes('poi') || 
           f.place_type.includes('place') || 
-          f.place_type.includes('neighborhood') ||
-          f.place_type.includes('natural') ||
-          f.place_type.includes('mountain') ||
-          f.place_type.includes('water') ||
-          f.place_type.includes('lake')
+          f.place_type.includes('neighborhood')
         ) || data.features[0];
         
         const placeName = place.text || place.place_name.split(',')[0];
@@ -370,8 +374,13 @@ export const LocationSelector = ({
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1"
         />
-        <Button type="button" variant="outline" onClick={() => searchLocations()}>
-          <Search className="h-4 w-4" />
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={() => searchLocations()}
+          disabled={isSearching}
+        >
+          {isSearching ? "..." : <Search className="h-4 w-4" />}
         </Button>
         
         {showSearchResults && searchResults.length > 0 && (
@@ -384,12 +393,14 @@ export const LocationSelector = ({
                 // Déterminer le type de lieu
                 let typeLabel = "";
                 if (result.place_type) {
-                  if (result.place_type.includes('mountain')) typeLabel = "🏔️ Montagne";
-                  else if (result.place_type.includes('water') || result.place_type.includes('lake')) typeLabel = "💧 Eau";
-                  else if (result.place_type.includes('address')) typeLabel = "🏠 Adresse";
+                  if (result.place_type.includes('country')) typeLabel = "🏳️ Pays";
+                  else if (result.place_type.includes('region')) typeLabel = "🏞️ Région";
+                  else if (result.place_type.includes('district')) typeLabel = "🏙️ District";
                   else if (result.place_type.includes('place')) typeLabel = "🏙️ Lieu";
+                  else if (result.place_type.includes('locality')) typeLabel = "🏘️ Localité";
+                  else if (result.place_type.includes('neighborhood')) typeLabel = "🏘️ Quartier";
+                  else if (result.place_type.includes('address')) typeLabel = "🏠 Adresse";
                   else if (result.place_type.includes('poi')) typeLabel = "📍 Point d'intérêt";
-                  else if (result.place_type.includes('natural')) typeLabel = "🌳 Nature";
                 }
                 
                 return (

@@ -150,6 +150,11 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
         throw result.error;
       }
       
+      if (!result.data || result.data.length === 0) {
+        console.error("Aucune donnée retournée après l'opération");
+        throw new Error("Erreur lors de l'enregistrement: aucune donnée retournée");
+      }
+      
       toast.success(isEditing ? "Spot mis à jour avec succès" : "Spot créé avec succès");
       onClose();
     } catch (error) {
