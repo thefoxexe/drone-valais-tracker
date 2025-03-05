@@ -1,6 +1,6 @@
 
 import { useRef, useEffect, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { Toggle } from "@/components/ui/toggle";
 
 // Utilisation de la clé API Mapbox
 const MAPBOX_TOKEN = "pk.eyJ1IjoiYmFzdGllbnJ5c2VyIiwiYSI6ImNtN3JnbHQyZzBobW8ycnNlNXVuemtmYmEifQ.7qQos4iZs1ZRpe4hNBmYCw";
@@ -45,6 +46,7 @@ export const LocationSelector = ({
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [clickOnMapMode, setClickOnMapMode] = useState(false);
   
   // Initialisation de la carte
   useEffect(() => {
@@ -100,6 +102,9 @@ export const LocationSelector = ({
       
       // Événement de clic sur la carte pour placer le marqueur
       map.current.on('click', (e) => {
+        // Ne répondre au clic que si le mode "cliquer sur la carte" est activé
+        if (!clickOnMapMode && mapInitialized) return;
+        
         console.log("Clic sur la carte:", e.lngLat);
         
         if (marker.current) {
@@ -183,6 +188,17 @@ export const LocationSelector = ({
     
     return () => clearTimeout(timer);
   }, [searchQuery]);
+  
+  // Mise à jour du curseur de la carte en mode "cliquer sur la carte"
+  useEffect(() => {
+    if (map.current && map.current.loaded()) {
+      if (clickOnMapMode) {
+        map.current.getCanvas().style.cursor = 'crosshair';
+      } else {
+        map.current.getCanvas().style.cursor = '';
+      }
+    }
+  }, [clickOnMapMode]);
   
   // Fonction pour rechercher des lieux via l'API Mapbox
   const searchLocations = async () => {
@@ -336,6 +352,14 @@ export const LocationSelector = ({
     setSearchQuery("");
   };
   
+  // Activer/désactiver le mode "cliquer sur la carte"
+  const toggleClickOnMapMode = () => {
+    setClickOnMapMode(!clickOnMapMode);
+    if (!clickOnMapMode) {
+      toast.info("Mode 'Cliquer sur la carte' activé. Cliquez n'importe où sur la carte pour placer le marqueur.");
+    }
+  };
+  
   return (
     <div className="space-y-2">
       <Label>Emplacement du spot</Label>
@@ -384,6 +408,23 @@ export const LocationSelector = ({
               })}
             </ul>
           </Card>
+        )}
+      </div>
+      
+      <div className="flex items-center mb-2">
+        <Toggle 
+          pressed={clickOnMapMode} 
+          onPressedChange={toggleClickOnMapMode}
+          className="flex items-center gap-2"
+          aria-label="Cliquer sur la carte"
+        >
+          <MapPin className="h-4 w-4" />
+          Cliquer sur la carte
+        </Toggle>
+        {clickOnMapMode && (
+          <span className="ml-2 text-xs text-muted-foreground">
+            Mode actif : cliquez n'importe où sur la carte pour placer le marqueur
+          </span>
         )}
       </div>
       

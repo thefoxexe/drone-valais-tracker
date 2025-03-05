@@ -8,6 +8,7 @@ import { toast } from "sonner";
 export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
   const isEditing = !!spot;
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [selectedWeatherConditions, setSelectedWeatherConditions] = useState<WeatherCondition[]>(
     spot?.ideal_weather as WeatherCondition[] || []
   );
@@ -55,6 +56,42 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
   const suggestSpotName = (placeName: string | null) => {
     if (placeName && !getValues("name")) {
       setValue("name", placeName);
+    }
+  };
+  
+  const handleDeleteSpot = async () => {
+    if (!spot || !spot.id) return;
+    
+    setIsDeleting(true);
+    
+    try {
+      // Vérifier si l'utilisateur est authentifié
+      const { data: authData, error: authError } = await supabase.auth.getSession();
+      
+      if (authError || !authData.session) {
+        console.error("Erreur d'authentification:", authError);
+        toast.error("Vous devez être connecté pour supprimer un spot");
+        throw new Error("Vous devez être connecté pour supprimer un spot");
+      }
+      
+      // Supprimer le spot
+      const { error } = await supabase
+        .from("filming_spots")
+        .delete()
+        .eq("id", spot.id);
+      
+      if (error) {
+        console.error("Erreur lors de la suppression:", error);
+        throw error;
+      }
+      
+      toast.success("Spot supprimé avec succès");
+      onClose();
+    } catch (error) {
+      console.error("Erreur lors de la suppression:", error);
+      toast.error((error as any)?.message || "Erreur lors de la suppression du spot");
+    } finally {
+      setIsDeleting(false);
     }
   };
   
@@ -126,6 +163,7 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
   return {
     isEditing,
     isSubmitting,
+    isDeleting,
     selectedWeatherConditions,
     register,
     handleSubmit,
@@ -140,6 +178,7 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
     handleLocationChange,
     handleAuthRequiredChange,
     handleAuthLinkChange,
+    handleDeleteSpot,
     suggestSpotName,
     onSubmit
   };
