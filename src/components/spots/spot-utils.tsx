@@ -1,7 +1,7 @@
-
 import { Building, Mountain, Trees, Droplet, Home, Camera } from "lucide-react";
+import { SpotType } from "@/types/spots";
 
-export const SPOT_TYPE_LABELS: Record<string, string> = {
+export const SPOT_TYPE_LABELS: Record<SpotType, string> = {
   urbain: "Urbain",
   montagne: "Montagne",
   lac: "Lac",
@@ -23,7 +23,7 @@ export const WEATHER_CONDITION_LABELS: Record<string, string> = {
   brouillard: "Brouillard"
 };
 
-export const MAP_MARKER_ICONS: Record<string, JSX.Element> = {
+export const MAP_MARKER_ICONS: Record<SpotType, JSX.Element> = {
   urbain: <Building className="h-6 w-6" />,
   montagne: <Mountain className="h-6 w-6" />,
   lac: <Droplet className="h-6 w-6" />,
@@ -33,7 +33,7 @@ export const MAP_MARKER_ICONS: Record<string, JSX.Element> = {
   autre: <Camera className="h-6 w-6" />
 };
 
-export const getSpotTypeIcon = (type: string): JSX.Element => {
+export const getSpotTypeIcon = (type: SpotType): JSX.Element => {
   return MAP_MARKER_ICONS[type] || MAP_MARKER_ICONS.autre;
 };
 

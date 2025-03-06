@@ -16,7 +16,7 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
   const { register, handleSubmit, formState: { errors }, setValue, watch, getValues } = useForm<Spot>({
     defaultValues: {
       name: spot?.name || "",
-      latitude: spot?.latitude || 46.2044, // Valais par défaut
+      latitude: spot?.latitude || 46.2044,
       longitude: spot?.longitude || 7.3601,
       type: spot?.type || "urbain",
       requires_authorization: spot?.requires_authorization || false,
@@ -65,16 +65,13 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
     setIsDeleting(true);
     
     try {
-      // Vérifier si l'utilisateur est authentifié
       const { data: authData, error: authError } = await supabase.auth.getSession();
       
       if (authError || !authData.session) {
-        console.error("Erreur d'authentification:", authError);
         toast.error("Vous devez être connecté pour supprimer un spot");
         throw new Error("Vous devez être connecté pour supprimer un spot");
       }
       
-      // Supprimer le spot
       const { error } = await supabase
         .from("filming_spots")
         .delete()
@@ -96,53 +93,43 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
   };
   
   const onSubmit = async (data: Spot) => {
-    console.log("Données du formulaire à soumettre:", { ...data, conditions: selectedWeatherConditions });
+    console.log("Données du formulaire à soumettre:", { ...data, ideal_weather: selectedWeatherConditions });
     setIsSubmitting(true);
     
     try {
-      // Vérifier si l'utilisateur est authentifié
       const { data: authData, error: authError } = await supabase.auth.getSession();
       
       if (authError || !authData.session) {
-        console.error("Erreur d'authentification:", authError);
         toast.error("Vous devez être connecté pour ajouter un spot");
         throw new Error("Vous devez être connecté pour ajouter un spot");
       }
       
-      // S'assurer que les données sont formatées correctement
       const spotData = {
         ...data,
         ideal_weather: selectedWeatherConditions,
-        // S'assurer que latitude et longitude sont des nombres
         latitude: Number(data.latitude),
         longitude: Number(data.longitude),
-        // Ajouter l'ID de l'utilisateur authentifié
+        type: data.type as SpotType, // Ensure type is properly cast
         user_id: authData.session.user.id
       };
+
+      console.log("Données préparées pour Supabase:", spotData);
       
       let result;
       
       if (isEditing && spot) {
-        // Mise à jour d'un spot existant
         console.log("Mise à jour du spot existant:", spot.id);
-        
         result = await supabase
           .from("filming_spots")
           .update(spotData)
           .eq("id", spot.id)
           .select("*");
-
-        console.log("Résultat de la mise à jour:", result);
       } else {
-        // Création d'un nouveau spot
         console.log("Création d'un nouveau spot avec les données:", spotData);
-        
         result = await supabase
           .from("filming_spots")
           .insert([spotData])
           .select("*");
-
-        console.log("Résultat de la création:", result);
       }
       
       if (result.error) {
@@ -151,7 +138,6 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
       }
       
       if (!result.data || result.data.length === 0) {
-        console.error("Aucune donnée retournée après l'opération");
         throw new Error("Erreur lors de l'enregistrement: aucune donnée retournée");
       }
       
