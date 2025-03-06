@@ -1,4 +1,3 @@
-
 import { useRef, useEffect, useState } from "react";
 import { Search, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,16 +12,10 @@ import { Toggle } from "@/components/ui/toggle";
 // Utilisation de la clé API Mapbox
 const MAPBOX_TOKEN = "pk.eyJ1IjoiYmFzdGllbnJ5c2VyIiwiYSI6ImNtN3JnbHQyZzBobW8ycnNlNXVuemtmYmEifQ.7qQos4iZs1ZRpe4hNBmYCw";
 
-// Coordonnées de la Suisse
+// Coordonnées de la Suisse pour limiter la recherche
 const SWITZERLAND_BOUNDS = {
   sw: [5.9559, 45.8181], // Sud-Ouest
   ne: [10.4921, 47.8084]  // Nord-Est
-};
-
-// Coordonnées de l'Europe
-const EUROPE_BOUNDS = {
-  sw: [-10.5, 36.0], // Sud-Ouest
-  ne: [40.0, 72.0]   // Nord-Est
 };
 
 interface LocationSelectorProps {
@@ -200,7 +193,7 @@ export const LocationSelector = ({
     }
   }, [clickOnMapMode]);
   
-  // Fonction pour rechercher des lieux via l'API Mapbox
+  // Fonction pour rechercher des lieux en Suisse via l'API Mapbox
   const searchLocations = async () => {
     if (!searchQuery || searchQuery.length < 2) {
       setSearchResults([]);
@@ -211,17 +204,18 @@ export const LocationSelector = ({
     setIsSearching(true);
     
     try {
-      // Construire l'URL avec les paramètres pour limiter à l'Europe et privilégier la Suisse
-      // CORRECTION: N'utiliser que les types valides supportés par l'API Mapbox
+      // Construire l'URL avec les paramètres pour limiter uniquement à la Suisse
       const queryParams = new URLSearchParams({
         access_token: MAPBOX_TOKEN,
-        limit: '5',
-        // Ajouter les bornes géographiques pour l'Europe
-        bbox: `${EUROPE_BOUNDS.sw[0]},${EUROPE_BOUNDS.sw[1]},${EUROPE_BOUNDS.ne[0]},${EUROPE_BOUNDS.ne[1]}`,
-        // Privilégier les résultats en Suisse
+        limit: '7', // Augmenter la limite pour plus de résultats
+        // Limiter la recherche aux limites de la Suisse
+        bbox: `${SWITZERLAND_BOUNDS.sw[0]},${SWITZERLAND_BOUNDS.sw[1]},${SWITZERLAND_BOUNDS.ne[0]},${SWITZERLAND_BOUNDS.ne[1]}`,
+        // Centre de proximité au centre de la Suisse
         proximity: '8.2275,46.8182', // Longitude,Latitude du centre de la Suisse
-        // Types de lieux supportés par Mapbox
-        types: 'country,region,place,district,locality,postcode,neighborhood,address'
+        // Types de lieux supportés par Mapbox - Inclure tous les types pertinents
+        types: 'country,region,place,district,locality,postcode,neighborhood,address,poi',
+        // Ajouter un filtre de pays pour la Suisse
+        country: 'ch'
       });
       
       console.log("Requête de recherche:", `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?${queryParams}`);
@@ -240,20 +234,29 @@ export const LocationSelector = ({
       const data = await response.json();
       console.log("Résultats de recherche:", data);
       
-      // Filtrer et trier les résultats pour mettre la Suisse en premier
+      // Filtrer pour ne garder que les résultats en Suisse
       if (data.features && data.features.length > 0) {
-        // Trier les résultats pour privilégier la Suisse
-        const sortedFeatures = data.features.sort((a: any, b: any) => {
-          const aInSwitzerland = a.context?.some((c: any) => c.short_code === 'ch');
-          const bInSwitzerland = b.context?.some((c: any) => c.short_code === 'ch');
-          
-          if (aInSwitzerland && !bInSwitzerland) return -1;
-          if (!aInSwitzerland && bInSwitzerland) return 1;
-          return 0;
+        const swissFeatures = data.features.filter((feature: any) => {
+          // Vérifier si c'est en Suisse soit par le short_code soit par les coordonnées
+          const isInSwitzerland = (
+            // Par code pays
+            feature.context?.some((c: any) => c.short_code === 'ch') ||
+            // Par coordonnées (vérifier si les coordonnées sont dans les limites de la Suisse)
+            (feature.center && 
+             feature.center[0] >= SWITZERLAND_BOUNDS.sw[0] && feature.center[0] <= SWITZERLAND_BOUNDS.ne[0] &&
+             feature.center[1] >= SWITZERLAND_BOUNDS.sw[1] && feature.center[1] <= SWITZERLAND_BOUNDS.ne[1])
+          );
+          return isInSwitzerland;
         });
         
-        setSearchResults(sortedFeatures);
-        setShowSearchResults(true);
+        if (swissFeatures.length > 0) {
+          setSearchResults(swissFeatures);
+          setShowSearchResults(true);
+        } else {
+          setSearchResults([]);
+          setShowSearchResults(false);
+          toast.info("Aucun résultat trouvé en Suisse pour cette recherche");
+        }
       } else {
         setSearchResults([]);
         setShowSearchResults(false);
@@ -269,7 +272,7 @@ export const LocationSelector = ({
     }
   };
   
-  // Fonction pour la géolocalisation inverse (obtenir le nom du lieu à partir des coordonnées)
+  // Fonction pour la géolocalisation inverse
   const reverseGeocode = async (lat: number, lng: number) => {
     if (!suggestSpotName) return;
     
@@ -364,12 +367,46 @@ export const LocationSelector = ({
     }
   };
   
+  // Amélioration de l'affichage du type de lieu
+  const getPlaceTypeLabel = (result: any): string => {
+    // Si l'attribut place_type existe
+    if (result.place_type) {
+      if (result.place_type.includes('poi')) {
+        // Pour les POIs, essayer d'obtenir une catégorie plus précise
+        const category = result.properties?.category || result.properties?.maki;
+        if (category) {
+          switch(category) {
+            case 'mountain': return "🏔️ Montagne";
+            case 'water': case 'lake': return "🌊 Lac/Rivière";
+            case 'restaurant': case 'food': return "🍽️ Restaurant";
+            case 'park': return "🌳 Parc";
+            case 'museum': return "🏛️ Musée";
+            case 'landmark': return "🏛️ Point de repère";
+            case 'hotel': return "🏨 Hôtel";
+            default: return `📍 ${category.charAt(0).toUpperCase() + category.slice(1)}`;
+          }
+        }
+        return "📍 Point d'intérêt";
+      }
+      
+      if (result.place_type.includes('country')) return "🏳️ Pays";
+      if (result.place_type.includes('region')) return "🏞️ Région";
+      if (result.place_type.includes('district')) return "🏙️ District";
+      if (result.place_type.includes('place')) return "🏙️ Lieu";
+      if (result.place_type.includes('locality')) return "🏘️ Localité";
+      if (result.place_type.includes('neighborhood')) return "🏘️ Quartier";
+      if (result.place_type.includes('address')) return "🏠 Adresse";
+    }
+    
+    return "📍 Lieu";
+  };
+  
   return (
     <div className="space-y-2">
       <Label>Emplacement du spot</Label>
       <div className="flex items-center space-x-2 mb-2 relative">
         <Input 
-          placeholder="Rechercher un lieu (montagne, lac, rue, etc.)..."
+          placeholder="Rechercher un lieu en Suisse (montagne, lac, restaurant, rue...)..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1"
@@ -387,33 +424,23 @@ export const LocationSelector = ({
           <Card className="absolute z-10 w-full top-full left-0 mt-1 p-2 bg-background shadow-lg rounded-md">
             <ul className="space-y-1 max-h-60 overflow-y-auto">
               {searchResults.map((result, index) => {
-                // Vérifier si le lieu est en Suisse pour le mettre en évidence
-                const isInSwitzerland = result.context?.some((c: any) => c.short_code === 'ch');
-                
                 // Déterminer le type de lieu
-                let typeLabel = "";
-                if (result.place_type) {
-                  if (result.place_type.includes('country')) typeLabel = "🏳️ Pays";
-                  else if (result.place_type.includes('region')) typeLabel = "🏞️ Région";
-                  else if (result.place_type.includes('district')) typeLabel = "🏙️ District";
-                  else if (result.place_type.includes('place')) typeLabel = "🏙️ Lieu";
-                  else if (result.place_type.includes('locality')) typeLabel = "🏘️ Localité";
-                  else if (result.place_type.includes('neighborhood')) typeLabel = "🏘️ Quartier";
-                  else if (result.place_type.includes('address')) typeLabel = "🏠 Adresse";
-                  else if (result.place_type.includes('poi')) typeLabel = "📍 Point d'intérêt";
-                }
+                const typeLabel = getPlaceTypeLabel(result);
                 
                 return (
                   <li 
                     key={index} 
-                    className={`p-2 hover:bg-muted rounded cursor-pointer ${isInSwitzerland ? 'font-semibold border-l-4 border-blue-500 pl-3' : ''}`}
+                    className="p-2 hover:bg-muted rounded cursor-pointer border-l-4 border-blue-500 pl-3"
                     onClick={() => selectSearchResult(result)}
                   >
-                    <div>
-                      {result.place_name}
-                      {isInSwitzerland && <span className="ml-2 text-xs text-blue-500">🇨🇭</span>}
+                    <div className="font-semibold">
+                      {result.text || result.place_name.split(',')[0]}
+                      <span className="ml-2 text-xs text-blue-500">🇨🇭</span>
                     </div>
-                    {typeLabel && <span className="text-xs text-muted-foreground">{typeLabel}</span>}
+                    <div className="text-xs text-muted-foreground flex items-center justify-between">
+                      <span>{typeLabel}</span>
+                      <span className="text-xs opacity-70">{result.place_name}</span>
+                    </div>
                   </li>
                 );
               })}
