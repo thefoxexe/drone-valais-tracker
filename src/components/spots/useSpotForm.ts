@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Spot, SpotType, WeatherCondition } from "@/types/spots";
@@ -92,8 +91,8 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
     }
   };
   
-  const onSubmit = async (data: Spot) => {
-    console.log("Données du formulaire à soumettre:", { ...data, ideal_weather: selectedWeatherConditions });
+  const onSubmit = async (formData: Spot) => {
+    console.log("Données du formulaire avant soumission:", formData);
     setIsSubmitting(true);
     
     try {
@@ -105,11 +104,11 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
       }
       
       const spotData = {
-        ...data,
+        ...formData,
         ideal_weather: selectedWeatherConditions,
-        latitude: Number(data.latitude),
-        longitude: Number(data.longitude),
-        type: data.type as SpotType, // Ensure type is properly cast
+        latitude: Number(formData.latitude),
+        longitude: Number(formData.longitude),
+        type: formData.type as SpotType,
         user_id: authData.session.user.id
       };
 
@@ -118,27 +117,22 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
       let result;
       
       if (isEditing && spot) {
-        console.log("Mise à jour du spot existant:", spot.id);
+        console.log("Mise à jour du spot existant:", spot.id, "avec le type:", spotData.type);
         result = await supabase
           .from("filming_spots")
           .update(spotData)
           .eq("id", spot.id)
-          .select("*");
+          .select();
       } else {
-        console.log("Création d'un nouveau spot avec les données:", spotData);
         result = await supabase
           .from("filming_spots")
           .insert([spotData])
-          .select("*");
+          .select();
       }
       
       if (result.error) {
         console.error("Erreur Supabase:", result.error);
         throw result.error;
-      }
-      
-      if (!result.data || result.data.length === 0) {
-        throw new Error("Erreur lors de l'enregistrement: aucune donnée retournée");
       }
       
       toast.success(isEditing ? "Spot mis à jour avec succès" : "Spot créé avec succès");

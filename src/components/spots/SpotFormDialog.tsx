@@ -94,7 +94,10 @@ export const SpotFormDialog = ({ spot, onClose }: SpotFormDialogProps) => {
               <Label htmlFor="type">Type</Label>
               <Select 
                 defaultValue={spot?.type || "urbain"} 
-                onValueChange={(value) => register("type").onChange({ target: { value: value as SpotType } })}
+                onValueChange={(value: SpotType) => {
+                  console.log("Nouveau type sélectionné:", value);
+                  register("type").onChange({ target: { value } });
+                }}
               >
                 <SelectTrigger id="type">
                   <SelectValue placeholder="Sélectionner un type" />
