@@ -1,3 +1,4 @@
+
 import { useRef, useEffect, useState } from "react";
 import { Search, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -207,15 +208,17 @@ export const LocationSelector = ({
       // Construire l'URL avec les paramètres pour limiter uniquement à la Suisse
       const queryParams = new URLSearchParams({
         access_token: MAPBOX_TOKEN,
-        limit: '7', // Augmenter la limite pour plus de résultats
+        limit: '10', // Augmenter la limite pour plus de résultats
         // Limiter la recherche aux limites de la Suisse
         bbox: `${SWITZERLAND_BOUNDS.sw[0]},${SWITZERLAND_BOUNDS.sw[1]},${SWITZERLAND_BOUNDS.ne[0]},${SWITZERLAND_BOUNDS.ne[1]}`,
         // Centre de proximité au centre de la Suisse
         proximity: '8.2275,46.8182', // Longitude,Latitude du centre de la Suisse
         // Types de lieux supportés par Mapbox - Inclure tous les types pertinents
-        types: 'country,region,place,district,locality,postcode,neighborhood,address,poi',
+        types: 'country,region,place,district,locality,postcode,neighborhood,address,poi,poi.landmark',
         // Ajouter un filtre de pays pour la Suisse
-        country: 'ch'
+        country: 'ch',
+        // Définir une langue pour les résultats
+        language: 'fr'
       });
       
       console.log("Requête de recherche:", `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?${queryParams}`);
@@ -234,33 +237,82 @@ export const LocationSelector = ({
       const data = await response.json();
       console.log("Résultats de recherche:", data);
       
-      // Filtrer pour ne garder que les résultats en Suisse
-      if (data.features && data.features.length > 0) {
-        const swissFeatures = data.features.filter((feature: any) => {
-          // Vérifier si c'est en Suisse soit par le short_code soit par les coordonnées
-          const isInSwitzerland = (
-            // Par code pays
-            feature.context?.some((c: any) => c.short_code === 'ch') ||
-            // Par coordonnées (vérifier si les coordonnées sont dans les limites de la Suisse)
-            (feature.center && 
-             feature.center[0] >= SWITZERLAND_BOUNDS.sw[0] && feature.center[0] <= SWITZERLAND_BOUNDS.ne[0] &&
-             feature.center[1] >= SWITZERLAND_BOUNDS.sw[1] && feature.center[1] <= SWITZERLAND_BOUNDS.ne[1])
-          );
-          return isInSwitzerland;
-        });
+      // Améliorer la détection des lacs naturels
+      let results = data.features || [];
+      
+      // Filtre pour s'assurer que les résultats sont bien en Suisse
+      const swissResults = results.filter((feature: any) => {
+        // Si le texte contient "lac" ou "see", lui donner la priorité (pour les lacs)
+        const isLake = feature.place_name.toLowerCase().includes("lac") || 
+                      feature.place_name.toLowerCase().includes("see") ||
+                      feature.text.toLowerCase().includes("lac") || 
+                      feature.text.toLowerCase().includes("see");
         
-        if (swissFeatures.length > 0) {
-          setSearchResults(swissFeatures);
-          setShowSearchResults(true);
+        if (isLake) {
+          // Donner un type personnalisé pour les lacs si ce n'est pas déjà défini
+          if (!feature.properties.category) {
+            feature.properties.category = "lake";
+          }
+        }
+        
+        // Vérifier si le lieu est en Suisse
+        return (
+          // Par code pays
+          feature.context?.some((c: any) => c.short_code === 'ch') ||
+          // Par coordonnées (vérifier si les coordonnées sont dans les limites de la Suisse)
+          (feature.center && 
+           feature.center[0] >= SWITZERLAND_BOUNDS.sw[0] && feature.center[0] <= SWITZERLAND_BOUNDS.ne[0] &&
+           feature.center[1] >= SWITZERLAND_BOUNDS.sw[1] && feature.center[1] <= SWITZERLAND_BOUNDS.ne[1])
+        );
+      });
+      
+      if (swissResults.length > 0) {
+        setSearchResults(swissResults);
+        setShowSearchResults(true);
+      } else {
+        // Tenter une recherche plus large avec des termes liés aux lacs si la recherche initiale n'a rien donné
+        if (searchQuery.toLowerCase().includes("lac") || 
+            searchQuery.toLowerCase().includes("see") || 
+            searchQuery.toLowerCase().includes("lake")) {
+          
+          // Ajouter message pour informer l'utilisateur
+          toast.info("Recherche de lacs en Suisse...");
+          
+          // Tenter une recherche secondaire par proximité
+          const lakeSearchParams = new URLSearchParams({
+            access_token: MAPBOX_TOKEN,
+            limit: '10',
+            bbox: `${SWITZERLAND_BOUNDS.sw[0]},${SWITZERLAND_BOUNDS.sw[1]},${SWITZERLAND_BOUNDS.ne[0]},${SWITZERLAND_BOUNDS.ne[1]}`,
+            proximity: '8.2275,46.8182',
+            types: 'poi.landmark,poi,feature,place',
+            country: 'ch',
+            language: 'fr'
+          });
+          
+          const lakeResponse = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/lake ${searchQuery}.json?${lakeSearchParams}`
+          );
+          
+          if (lakeResponse.ok) {
+            const lakeData = await lakeResponse.json();
+            const lakeResults = lakeData.features?.filter((feature: any) => {
+              return feature.context?.some((c: any) => c.short_code === 'ch');
+            }) || [];
+            
+            if (lakeResults.length > 0) {
+              setSearchResults(lakeResults);
+              setShowSearchResults(true);
+            } else {
+              setSearchResults([]);
+              setShowSearchResults(false);
+              toast.info("Aucun lac trouvé avec ce nom en Suisse");
+            }
+          }
         } else {
           setSearchResults([]);
           setShowSearchResults(false);
           toast.info("Aucun résultat trouvé en Suisse pour cette recherche");
         }
-      } else {
-        setSearchResults([]);
-        setShowSearchResults(false);
-        toast.info("Aucun résultat trouvé pour cette recherche");
       }
     } catch (error) {
       console.error("Erreur lors de la recherche:", error);
@@ -322,7 +374,16 @@ export const LocationSelector = ({
     
     // Suggérer le nom du lieu
     if (suggestSpotName) {
-      const placeName = result.text || result.place_name.split(',')[0];
+      // Pour les lacs, essayer d'extraire le nom complet
+      let placeName = result.text || result.place_name.split(',')[0];
+      
+      // Si c'est un lac mais que le nom ne contient pas "lac" ou "see", l'ajouter
+      if ((result.properties?.category === "lake" || getPlaceTypeLabel(result).includes("Lac")) && 
+          !placeName.toLowerCase().includes("lac") && 
+          !placeName.toLowerCase().includes("see")) {
+        placeName = `Lac ${placeName}`;
+      }
+      
       suggestSpotName(placeName);
     }
     
@@ -369,6 +430,24 @@ export const LocationSelector = ({
   
   // Amélioration de l'affichage du type de lieu
   const getPlaceTypeLabel = (result: any): string => {
+    // Vérifier d'abord les propriétés spécifiques si elles existent
+    if (result.properties) {
+      if (result.properties.category === "lake" || 
+          (result.text && (result.text.toLowerCase().includes("lac") || 
+                          result.text.toLowerCase().includes("see")))) {
+        return "🌊 Lac";
+      }
+    }
+    
+    // Si le nom contient des mots-clés de lac
+    if (result.place_name && 
+        (result.place_name.toLowerCase().includes("lac") || 
+         result.place_name.toLowerCase().includes("see") ||
+         result.place_name.toLowerCase().includes("étang") ||
+         result.place_name.toLowerCase().includes("oeschinen"))) {
+      return "🌊 Lac";
+    }
+    
     // Si l'attribut place_type existe
     if (result.place_type) {
       if (result.place_type.includes('poi')) {
@@ -376,7 +455,7 @@ export const LocationSelector = ({
         const category = result.properties?.category || result.properties?.maki;
         if (category) {
           switch(category) {
-            case 'mountain': return "🏔️ Montagne";
+            case 'mountain': case 'peak': return "🏔️ Montagne";
             case 'water': case 'lake': return "🌊 Lac/Rivière";
             case 'restaurant': case 'food': return "🍽️ Restaurant";
             case 'park': return "🌳 Parc";
