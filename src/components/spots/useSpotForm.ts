@@ -108,7 +108,7 @@ export const useSpotForm = (spot: Spot | null, onClose: () => void) => {
         ideal_weather: selectedWeatherConditions,
         latitude: Number(formData.latitude),
         longitude: Number(formData.longitude),
-        type: formData.type as SpotType,
+        type: formData.type,
         user_id: authData.session.user.id
       };
 

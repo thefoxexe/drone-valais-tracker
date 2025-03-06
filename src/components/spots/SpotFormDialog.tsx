@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { 
   Dialog, 
@@ -52,6 +51,7 @@ export const SpotFormDialog = ({ spot, onClose }: SpotFormDialogProps) => {
     register,
     handleSubmit,
     errors,
+    setValue,
     watch,
     requiresAuth,
     latitude,
@@ -96,7 +96,7 @@ export const SpotFormDialog = ({ spot, onClose }: SpotFormDialogProps) => {
                 defaultValue={spot?.type || "urbain"} 
                 onValueChange={(value: SpotType) => {
                   console.log("Nouveau type sélectionné:", value);
-                  register("type").onChange({ target: { value } });
+                  setValue("type", value);
                 }}
               >
                 <SelectTrigger id="type">
