@@ -40,6 +40,14 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     };
 
     checkAuth();
+    
+    // Ajouter un écouteur pour les changements d'état d'authentification
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthenticated(!!session);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, [location.pathname, toast]);
 
   if (loading) {

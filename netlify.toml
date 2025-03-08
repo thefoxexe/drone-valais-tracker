@@ -1,0 +1,10 @@
+
+# Configuration Netlify pour les Single Page Applications (SPA)
+[build]
+  publish = "dist"  # Le dossier où Vite construit votre application (peut être "dist" ou "build")
+
+# Redirection pour les SPA avec React Router
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
