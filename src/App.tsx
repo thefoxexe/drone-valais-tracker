@@ -12,6 +12,7 @@ import Emails from "./pages/Emails";
 import Stats from "./pages/Stats";
 import Equipment from "./pages/Equipment";
 import FilmingSpots from "./pages/FilmingSpots";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -24,13 +25,37 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Index />} />
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/emails" element={<Emails />} />
-            <Route path="/stats" element={<Stats />} />
-            <Route path="/equipment" element={<Equipment />} />
-            <Route path="/filming-spots" element={<FilmingSpots />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/projects" element={
+              <ProtectedRoute>
+                <Projects />
+              </ProtectedRoute>
+            } />
+            <Route path="/emails" element={
+              <ProtectedRoute>
+                <Emails />
+              </ProtectedRoute>
+            } />
+            <Route path="/stats" element={
+              <ProtectedRoute>
+                <Stats />
+              </ProtectedRoute>
+            } />
+            <Route path="/equipment" element={
+              <ProtectedRoute>
+                <Equipment />
+              </ProtectedRoute>
+            } />
+            <Route path="/filming-spots" element={
+              <ProtectedRoute>
+                <FilmingSpots />
+              </ProtectedRoute>
+            } />
+            <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

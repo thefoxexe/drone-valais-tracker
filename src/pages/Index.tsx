@@ -1,8 +1,7 @@
-
 import { Auth } from "@supabase/auth-ui-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -18,6 +17,7 @@ declare global {
 
 const Index = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const playerRef = useRef<any>(null);
   const isMobile = useIsMobile();
@@ -67,15 +67,17 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
+    const from = location.state?.from?.pathname || "/";
+    
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/");
+        navigate(from !== "/login" ? from : "/");
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN') {
-        navigate("/");
+        navigate(from !== "/login" ? from : "/");
       } else if (event === 'SIGNED_OUT') {
         navigate("/login");
       } else if (event === 'PASSWORD_RECOVERY') {
@@ -87,7 +89,7 @@ const Index = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, toast]);
+  }, [navigate, toast, location]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
