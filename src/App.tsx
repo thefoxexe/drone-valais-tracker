@@ -55,6 +55,7 @@ const App = () => (
                 <FilmingSpots />
               </ProtectedRoute>
             } />
+            {/* Catch all route: rediriger vers /login pour toute URL qui ne correspond pas */}
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </BrowserRouter>

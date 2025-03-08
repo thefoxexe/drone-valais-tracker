@@ -20,6 +20,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session) {
+          console.log("Utilisateur non authentifié, redirection vers /login");
           toast({
             variant: "destructive",
             title: "Accès refusé",
@@ -27,10 +28,11 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
           });
           setAuthenticated(false);
         } else {
+          console.log("Utilisateur authentifié, accès autorisé");
           setAuthenticated(true);
         }
       } catch (error) {
-        console.error("Authentication error:", error);
+        console.error("Erreur d'authentification:", error);
         setAuthenticated(false);
       } finally {
         setLoading(false);
@@ -48,11 +50,14 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
-  return authenticated ? (
-    <>{children}</>
-  ) : (
-    <Navigate to="/login" state={{ from: location }} replace />
-  );
+  // Si l'utilisateur n'est pas authentifié, rediriger vers la page de connexion
+  if (!authenticated) {
+    console.log("Redirection vers /login depuis", location.pathname);
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Si l'utilisateur est authentifié, afficher les enfants
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;
