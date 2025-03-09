@@ -6,6 +6,7 @@ import { InvoiceForm } from "@/components/InvoiceForm";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Navigation } from "@/components/Navigation";
+import { RevenueChart } from "@/components/RevenueChart";
 import { useNavigate } from "react-router-dom";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
@@ -77,13 +78,17 @@ const Dashboard = () => {
 
         <div className="mt-8">
           <Card className="bg-background/80 backdrop-blur-sm border-white/10">
-            {/* Use RevenueChart component directly instead */}
+            <RevenueChart />
           </Card>
         </div>
 
         <div className="mt-8">
           <Card className="bg-background/80 backdrop-blur-sm border-white/10 p-6">
-            <DashboardTabs />
+            <DashboardTabs
+              totalQuotes={totalQuotes}
+              totalInvoices={totalInvoices}
+              invoices={allInvoices || []}
+            />
           </Card>
         </div>
 

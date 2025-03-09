@@ -1,15 +1,7 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InvoiceFormFields } from "./invoice/InvoiceFormFields";
 import { InvoiceFormActions } from "./invoice/InvoiceFormActions";
 import { useInvoiceForm } from "./invoice/useInvoiceForm";
-import { useState } from "react";
-
-interface ServiceItem {
-  description: string;
-  amount: number;
-  quantity: number;
-}
 
 interface InvoiceFormProps {
   onClose: () => void;
@@ -21,18 +13,10 @@ interface InvoiceFormProps {
     invoice_date?: string;
     pdf_path?: string;
     status?: string;
-    rate_details?: ServiceItem[];
-    vat_rate?: number;
   };
 }
 
 export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
-  const [services, setServices] = useState<ServiceItem[]>(
-    invoice?.rate_details && invoice.rate_details.length > 0
-      ? invoice.rate_details
-      : [{ description: "", amount: 0, quantity: 1 }]
-  );
-
   const {
     register,
     handleSubmit,
@@ -40,8 +24,6 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
     isSubmitting,
     onSubmit,
     setSelectedFile,
-    watch,
-    setValue,
   } = useInvoiceForm({ onClose, invoice });
 
   return (
@@ -56,10 +38,6 @@ export const InvoiceForm = ({ onClose, invoice }: InvoiceFormProps) => {
             errors={errors}
             isQuote={!invoice?.status || invoice.status !== 'approved'}
             onFileChange={setSelectedFile}
-            watch={watch}
-            setValue={setValue}
-            services={services}
-            setServices={setServices}
           />
           <InvoiceFormActions
             onClose={onClose}

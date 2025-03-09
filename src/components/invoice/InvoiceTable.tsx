@@ -1,14 +1,7 @@
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { InvoiceActions } from "./InvoiceActions";
 import { useIsMobile } from "@/hooks/use-mobile";
-
-interface ServiceItem {
-  description: string;
-  amount: number;
-  quantity: number;
-}
 
 interface Invoice {
   id: string;
@@ -18,8 +11,6 @@ interface Invoice {
   invoice_date: string;
   pdf_path?: string;
   status: string;
-  rate_details?: ServiceItem[];
-  vat_rate?: number;
 }
 
 interface InvoiceTableProps {
@@ -29,7 +20,6 @@ interface InvoiceTableProps {
   onDelete: (id: string) => void;
   onDownload: (invoice: Invoice) => void;
   onStatusChange: (id: string, status: 'approved' | 'rejected') => void;
-  onRegeneratePdf?: (id: string) => void;
 }
 
 export const InvoiceTable = ({
@@ -39,7 +29,6 @@ export const InvoiceTable = ({
   onDelete,
   onDownload,
   onStatusChange,
-  onRegeneratePdf,
 }: InvoiceTableProps) => {
   const isMobile = useIsMobile();
 
@@ -87,7 +76,6 @@ export const InvoiceTable = ({
                   onDelete={onDelete}
                   onDownload={onDownload}
                   onStatusChange={onStatusChange}
-                  onRegeneratePdf={onRegeneratePdf}
                 />
               </TableCell>
             </TableRow>

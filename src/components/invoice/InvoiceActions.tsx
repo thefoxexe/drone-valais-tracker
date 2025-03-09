@@ -1,6 +1,5 @@
-
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, Download, CheckCircle, XCircle, FileText } from "lucide-react";
+import { Pencil, Trash2, Download, CheckCircle, XCircle } from "lucide-react";
 
 interface InvoiceActionsProps {
   invoice: {
@@ -13,7 +12,6 @@ interface InvoiceActionsProps {
   onDelete: (id: string) => void;
   onDownload: (invoice: any) => void;
   onStatusChange: (id: string, status: 'approved' | 'rejected') => void;
-  onRegeneratePdf?: (id: string) => void;
 }
 
 export const InvoiceActions = ({
@@ -23,7 +21,6 @@ export const InvoiceActions = ({
   onDelete,
   onDownload,
   onStatusChange,
-  onRegeneratePdf,
 }: InvoiceActionsProps) => {
   return (
     <div className="space-x-2">
@@ -51,25 +48,13 @@ export const InvoiceActions = ({
         variant="outline"
         size="icon"
         onClick={() => onDownload(invoice)}
-        title="Télécharger le PDF"
       >
         <Download className="h-4 w-4" />
       </Button>
-      {onRegeneratePdf && (
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => onRegeneratePdf(invoice.id)}
-          title="Régénérer le PDF"
-        >
-          <FileText className="h-4 w-4" />
-        </Button>
-      )}
       <Button
         variant="outline"
         size="icon"
         onClick={() => onEdit(invoice)}
-        title="Modifier"
       >
         <Pencil className="h-4 w-4" />
       </Button>
@@ -77,7 +62,6 @@ export const InvoiceActions = ({
         variant="outline"
         size="icon"
         onClick={() => onDelete(invoice.id)}
-        title="Supprimer"
       >
         <Trash2 className="h-4 w-4" />
       </Button>

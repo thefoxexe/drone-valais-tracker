@@ -6,12 +6,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
-interface ServiceItem {
-  description: string;
-  amount: number;
-  quantity: number;
-}
-
 interface UseInvoiceFormProps {
   onClose: () => void;
   invoice?: {
@@ -22,8 +16,6 @@ interface UseInvoiceFormProps {
     invoice_date?: string;
     pdf_path?: string;
     status?: string;
-    rate_details?: ServiceItem[];
-    vat_rate?: number;
   };
 }
 
@@ -34,14 +26,12 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm({
+  const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
       invoice_number: invoice?.invoice_number || "",
       client_name: invoice?.client_name || "",
       amount: invoice?.amount || 0,
       invoice_date: invoice?.invoice_date ? new Date(invoice.invoice_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      rate_details: invoice?.rate_details || [],
-      vat_rate: invoice?.vat_rate || 8.1,
     },
   });
 
@@ -60,33 +50,6 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
     
     checkAuth();
   }, [navigate, toast]);
-
-  const generatePdf = async (invoiceId: string) => {
-    try {
-      const response = await fetch(
-        'https://seearalooznyeqkbtgwv.supabase.co/functions/v1/generate-pdf',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
-          },
-          body: JSON.stringify({ invoice_id: invoiceId }),
-        }
-      );
-
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.error || 'Erreur lors de la génération du PDF');
-      }
-      
-      return result.pdf_path;
-    } catch (error) {
-      console.error('Erreur lors de la génération du PDF:', error);
-      throw error;
-    }
-  };
 
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
@@ -132,7 +95,7 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
           .eq('id', invoice.id);
         if (error) throw error;
       } else {
-        const { data: insertData, error } = await supabase
+        const { error } = await supabase
           .from('invoices')
           .insert([{ 
             ...data, 
@@ -140,20 +103,8 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
             user_id: session.user.id,
             status: 'pending',
             invoice_date: data.invoice_date,
-          }])
-          .select();
-        
+          }]);
         if (error) throw error;
-        
-        // Générer automatiquement un PDF si aucun n'est fourni
-        if (!pdfPath && insertData && insertData.length > 0) {
-          try {
-            await generatePdf(insertData[0].id);
-          } catch (pdfError) {
-            console.error('Erreur lors de la génération automatique du PDF:', pdfError);
-            // On continue même si la génération de PDF échoue
-          }
-        }
       }
 
       await Promise.all([
@@ -184,7 +135,5 @@ export const useInvoiceForm = ({ onClose, invoice }: UseInvoiceFormProps) => {
     isSubmitting,
     onSubmit,
     setSelectedFile,
-    watch,
-    setValue,
   };
 };
