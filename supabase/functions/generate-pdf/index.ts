@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { jsPDF } from "https://esm.sh/jspdf@2.5.1"
@@ -43,11 +44,11 @@ serve(async (req) => {
     
     // Add company logo/header
     doc.setFontSize(20)
-    doc.text('FACTURE', 105, 20, { align: 'center' })
+    doc.text(invoice.status === 'pending' ? 'DEVIS' : 'FACTURE', 105, 20, { align: 'center' })
     
     // Add invoice details
     doc.setFontSize(12)
-    doc.text(`Facture N°: ${invoice.invoice_number}`, 20, 40)
+    doc.text(`${invoice.status === 'pending' ? 'Devis' : 'Facture'} N°: ${invoice.invoice_number}`, 20, 40)
     doc.text(`Date: ${format(new Date(invoice.invoice_date), 'dd/MM/yyyy')}`, 20, 50)
     
     // Add client details
@@ -57,33 +58,63 @@ serve(async (req) => {
     // Add services table header
     doc.line(20, 100, 190, 100)
     doc.text('Description', 20, 95)
-    doc.text('Montant CHF', 160, 95)
+    doc.text('Prix', 130, 95)
+    doc.text('Qté', 150, 95)
+    doc.text('Montant CHF', 180, 95, { align: 'right' })
     doc.line(20, 97, 190, 97)
     
     // Add services
     let yPos = 110
-    let total = 0
     const services = invoice.rate_details || []
+    let subtotal = 0
     
     services.forEach((service: any) => {
       doc.text(service.description, 20, yPos)
-      doc.text(service.amount.toFixed(2), 160, yPos, { align: 'right' })
-      total += service.amount
+      doc.text(service.amount.toFixed(2), 130, yPos)
+      doc.text(service.quantity.toString(), 150, yPos)
+      const amount = service.amount * service.quantity
+      subtotal += amount
+      doc.text(amount.toFixed(2), 180, yPos, { align: 'right' })
       yPos += 10
     })
     
-    // Add total
-    doc.line(20, yPos, 190, yPos)
+    // Add subtotal
+    yPos += 5
+    doc.line(20, yPos - 3, 190, yPos - 3)
+    doc.text('Sous-total CHF:', 130, yPos)
+    doc.text(subtotal.toFixed(2), 180, yPos, { align: 'right' })
+    
+    // Add VAT
     yPos += 10
+    const vatAmount = subtotal * (invoice.vat_rate / 100)
+    doc.text(`TVA (${invoice.vat_rate}%) CHF:`, 130, yPos)
+    doc.text(vatAmount.toFixed(2), 180, yPos, { align: 'right' })
+    
+    // Add total
+    yPos += 10
+    const total = subtotal + vatAmount
     doc.setFont(undefined, 'bold')
     doc.text('Total CHF:', 130, yPos)
-    doc.text(total.toFixed(2), 160, yPos, { align: 'right' })
+    doc.text(total.toFixed(2), 180, yPos, { align: 'right' })
+    
+    // Add footer with payment information if it's an invoice
+    if (invoice.status === 'approved') {
+      yPos += 30
+      doc.setFont(undefined, 'normal')
+      doc.text('Conditions de paiement: 30 jours net', 20, yPos)
+      yPos += 10
+      doc.text('Informations bancaires:', 20, yPos)
+      yPos += 10
+      doc.text('IBAN: CH00 0000 0000 0000 0000 0', 20, yPos)
+      yPos += 10
+      doc.text('Bénéficiaire: Votre société', 20, yPos)
+    }
     
     // Convert PDF to base64
     const pdfOutput = doc.output('arraybuffer')
     
     // Upload to Supabase Storage
-    const fileName = `invoice_${invoice.invoice_number}.pdf`
+    const fileName = `${invoice.status === 'pending' ? 'devis' : 'facture'}_${invoice.invoice_number}.pdf`
     const { error: uploadError } = await supabaseClient.storage
       .from('invoices')
       .upload(fileName, pdfOutput, {

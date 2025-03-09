@@ -71,26 +71,73 @@ export const useInvoiceOperations = (isQuote: boolean) => {
     }
   };
 
-  const handleStatusChange = async (invoiceId: string, newStatus: string) => {
-    const { error } = await supabase
-      .from("invoices")
-      .update({ status: newStatus })
-      .eq("id", invoiceId);
+  const generatePdf = async (invoiceId: string) => {
+    try {
+      const response = await fetch(
+        'https://seearalooznyeqkbtgwv.supabase.co/functions/v1/generate-pdf',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
+          body: JSON.stringify({ invoice_id: invoiceId }),
+        }
+      );
 
-    if (error) {
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erreur lors de la génération du PDF');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Erreur lors de la génération du PDF:', error);
+      throw error;
+    }
+  };
+
+  const handleStatusChange = async (invoiceId: string, newStatus: string) => {
+    try {
+      // Si on approuve un devis, générer d'abord le PDF de la facture
+      if (newStatus === 'approved') {
+        try {
+          await generatePdf(invoiceId);
+        } catch (error) {
+          console.error('Erreur lors de la génération du PDF:', error);
+          // On continue même si la génération de PDF échoue
+        }
+      }
+
+      const { error } = await supabase
+        .from("invoices")
+        .update({ status: newStatus })
+        .eq("id", invoiceId);
+
+      if (error) {
+        throw error;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      
+      if (newStatus === 'approved') {
+        toast({
+          title: "Succès",
+          description: "Le devis a été transformé en facture",
+        });
+      } else {
+        toast({
+          title: "Succès",
+          description: "Statut mis à jour",
+        });
+      }
+    } catch (error) {
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour le statut",
         variant: "destructive",
       });
-      return;
     }
-
-    queryClient.invalidateQueries({ queryKey: ["invoices"] });
-    toast({
-      title: "Succès",
-      description: "Statut mis à jour",
-    });
   };
 
   const handleDownload = async (pdfPath: string) => {
@@ -134,11 +181,40 @@ export const useInvoiceOperations = (isQuote: boolean) => {
     }
   };
 
+  const regeneratePdf = async (invoiceId: string) => {
+    try {
+      toast({
+        title: "Génération en cours",
+        description: "Le PDF est en cours de génération...",
+      });
+
+      const result = await generatePdf(invoiceId);
+      
+      if (result.success) {
+        toast({
+          title: "Succès",
+          description: "PDF généré avec succès",
+        });
+        
+        queryClient.invalidateQueries({ queryKey: ["invoices"] });
+        return result.pdf_path;
+      }
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de générer le PDF",
+        variant: "destructive",
+      });
+    }
+    return null;
+  };
+
   return {
     editingInvoice,
     setEditingInvoice,
     handleDelete,
     handleStatusChange,
     handleDownload,
+    regeneratePdf,
   };
 };

@@ -3,6 +3,12 @@ import { InvoiceForm } from "./InvoiceForm";
 import { InvoiceTable } from "./invoice/InvoiceTable";
 import { useInvoiceOperations } from "./invoice/useInvoiceOperations";
 
+interface ServiceItem {
+  description: string;
+  amount: number;
+  quantity: number;
+}
+
 interface Invoice {
   id: string;
   invoice_number: string;
@@ -15,6 +21,8 @@ interface Invoice {
   updated_at?: string;
   user_id?: string;
   description?: string;
+  rate_details?: ServiceItem[];
+  vat_rate?: number;
 }
 
 interface InvoiceListProps {
@@ -29,11 +37,14 @@ export const InvoiceList = ({ invoices, isQuote }: InvoiceListProps) => {
     handleDelete,
     handleStatusChange,
     handleDownload,
+    regeneratePdf,
   } = useInvoiceOperations(isQuote);
 
   const handleInvoiceDownload = (invoice: Invoice) => {
     if (invoice.pdf_path) {
       handleDownload(invoice.pdf_path);
+    } else if (invoice.id) {
+      regeneratePdf(invoice.id);
     }
   };
 
@@ -53,6 +64,7 @@ export const InvoiceList = ({ invoices, isQuote }: InvoiceListProps) => {
         onDelete={handleDelete}
         onDownload={handleInvoiceDownload}
         onStatusChange={handleStatusChange}
+        onRegeneratePdf={regeneratePdf}
       />
     </>
   );
