@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -164,19 +163,9 @@ export const useInvoiceOperations = (isQuote: boolean) => {
       }
 
       // Récupérer l'URL publique du fichier
-      const { data, error } = supabase.storage
+      const { data } = supabase.storage
         .from("invoices")
         .getPublicUrl(pdfPath);
-
-      if (error) {
-        console.error("Error getting public URL:", error);
-        toast({
-          title: "Erreur",
-          description: "Impossible de récupérer l'URL du fichier",
-          variant: "destructive",
-        });
-        return;
-      }
 
       if (!data?.publicUrl) {
         toast({

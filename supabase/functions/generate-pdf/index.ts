@@ -57,6 +57,39 @@ serve(async (req) => {
 
     console.log(`Found invoice: ${invoice.invoice_number}`)
 
+    // Vérifier que le bucket 'invoices' existe
+    const { data: buckets, error: bucketsError } = await supabaseClient
+      .storage
+      .listBuckets()
+
+    if (bucketsError) {
+      console.error('Error listing buckets:', bucketsError)
+      throw new Error('Failed to list storage buckets')
+    }
+
+    // Liste des buckets pour faciliter le debug
+    console.log('Available buckets:', buckets.map(b => b.id).join(', '))
+    
+    // Vérifier si le bucket 'invoices' existe
+    const invoicesBucket = buckets.find(bucket => bucket.id === 'invoices')
+    
+    if (!invoicesBucket) {
+      console.error('Bucket "invoices" not found')
+      
+      // Création automatique du bucket s'il n'existe pas
+      const { error: createBucketError } = await supabaseClient
+        .storage
+        .createBucket('invoices', { public: true })
+        
+      if (createBucketError) {
+        console.error('Error creating bucket:', createBucketError)
+        throw new Error('Failed to create "invoices" bucket')
+      }
+      console.log('Created "invoices" bucket')
+    } else {
+      console.log('Bucket "invoices" exists')
+    }
+
     // Create PDF
     const doc = new jsPDF()
     
@@ -83,10 +116,24 @@ serve(async (req) => {
     
     // Add services
     let yPos = 110
-    const services = invoice.rate_details || []
+    let services = []
+    
+    // Transformation des rate_details en tableau si c'est une chaîne JSON
+    if (typeof invoice.rate_details === 'string') {
+      try {
+        services = JSON.parse(invoice.rate_details)
+      } catch (e) {
+        console.error('Failed to parse rate_details:', e)
+        services = []
+      }
+    } else if (Array.isArray(invoice.rate_details)) {
+      services = invoice.rate_details
+    } else {
+      console.warn('rate_details is not an array or JSON string:', invoice.rate_details)
+    }
+    
     let subtotal = 0
     
-    // Vérifier que services est un tableau
     if (Array.isArray(services)) {
       services.forEach((service) => {
         doc.text(service.description, 20, yPos)
@@ -98,7 +145,7 @@ serve(async (req) => {
         yPos += 10
       })
     } else {
-      console.warn('rate_details is not an array:', services)
+      console.warn('services is not an array:', services)
     }
     
     // Add subtotal
@@ -137,28 +184,12 @@ serve(async (req) => {
     // Convert PDF to base64
     const pdfOutput = doc.output('arraybuffer')
     
-    // Vérifier si le bucket existe
-    const { data: buckets, error: bucketError } = await supabaseClient
-      .storage
-      .listBuckets()
-
-    if (bucketError) {
-      console.error('Error listing buckets:', bucketError)
-      throw new Error('Failed to list storage buckets')
-    }
-
-    const invoicesBucketExists = buckets.some(bucket => bucket.id === 'invoices')
-    
-    if (!invoicesBucketExists) {
-      console.error('Bucket "invoices" does not exist')
-      throw new Error('Storage bucket "invoices" does not exist')
-    }
-    
-    console.log('Bucket "invoices" exists, uploading PDF')
-    
     // Upload to Supabase Storage
     const fileName = `${invoice.status === 'pending' ? 'devis' : 'facture'}_${invoice.invoice_number}.pdf`
-    const { error: uploadError } = await supabaseClient.storage
+    
+    console.log(`Attempting to upload PDF with filename: ${fileName}`)
+    
+    const { data: uploadData, error: uploadError } = await supabaseClient.storage
       .from('invoices')
       .upload(fileName, pdfOutput, {
         contentType: 'application/pdf',
@@ -167,7 +198,7 @@ serve(async (req) => {
 
     if (uploadError) {
       console.error('Error uploading PDF:', uploadError)
-      throw new Error('Failed to upload PDF')
+      throw new Error(`Failed to upload PDF: ${uploadError.message}`)
     }
 
     console.log(`PDF uploaded successfully: ${fileName}`)
@@ -184,12 +215,20 @@ serve(async (req) => {
     }
 
     console.log(`Invoice updated with PDF path: ${fileName}`)
+    
+    // Récupérer et vérifier l'URL publique
+    const { data: publicUrlData } = await supabaseClient.storage
+      .from('invoices')
+      .getPublicUrl(fileName)
+      
+    console.log(`Public URL: ${publicUrlData?.publicUrl}`)
 
     // Return success response with PDF data
     return new Response(
       JSON.stringify({ 
         success: true, 
-        pdf_path: fileName 
+        pdf_path: fileName,
+        publicUrl: publicUrlData?.publicUrl
       }),
       { 
         headers: { 
