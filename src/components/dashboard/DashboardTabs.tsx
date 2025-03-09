@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useUser } from "@clerk/clerk-react"
@@ -30,6 +31,13 @@ const mapInvoiceData = (invoice: any) => {
     rate_details: rateDetails
   };
 };
+
+// Props for DashboardTabs
+interface DashboardTabsProps {
+  totalQuotes?: number;
+  totalInvoices?: number;
+  invoices?: any[];
+}
 
 export function DashboardTabs() {
   const [timeframe, setTimeframe] = useState<"7d" | "30d" | "90d">("30d")
@@ -86,6 +94,8 @@ export function DashboardTabs() {
   return (
     <DashboardShell>
       <DashboardHeader
+        title="Tableau de bord"
+        description="Vue d'ensemble de vos activités"
         isLoading={isLoading}
         revenue={214000}
         timeframe={timeframe}
