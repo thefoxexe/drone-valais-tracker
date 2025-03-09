@@ -16,17 +16,28 @@ serve(async (req) => {
   }
 
   try {
+    // Vérifier que la méthode est POST
+    if (req.method !== 'POST') {
+      throw new Error('Method not allowed')
+    }
+
     const { invoice_id } = await req.json()
 
     if (!invoice_id) {
       throw new Error('Invoice ID is required')
     }
 
-    // Initialize Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    console.log(`Generating PDF for invoice ID: ${invoice_id}`)
+
+    // Initialize Supabase client with service role key
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Supabase credentials are not configured')
+    }
+
+    const supabaseClient = createClient(supabaseUrl, supabaseKey)
 
     // Fetch invoice data
     const { data: invoice, error: invoiceError } = await supabaseClient
@@ -35,9 +46,16 @@ serve(async (req) => {
       .eq('id', invoice_id)
       .single()
 
-    if (invoiceError || !invoice) {
+    if (invoiceError) {
+      console.error('Error fetching invoice:', invoiceError)
       throw new Error('Invoice not found')
     }
+
+    if (!invoice) {
+      throw new Error('Invoice not found')
+    }
+
+    console.log(`Found invoice: ${invoice.invoice_number}`)
 
     // Create PDF
     const doc = new jsPDF()
@@ -68,15 +86,20 @@ serve(async (req) => {
     const services = invoice.rate_details || []
     let subtotal = 0
     
-    services.forEach((service: any) => {
-      doc.text(service.description, 20, yPos)
-      doc.text(service.amount.toFixed(2), 130, yPos)
-      doc.text(service.quantity.toString(), 150, yPos)
-      const amount = service.amount * service.quantity
-      subtotal += amount
-      doc.text(amount.toFixed(2), 180, yPos, { align: 'right' })
-      yPos += 10
-    })
+    // Vérifier que services est un tableau
+    if (Array.isArray(services)) {
+      services.forEach((service) => {
+        doc.text(service.description, 20, yPos)
+        doc.text(service.amount.toFixed(2), 130, yPos)
+        doc.text(service.quantity.toString(), 150, yPos)
+        const amount = service.amount * service.quantity
+        subtotal += amount
+        doc.text(amount.toFixed(2), 180, yPos, { align: 'right' })
+        yPos += 10
+      })
+    } else {
+      console.warn('rate_details is not an array:', services)
+    }
     
     // Add subtotal
     yPos += 5
@@ -86,8 +109,9 @@ serve(async (req) => {
     
     // Add VAT
     yPos += 10
-    const vatAmount = subtotal * (invoice.vat_rate / 100)
-    doc.text(`TVA (${invoice.vat_rate}%) CHF:`, 130, yPos)
+    const vatRate = invoice.vat_rate || 8.1
+    const vatAmount = subtotal * (vatRate / 100)
+    doc.text(`TVA (${vatRate}%) CHF:`, 130, yPos)
     doc.text(vatAmount.toFixed(2), 180, yPos, { align: 'right' })
     
     // Add total
@@ -113,6 +137,25 @@ serve(async (req) => {
     // Convert PDF to base64
     const pdfOutput = doc.output('arraybuffer')
     
+    // Vérifier si le bucket existe
+    const { data: buckets, error: bucketError } = await supabaseClient
+      .storage
+      .listBuckets()
+
+    if (bucketError) {
+      console.error('Error listing buckets:', bucketError)
+      throw new Error('Failed to list storage buckets')
+    }
+
+    const invoicesBucketExists = buckets.some(bucket => bucket.id === 'invoices')
+    
+    if (!invoicesBucketExists) {
+      console.error('Bucket "invoices" does not exist')
+      throw new Error('Storage bucket "invoices" does not exist')
+    }
+    
+    console.log('Bucket "invoices" exists, uploading PDF')
+    
     // Upload to Supabase Storage
     const fileName = `${invoice.status === 'pending' ? 'devis' : 'facture'}_${invoice.invoice_number}.pdf`
     const { error: uploadError } = await supabaseClient.storage
@@ -123,8 +166,11 @@ serve(async (req) => {
       })
 
     if (uploadError) {
+      console.error('Error uploading PDF:', uploadError)
       throw new Error('Failed to upload PDF')
     }
+
+    console.log(`PDF uploaded successfully: ${fileName}`)
 
     // Update invoice with PDF path
     const { error: updateError } = await supabaseClient
@@ -133,8 +179,11 @@ serve(async (req) => {
       .eq('id', invoice_id)
 
     if (updateError) {
+      console.error('Error updating invoice:', updateError)
       throw new Error('Failed to update invoice')
     }
+
+    console.log(`Invoice updated with PDF path: ${fileName}`)
 
     // Return success response with PDF data
     return new Response(

@@ -73,21 +73,30 @@ export const useInvoiceOperations = (isQuote: boolean) => {
 
   const generatePdf = async (invoiceId: string) => {
     try {
+      // Obtenir le token d'authentification
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      
+      if (!token) {
+        throw new Error("Vous devez être connecté pour générer un PDF");
+      }
+      
       const response = await fetch(
         'https://seearalooznyeqkbtgwv.supabase.co/functions/v1/generate-pdf',
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            'Authorization': `Bearer ${token}`,
           },
           body: JSON.stringify({ invoice_id: invoiceId }),
         }
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Erreur lors de la génération du PDF');
+        const errorData = await response.json();
+        console.error("PDF generation error response:", errorData);
+        throw new Error(errorData.error || 'Erreur lors de la génération du PDF');
       }
 
       return await response.json();
@@ -155,9 +164,19 @@ export const useInvoiceOperations = (isQuote: boolean) => {
       }
 
       // Récupérer l'URL publique du fichier
-      const { data } = supabase.storage
+      const { data, error } = supabase.storage
         .from("invoices")
         .getPublicUrl(pdfPath);
+
+      if (error) {
+        console.error("Error getting public URL:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de récupérer l'URL du fichier",
+          variant: "destructive",
+        });
+        return;
+      }
 
       if (!data?.publicUrl) {
         toast({
@@ -200,6 +219,7 @@ export const useInvoiceOperations = (isQuote: boolean) => {
         return result.pdf_path;
       }
     } catch (error) {
+      console.error("Error regenerating PDF:", error);
       toast({
         title: "Erreur",
         description: "Impossible de générer le PDF",
