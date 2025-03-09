@@ -192,9 +192,11 @@ export type Database = {
           invoice_date: string | null
           invoice_number: string
           pdf_path: string | null
+          rate_details: Json | null
           status: string
           updated_at: string | null
           user_id: string | null
+          vat_rate: number | null
         }
         Insert: {
           amount: number
@@ -205,9 +207,11 @@ export type Database = {
           invoice_date?: string | null
           invoice_number: string
           pdf_path?: string | null
+          rate_details?: Json | null
           status?: string
           updated_at?: string | null
           user_id?: string | null
+          vat_rate?: number | null
         }
         Update: {
           amount?: number
@@ -218,9 +222,11 @@ export type Database = {
           invoice_date?: string | null
           invoice_number?: string
           pdf_path?: string | null
+          rate_details?: Json | null
           status?: string
           updated_at?: string | null
           user_id?: string | null
+          vat_rate?: number | null
         }
         Relationships: []
       }
