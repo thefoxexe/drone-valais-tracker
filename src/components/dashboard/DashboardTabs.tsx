@@ -1,3 +1,4 @@
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InvoiceList } from "@/components/InvoiceList";
 import { Database } from "@/integrations/supabase/types";

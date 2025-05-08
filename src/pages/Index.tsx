@@ -1,3 +1,4 @@
+
 import { Auth } from "@supabase/auth-ui-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useRef } from "react";
@@ -5,7 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 declare global {
@@ -173,6 +174,19 @@ const Index = () => {
             },
           }}
         />
+      </div>
+      
+      {/* Footer avec cœur animé */}
+      <div className="absolute bottom-4 right-4 z-30 text-sm text-white/70">
+        <div className="flex items-center gap-1">
+          Conçu avec 
+          <span className="inline-block animate-pulse">
+            <Heart className="h-4 w-4 text-red-500 fill-red-500" />
+          </span>
+          par <a href="https://webalp.ch" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-colors">
+            WebAlp.ch
+          </a>
+        </div>
       </div>
     </div>
   );
